@@ -36,22 +36,6 @@ const HeroSection = ({ onExplore }: HeroSectionProps) => {
                 View Deals
               </Button>
             </div>
-
-            {/* Stats */}
-            <div className="flex gap-8 pt-4">
-              <div>
-                <div className="font-display font-bold text-2xl">50K+</div>
-                <div className="text-muted-foreground text-sm">Happy Customers</div>
-              </div>
-              <div>
-                <div className="font-display font-bold text-2xl">1000+</div>
-                <div className="text-muted-foreground text-sm">Products</div>
-              </div>
-              <div>
-                <div className="font-display font-bold text-2xl">99%</div>
-                <div className="text-muted-foreground text-sm">Satisfaction</div>
-              </div>
-            </div>
           </div>
 
           {/* Hero Image */}
