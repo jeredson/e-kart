@@ -155,8 +155,8 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
           
           {featuredProducts.length > 1 && (
             <>
-              <CarouselPrevious className="left-4 lg:-left-12" />
-              <CarouselNext className="right-4 lg:-right-12" />
+              <CarouselPrevious className="left-4 lg:-left-12 hidden sm:flex" />
+              <CarouselNext className="right-4 lg:-right-12 hidden sm:flex" />
             </>
           )}
         </Carousel>
