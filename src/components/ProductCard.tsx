@@ -78,7 +78,7 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         {/* Price */}
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-baseline gap-2">
-            <span className="font-display font-bold text-xl">₹{Number(product.price).toFixed(2)}</span>
+            <span className="font-display font-bold text-xl">₹{Number(product.price).toLocaleString('en-IN')}</span>
           </div>
           <Button size="sm" variant="secondary" onClick={handleAddToCart}>
             Add to Cart

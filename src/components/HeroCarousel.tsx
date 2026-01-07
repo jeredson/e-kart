@@ -3,6 +3,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFeaturedProducts } from '@/hooks/useProducts';
 import { useCart } from '@/contexts/CartContext';
+import ProductDetailModal from '@/components/ProductDetailModal';
 import {
   Carousel,
   CarouselContent,
@@ -20,6 +21,8 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
   const { data: featuredProducts, isLoading } = useFeaturedProducts();
   const { addToCart } = useCart();
   const [api, setApi] = useState<CarouselApi>();
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!api || !featuredProducts || featuredProducts.length <= 1) return;
@@ -92,7 +95,7 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
                     </p>
 
                     <div className="text-3xl font-bold text-primary">
-                      ₹{Number(product.price).toLocaleString()}
+                      ₹{Number(product.price).toLocaleString('en-IN')}
                     </div>
                     
                     <div className="flex flex-wrap gap-4">
@@ -114,7 +117,10 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
                         Add to Cart
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
-                      <Button size="lg" variant="outline" onClick={onExplore}>
+                      <Button size="lg" variant="outline" onClick={() => {
+                        setSelectedProduct(product);
+                        setIsModalOpen(true);
+                      }}>
                         View Product
                       </Button>
                     </div>
@@ -137,7 +143,7 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
                         </div>
                         <div>
                           <div className="font-semibold text-sm">{product.name}</div>
-                          <div className="text-primary font-bold">₹{Number(product.price).toLocaleString()}</div>
+                          <div className="text-primary font-bold">₹{Number(product.price).toLocaleString('en-IN')}</div>
                         </div>
                       </div>
                     </div>
@@ -154,6 +160,12 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
             </>
           )}
         </Carousel>
+        
+        <ProductDetailModal
+          product={selectedProduct}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </section>
   );
