@@ -25,11 +25,7 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
         <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 animate-slide-up">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                <Sparkles className="w-4 h-4" />
-                New Year Sale — Up to 40% Off
-              </div>
-              
+
               <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
                 Premium Tech
                 <span className="block text-primary">For Everyone</span>
@@ -73,11 +69,7 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
               <CarouselItem key={product.id}>
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                   <div className="space-y-6 animate-slide-up">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                      <Sparkles className="w-4 h-4" />
-                      {product.badge || 'Featured Product'}
-                    </div>
-                    
+
                     <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
                       {product.name}
                     </h1>
