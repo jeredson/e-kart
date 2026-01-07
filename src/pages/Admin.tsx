@@ -15,10 +15,17 @@ import { Zap, Plus, Pencil, Trash2, ArrowLeft, Loader2, Star } from 'lucide-reac
 import { toast } from 'sonner';
 import SpecificationsInput from '@/components/SpecificationsInput';
 
+interface SpecificationValue {
+  value: string;
+  color?: string;
+  image?: string;
+}
+
 interface SpecificationRow {
   key: string;
-  value: string;
+  values: SpecificationValue[];
 }
+
 const Admin = () => {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -78,12 +85,20 @@ const Admin = () => {
       badge: product.badge || '',
       in_stock: product.in_stock !== false,
     });
-    // Convert JSON specs to array format
-    const specs = product.specifications as Record<string, string> | null;
+    // Convert JSON specs to new array format
+    const specs = product.specifications as Record<string, any> | null;
     if (specs && typeof specs === 'object') {
-      setSpecifications(
-        Object.entries(specs).map(([key, value]) => ({ key, value: String(value) }))
-      );
+      const convertedSpecs: SpecificationRow[] = [];
+      Object.entries(specs).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          // New format with multiple values
+          convertedSpecs.push({ key, values: value });
+        } else {
+          // Old format - convert to new format
+          convertedSpecs.push({ key, values: [{ value: String(value) }] });
+        }
+      });
+      setSpecifications(convertedSpecs);
     } else {
       setSpecifications([]);
     }
@@ -99,12 +114,19 @@ const Admin = () => {
     }
 
     // Convert specifications array to object
-    let specsObject: Record<string, string> | undefined;
-    const validSpecs = specifications.filter(row => row.key.trim() && row.value.trim());
+    let specsObject: Record<string, any> | undefined;
+    const validSpecs = specifications.filter(row => row.key.trim() && row.values.some(v => v.value.trim()));
     if (validSpecs.length > 0) {
       specsObject = {};
       validSpecs.forEach(row => {
-        specsObject![row.key.trim()] = row.value.trim();
+        const cleanValues = row.values.filter(v => v.value.trim());
+        if (cleanValues.length === 1 && !cleanValues[0].color && !cleanValues[0].image) {
+          // Single value without color/image - store as string for backward compatibility
+          specsObject![row.key.trim()] = cleanValues[0].value.trim();
+        } else {
+          // Multiple values or values with color/image - store as array
+          specsObject![row.key.trim()] = cleanValues;
+        }
       });
     }
 

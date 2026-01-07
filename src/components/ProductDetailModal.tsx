@@ -6,6 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
 import ProductReviews from './ProductReviews';
+import { useState, useEffect } from 'react';
 
 interface ProductDetailModalProps {
   product: DbProduct | null;
@@ -15,6 +16,15 @@ interface ProductDetailModalProps {
 
 const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProps) => {
   const { addToCart } = useCart();
+  const [selectedImage, setSelectedImage] = useState('');
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (product) {
+      setSelectedImage(product.image || '/placeholder.svg');
+      setSelectedVariants({});
+    }
+  }, [product]);
 
   if (!product) return null;
 
@@ -34,6 +44,17 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       reviews: product.reviews_count || 0,
     });
     toast.success(`${product.name} added to cart!`);
+  };
+
+  const handleVariantSelect = (specKey: string, value: any) => {
+    setSelectedVariants(prev => ({ ...prev, [specKey]: value.value }));
+    if (value.image) {
+      setSelectedImage(value.image);
+    }
+  };
+
+  const isColorSpec = (key: string) => {
+    return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
   };
 
   return (
@@ -57,7 +78,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 <Badge className="absolute top-3 left-3 z-10 text-xs">{product.badge}</Badge>
               )}
               <img
-                src={product.image || '/placeholder.svg'}
+                src={selectedImage}
                 alt={product.name}
                 className="w-full h-full object-contain"
               />
@@ -113,13 +134,44 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               {specs && Object.keys(specs).length > 0 && (
                 <div className="mb-3">
                   <h3 className="font-semibold text-sm mb-2">Specifications</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs">
-                    {Object.entries(specs).slice(0, 4).map(([key, value]) => (
-                      <div key={key} className="flex justify-between p-1.5 bg-secondary rounded text-xs">
-                        <span className="text-muted-foreground truncate">{key}</span>
-                        <span className="font-medium truncate ml-2">{String(value)}</span>
-                      </div>
-                    ))}
+                  <div className="space-y-3">
+                    {Object.entries(specs).map(([key, value]) => {
+                      if (Array.isArray(value)) {
+                        return (
+                          <div key={key}>
+                            <div className="text-xs font-medium mb-1">{key}</div>
+                            <div className="flex flex-wrap gap-2">
+                              {value.map((item: any, idx: number) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => handleVariantSelect(key, item)}
+                                  className={`px-3 py-1.5 text-xs rounded border-2 transition-colors ${
+                                    selectedVariants[key] === item.value
+                                      ? 'border-primary bg-primary text-primary-foreground'
+                                      : 'border-border hover:border-primary'
+                                  }`}
+                                  style={isColorSpec(key) && item.color ? {
+                                    backgroundColor: selectedVariants[key] === item.value ? item.color : 'transparent',
+                                    borderColor: selectedVariants[key] === item.value ? item.color : undefined,
+                                    color: selectedVariants[key] === item.value ? '#fff' : undefined
+                                  } : {}}
+                                >
+                                  {item.value}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div key={key} className="flex justify-between p-1.5 bg-secondary rounded text-xs">
+                            <span className="text-muted-foreground truncate">{key}</span>
+                            <span className="font-medium truncate ml-2">{String(value)}</span>
+                          </div>
+                        );
+                      }
+                    })}
                   </div>
                 </div>
               )}
