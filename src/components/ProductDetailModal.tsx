@@ -59,7 +59,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               <img
                 src={product.image || '/placeholder.svg'}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
 

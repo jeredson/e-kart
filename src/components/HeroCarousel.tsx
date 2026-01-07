@@ -67,7 +67,7 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
               <img
                 src="https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=600&q=80"
                 alt="Latest smartphones and tech gadgets"
-                className="relative rounded-3xl shadow-elevated w-full object-cover aspect-[4/3]"
+                className="relative rounded-3xl shadow-elevated w-full object-contain aspect-[4/3]"
               />
             </div>
           </div>
@@ -133,7 +133,7 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
                     <img
                       src={product.image || 'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=600&q=80'}
                       alt={product.name}
-                      className="relative rounded-3xl shadow-elevated w-full object-cover aspect-[4/3]"
+                      className="relative rounded-3xl shadow-elevated w-full object-contain aspect-[4/3]"
                     />
                     
                     <div className="absolute -bottom-6 -left-6 bg-card p-4 rounded-2xl shadow-elevated animate-scale-in hidden sm:block">
