@@ -1,4 +1,5 @@
-import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFeaturedProducts } from '@/hooks/useProducts';
 import { useCart } from '@/contexts/CartContext';
@@ -8,6 +9,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  CarouselApi,
 } from '@/components/ui/carousel';
 
 interface HeroCarouselProps {
@@ -17,6 +19,17 @@ interface HeroCarouselProps {
 const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
   const { data: featuredProducts, isLoading } = useFeaturedProducts();
   const { addToCart } = useCart();
+  const [api, setApi] = useState<CarouselApi>();
+
+  useEffect(() => {
+    if (!api || !featuredProducts || featuredProducts.length <= 1) return;
+
+    const interval = setInterval(() => {
+      api.scrollNext();
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [api, featuredProducts]);
 
   // Fallback content when no featured products
   if (isLoading || !featuredProducts || featuredProducts.length === 0) {
@@ -63,7 +76,7 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
   return (
     <section className="relative overflow-hidden gradient-hero">
       <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-24">
-        <Carousel className="w-full" opts={{ loop: true }}>
+        <Carousel className="w-full" opts={{ loop: true }} setApi={setApi}>
           <CarouselContent>
             {featuredProducts.map((product) => (
               <CarouselItem key={product.id}>
@@ -102,7 +115,7 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
                       <Button size="lg" variant="outline" onClick={onExplore}>
-                        View All Products
+                        View Product
                       </Button>
                     </div>
 
