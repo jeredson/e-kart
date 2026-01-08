@@ -73,20 +73,42 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
           </div>
 
           {/* Key Specs */}
-          {product.specifications && (
-            <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-              {(() => {
-                const specs = product.specifications as Record<string, any>;
-                const items = [];
-                if (specs['RAM']) items.push(typeof specs['RAM'] === 'string' ? specs['RAM'] : specs['RAM'][0]?.value);
-                if (specs['Storage']) items.push(typeof specs['Storage'] === 'string' ? specs['Storage'] : specs['Storage'][0]?.value);
-                if (specs['Display']) items.push(typeof specs['Display'] === 'string' ? specs['Display'] : specs['Display'][0]?.value);
-                return items.slice(0, 3).map((item, i) => (
-                  <span key={i} className="truncate">{item}{i < items.length - 1 ? ' •' : ''}</span>
-                ));
-              })()}
-            </div>
-          )}
+          {product.specifications && (() => {
+            const specs = product.specifications as Record<string, any>;
+            const ram = specs['RAM'] || specs['ram'] || specs['Memory'];
+            const storage = specs['Storage'] || specs['storage'] || specs['ROM'];
+            
+            if (ram || storage) {
+              return (
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {ram && (
+                    <span className="bg-secondary px-2 py-0.5 rounded">
+                      RAM: {typeof ram === 'string' ? ram : ram[0]?.value || ram[0]}
+                    </span>
+                  )}
+                  {storage && (
+                    <span className="bg-secondary px-2 py-0.5 rounded">
+                      Storage: {typeof storage === 'string' ? storage : storage[0]?.value || storage[0]}
+                    </span>
+                  )}
+                </div>
+              );
+            } else {
+              const entries = Object.entries(specs).slice(0, 2);
+              if (entries.length > 0) {
+                return (
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {entries.map(([key, value]) => (
+                      <span key={key} className="bg-secondary px-2 py-0.5 rounded">
+                        {key}: {typeof value === 'string' ? value : Array.isArray(value) ? value[0]?.value || value[0] : String(value)}
+                      </span>
+                    ))}
+                  </div>
+                );
+              }
+            }
+            return null;
+          })()}
         </div>
 
         {/* Bottom Section */}
