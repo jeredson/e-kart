@@ -140,40 +140,40 @@ const ProductGrid = ({ selectedCategory, searchQuery, onCategoryChange }: Produc
         )}
 
         {/* Products Grid */}
-        <div className="flex-1">}
-      {filteredProducts.length > 0 ? (
-        <div className={isMobile 
-          ? "flex flex-col gap-3" 
-          : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        }>
-          {filteredProducts.map((product, index) => (
-            <div
-              key={product.id}
-              style={{ animationDelay: `${index * 50}ms` }}
-              className="animate-slide-up"
-            >
-              {isMobile ? (
-                <ProductCardMobile product={product} onClick={() => handleProductClick(product)} />
-              ) : (
-                <ProductCard product={product} onClick={() => handleProductClick(product)} />
-              )}
+        <div className="flex-1">
+          {filteredProducts.length > 0 ? (
+            <div className={isMobile 
+              ? "flex flex-col gap-3" 
+              : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            }>
+              {filteredProducts.map((product, index) => (
+                <div
+                  key={product.id}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  className="animate-slide-up"
+                >
+                  {isMobile ? (
+                    <ProductCardMobile product={product} onClick={() => handleProductClick(product)} />
+                  ) : (
+                    <ProductCard product={product} onClick={() => handleProductClick(product)} />
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-20">
-          <div className="w-24 h-24 rounded-full bg-secondary mx-auto flex items-center justify-center mb-4">
-            <span className="text-4xl">🔍</span>
-          </div>
-          <h3 className="font-display font-semibold text-xl mb-2">No products found</h3>
-          <p className="text-muted-foreground">
-            {products?.length === 0 
-              ? 'No products have been added yet. Check back soon!'
-              : 'Try adjusting your search or filter criteria'
-            }
-          </p>
-        </div>
-      )}
+          ) : (
+            <div className="text-center py-20">
+              <div className="w-24 h-24 rounded-full bg-secondary mx-auto flex items-center justify-center mb-4">
+                <span className="text-4xl">🔍</span>
+              </div>
+              <h3 className="font-display font-semibold text-xl mb-2">No products found</h3>
+              <p className="text-muted-foreground">
+                {products?.length === 0 
+                  ? 'No products have been added yet. Check back soon!'
+                  : 'Try adjusting your search or filter criteria'
+                }
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
