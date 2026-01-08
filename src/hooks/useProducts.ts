@@ -5,6 +5,8 @@ import { Json } from '@/integrations/supabase/types';
 
 export interface DbProduct {
   id: string;
+  brand: string | null;
+  model: string | null;
   name: string;
   description: string | null;
   price: number;
@@ -104,6 +106,8 @@ export const useCreateProduct = () => {
 
   return useMutation({
     mutationFn: async (product: {
+      brand: string;
+      model: string;
       name: string;
       description?: string;
       price: number;
@@ -138,6 +142,8 @@ export const useUpdateProduct = () => {
   return useMutation({
     mutationFn: async ({ id, ...product }: {
       id: string;
+      brand?: string;
+      model?: string;
       name?: string;
       description?: string;
       price?: number;

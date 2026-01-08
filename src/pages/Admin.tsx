@@ -43,6 +43,8 @@ const Admin = () => {
   const [newCategoryName, setNewCategoryName] = useState('');
 
   const [formData, setFormData] = useState({
+    brand: '',
+    model: '',
     name: '',
     description: '',
     price: '',
@@ -62,6 +64,8 @@ const Admin = () => {
 
   const resetForm = () => {
     setFormData({
+      brand: '',
+      model: '',
       name: '',
       description: '',
       price: '',
@@ -77,6 +81,8 @@ const Admin = () => {
   const openEditDialog = (product: DbProduct) => {
     setEditingProduct(product);
     setFormData({
+      brand: product.brand || '',
+      model: product.model || '',
       name: product.name,
       description: product.description || '',
       price: String(product.price),
@@ -108,10 +114,13 @@ const Admin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.price) {
-      toast.error('Name and price are required');
+    if (!formData.brand || !formData.model || !formData.price) {
+      toast.error('Brand, model, and price are required');
       return;
     }
+
+    // Auto-generate name from brand and model
+    const productName = `${formData.brand} ${formData.model}`.trim();
 
     // Convert specifications array to object
     let specsObject: Record<string, any> | undefined;
@@ -131,7 +140,9 @@ const Admin = () => {
     }
 
     const productData = {
-      name: formData.name,
+      brand: formData.brand,
+      model: formData.model,
+      name: productName,
       description: formData.description || undefined,
       price: parseFloat(formData.price),
       image: formData.image || undefined,
@@ -215,14 +226,25 @@ const Admin = () => {
                 <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Product name"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="brand">Brand *</Label>
+                    <Input
+                      id="brand"
+                      value={formData.brand}
+                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                      placeholder="e.g., Samsung"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="model">Model *</Label>
+                    <Input
+                      id="model"
+                      value={formData.model}
+                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                      placeholder="e.g., Galaxy S24"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

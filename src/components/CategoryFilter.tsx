@@ -1,5 +1,7 @@
 import { useCategories } from '@/hooks/useProducts';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 interface CategoryFilterProps {
@@ -9,7 +11,28 @@ interface CategoryFilterProps {
 
 const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
   const { data: categories } = useCategories();
+  const isMobile = useIsMobile();
 
+  // Mobile: Dropdown
+  if (isMobile) {
+    return (
+      <Select value={selected} onValueChange={onSelect}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select category" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">🛍️ All Products</SelectItem>
+          {categories?.map((category) => (
+            <SelectItem key={category.id} value={category.id}>
+              {category.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+
+  // Desktop: Buttons
   return (
     <div className="flex flex-wrap gap-2">
       <Button
