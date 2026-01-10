@@ -15,6 +15,7 @@ import { Zap, Plus, Pencil, Trash2, ArrowLeft, Loader2, Star } from 'lucide-reac
 import { toast } from 'sonner';
 import SpecificationsInput from '@/components/SpecificationsInput';
 import { ImageUpload } from '@/components/ImageUpload';
+import { VariantPricingInput } from '@/components/VariantPricingInput';
 
 interface SpecificationValue {
   value: string;
@@ -55,6 +56,7 @@ const Admin = () => {
     in_stock: true,
   });
   const [specifications, setSpecifications] = useState<SpecificationRow[]>([]);
+  const [variantPricing, setVariantPricing] = useState<Record<string, Record<string, number>>>({});
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -76,6 +78,7 @@ const Admin = () => {
       in_stock: true,
     });
     setSpecifications([]);
+    setVariantPricing({});
     setEditingProduct(null);
   };
 
@@ -98,10 +101,8 @@ const Admin = () => {
       const convertedSpecs: SpecificationRow[] = [];
       Object.entries(specs).forEach(([key, value]) => {
         if (Array.isArray(value)) {
-          // New format with multiple values
           convertedSpecs.push({ key, values: value });
         } else {
-          // Old format - convert to new format
           convertedSpecs.push({ key, values: [{ value: String(value) }] });
         }
       });
@@ -109,6 +110,8 @@ const Admin = () => {
     } else {
       setSpecifications([]);
     }
+    // Load variant pricing
+    setVariantPricing((product.variant_pricing as Record<string, Record<string, number>>) || {});
     setIsProductDialogOpen(true);
   };
 
@@ -151,6 +154,7 @@ const Admin = () => {
       badge: formData.badge || undefined,
       in_stock: formData.in_stock,
       specifications: specsObject,
+      variant_pricing: Object.keys(variantPricing).length > 0 ? variantPricing : undefined,
     };
 
     if (editingProduct) {
@@ -319,6 +323,11 @@ const Admin = () => {
                 <SpecificationsInput
                   specifications={specifications}
                   onChange={setSpecifications}
+                />
+
+                <VariantPricingInput
+                  value={variantPricing}
+                  onChange={setVariantPricing}
                 />
 
                 <Button type="submit" className="w-full" disabled={createProduct.isPending || updateProduct.isPending}>

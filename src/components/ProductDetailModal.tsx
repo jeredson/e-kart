@@ -6,7 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
 import ProductReviews from './ProductReviews';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 interface ProductDetailModalProps {
   product: DbProduct | null;
@@ -32,18 +32,42 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     ? product.specifications as Record<string, unknown>
     : null;
 
+  // Calculate dynamic price based on selected variants
+  const currentPrice = useMemo(() => {
+    const variantPricing = product.variant_pricing as Record<string, Record<string, number>> | null;
+    
+    if (!variantPricing || Object.keys(selectedVariants).length === 0) {
+      return Number(product.price);
+    }
+
+    // Create variant key from selected options (e.g., "8GB_128GB")
+    const variantKey = Object.values(selectedVariants).join('_');
+    
+    // Check all pricing groups for matching variant
+    for (const pricingGroup of Object.values(variantPricing)) {
+      if (pricingGroup[variantKey]) {
+        return pricingGroup[variantKey];
+      }
+    }
+
+    return Number(product.price);
+  }, [product, selectedVariants]);
+
   const handleAddToCart = () => {
     addToCart({
       id: product.id,
       name: product.name,
       description: product.description || '',
-      price: Number(product.price),
+      price: currentPrice,
       image: product.image || '',
       category: product.category?.name || 'General',
       rating: Number(product.rating) || 4.5,
       reviews: product.reviews_count || 0,
     });
-    toast.success(`${product.name} added to cart!`);
+    const variantText = Object.keys(selectedVariants).length > 0 
+      ? ` (${Object.values(selectedVariants).join(', ')})`
+      : '';
+    toast.success(`${product.name}${variantText} added to cart!`);
   };
 
   const handleVariantSelect = (specKey: string, value: any) => {
@@ -109,7 +133,10 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
               {/* Price */}
               <div className="flex items-baseline gap-2 mb-2">
-                <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{Number(product.price).toLocaleString('en-IN')}</span>
+                <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
+                {currentPrice !== Number(product.price) && (
+                  <span className="text-muted-foreground line-through text-sm">₹{Number(product.price).toLocaleString('en-IN')}</span>
+                )}
               </div>
 
               {/* Stock Status */}
