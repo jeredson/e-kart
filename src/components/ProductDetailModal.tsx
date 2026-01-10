@@ -6,7 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
 import ProductReviews from './ProductReviews';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ProductDetailModalProps {
   product: DbProduct | null;
@@ -33,19 +33,15 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     : null;
 
   // Calculate dynamic price based on selected variants
-  const currentPrice = useMemo(() => {
-    if (!product) return 0;
-    
+  const getPrice = () => {
     const variantPricing = product.variant_pricing as Record<string, Record<string, number>> | null;
     
     if (!variantPricing || Object.keys(selectedVariants).length === 0) {
       return Number(product.price);
     }
 
-    // Create variant key from selected options (e.g., "8GB_128GB")
     const variantKey = Object.values(selectedVariants).join('_');
     
-    // Check all pricing groups for matching variant
     for (const pricingGroup of Object.values(variantPricing)) {
       if (pricingGroup[variantKey]) {
         return pricingGroup[variantKey];
@@ -53,7 +49,9 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     }
 
     return Number(product.price);
-  }, [selectedVariants, product]);
+  };
+
+  const currentPrice = getPrice();
 
   const handleAddToCart = () => {
     addToCart({
