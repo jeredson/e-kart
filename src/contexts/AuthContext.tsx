@@ -21,14 +21,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAdminRole = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', userId)
       .maybeSingle();
     
-    setIsAdmin(!!data);
+    console.log('Admin check:', { userId, data, error, isAdmin: data?.is_admin });
+    setIsAdmin(data?.is_admin || false);
   };
 
   useEffect(() => {
