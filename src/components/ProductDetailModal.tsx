@@ -147,9 +147,6 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               {/* Price */}
               <div className="flex items-baseline gap-2 mb-2">
                 <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
-                {currentPrice !== Number(product.price) && (
-                  <span className="text-muted-foreground line-through text-sm">₹{Number(product.price).toLocaleString('en-IN')}</span>
-                )}
               </div>
 
               {/* Stock Status */}
