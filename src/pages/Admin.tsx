@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Zap, Plus, Pencil, Trash2, ArrowLeft, Loader2, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import SpecificationsInput from '@/components/SpecificationsInput';
+import { ImageUpload } from '@/components/ImageUpload';
 
 interface SpecificationValue {
   value: string;
@@ -270,26 +271,21 @@ const Admin = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="badge">Badge</Label>
-                    <Input
-                      id="badge"
-                      value={formData.badge}
-                      onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                      placeholder="New, Sale, etc."
-                    />
-                  </div>
-                </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="image">Image URL</Label>
+                  <Label htmlFor="badge">Badge</Label>
                   <Input
-                    id="image"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://..."
+                    id="badge"
+                    value={formData.badge}
+                    onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                    placeholder="New, Sale, etc."
                   />
                 </div>
+
+                <ImageUpload
+                  value={formData.image}
+                  onChange={(url) => setFormData({ ...formData, image: url })}
+                  label="Product Image"
+                />
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
