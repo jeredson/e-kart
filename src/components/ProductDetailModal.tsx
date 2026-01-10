@@ -34,6 +34,8 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
   // Calculate dynamic price based on selected variants
   const currentPrice = useMemo(() => {
+    if (!product) return 0;
+    
     const variantPricing = product.variant_pricing as Record<string, Record<string, number>> | null;
     
     if (!variantPricing || Object.keys(selectedVariants).length === 0) {
@@ -51,7 +53,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     }
 
     return Number(product.price);
-  }, [product, selectedVariants]);
+  }, [selectedVariants, product]);
 
   const handleAddToCart = () => {
     addToCart({
