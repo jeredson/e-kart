@@ -271,14 +271,15 @@ const Admin = () => {
                     />
                   </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="badge">Badge</Label>
-                  <Input
-                    id="badge"
-                    value={formData.badge}
-                    onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                    placeholder="New, Sale, etc."
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="badge">Badge</Label>
+                    <Input
+                      id="badge"
+                      value={formData.badge}
+                      onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                      placeholder="New, Sale, etc."
+                    />
+                  </div>
                 </div>
 
                 <ImageUpload
