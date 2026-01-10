@@ -40,11 +40,24 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       return Number(product.price);
     }
 
+    // Try exact match first (e.g., "8GB_128GB")
     const variantKey = Object.values(selectedVariants).join('_');
     
     for (const pricingGroup of Object.values(variantPricing)) {
       if (pricingGroup[variantKey]) {
         return pricingGroup[variantKey];
+      }
+      
+      // Try partial match (e.g., just "128GB" when only storage is selected)
+      for (const [key, price] of Object.entries(pricingGroup)) {
+        const keyParts = key.split('_');
+        const selectedValues = Object.values(selectedVariants);
+        
+        // Check if all selected values are in this variant key
+        const allMatch = selectedValues.every(val => keyParts.includes(val));
+        if (allMatch && keyParts.length === selectedValues.length) {
+          return price;
+        }
       }
     }
 
