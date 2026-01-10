@@ -36,12 +36,24 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const getPrice = () => {
     const variantPricing = product.variant_pricing as Record<string, Record<string, number>> | null;
     
-    if (!variantPricing || Object.keys(selectedVariants).length === 0) {
+    if (!variantPricing) {
+      return Number(product.price);
+    }
+
+    // Filter out color variants for pricing (color doesn't affect price)
+    const pricingVariants: Record<string, string> = {};
+    Object.entries(selectedVariants).forEach(([key, value]) => {
+      if (!isColorSpec(key)) {
+        pricingVariants[key] = value;
+      }
+    });
+
+    if (Object.keys(pricingVariants).length === 0) {
       return Number(product.price);
     }
 
     // Try exact match first (e.g., "8GB_128GB")
-    const variantKey = Object.values(selectedVariants).join('_');
+    const variantKey = Object.values(pricingVariants).join('_');
     
     for (const pricingGroup of Object.values(variantPricing)) {
       if (pricingGroup[variantKey]) {
@@ -51,7 +63,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       // Try partial match (e.g., just "128GB" when only storage is selected)
       for (const [key, price] of Object.entries(pricingGroup)) {
         const keyParts = key.split('_');
-        const selectedValues = Object.values(selectedVariants);
+        const selectedValues = Object.values(pricingVariants);
         
         // Check if all selected values are in this variant key
         const allMatch = selectedValues.every(val => keyParts.includes(val));
@@ -62,6 +74,10 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     }
 
     return Number(product.price);
+  };
+
+  const isColorSpec = (key: string) => {
+    return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
   };
 
   const currentPrice = getPrice();
@@ -88,10 +104,6 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     if (value.image) {
       setSelectedImage(value.image);
     }
-  };
-
-  const isColorSpec = (key: string) => {
-    return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
   };
 
   return (
