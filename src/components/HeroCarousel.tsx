@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useFeaturedProducts } from '@/hooks/useProducts';
 import { useCart } from '@/contexts/CartContext';
 import ProductDetailModal from '@/components/ProductDetailModal';
-import { Button } from '@/components/ui/button';
-import { ShoppingCart } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
@@ -39,39 +39,30 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-background via-secondary/20 to-background">
-      <div className="container mx-auto px-4 lg:px-8 py-12 lg:py-20">
+    <section className="relative overflow-hidden gradient-hero">
+      <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-24">
         <Carousel className="w-full" opts={{ loop: true }} setApi={setApi}>
           <CarouselContent>
             {featuredProducts.map((product) => (
               <CarouselItem key={product.id}>
-                <div className="flex flex-col items-center justify-center text-center space-y-6">
-                  {/* Product Image */}
-                  <div className="relative w-full max-w-2xl aspect-square">
-                    <img
-                      src={product.image || '/placeholder.svg'}
-                      alt={product.name}
-                      className="w-full h-full object-contain rounded-2xl"
-                    />
-                  </div>
-
-                  {/* Product Info */}
-                  <div className="space-y-4 max-w-2xl">
-                    <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold">
+                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                  <div className="space-y-6 animate-slide-up">
+                    <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
                       {product.name}
-                    </h2>
+                    </h1>
                     
-                    <p className="text-muted-foreground text-lg line-clamp-2">
-                      {product.description}
+                    <p className="text-muted-foreground text-lg max-w-md line-clamp-3">
+                      {product.description || 'Discover our premium selection of tech products.'}
                     </p>
 
-                    <div className="text-4xl font-bold text-primary">
+                    <div className="text-3xl font-bold text-primary">
                       ₹{Number(product.price).toLocaleString('en-IN')}
                     </div>
                     
-                    <div className="flex flex-wrap gap-4 justify-center">
+                    <div className="flex flex-wrap gap-4">
                       <Button 
                         size="lg" 
+                        className="shadow-glow group"
                         onClick={() => addToCart({
                           id: product.id,
                           name: product.name,
@@ -84,20 +75,25 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
                           badge: product.badge || undefined,
                         })}
                       >
-                        <ShoppingCart className="w-4 h-4 mr-2" />
                         Add to Cart
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
-                      <Button 
-                        size="lg" 
-                        variant="outline" 
-                        onClick={() => {
-                          setSelectedProduct(product);
-                          setIsModalOpen(true);
-                        }}
-                      >
-                        View Details
+                      <Button size="lg" variant="outline" onClick={() => {
+                        setSelectedProduct(product);
+                        setIsModalOpen(true);
+                      }}>
+                        View Product
                       </Button>
                     </div>
+                  </div>
+
+                  <div className="relative animate-fade-in">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-3xl blur-3xl" />
+                    <img
+                      src={product.image || '/placeholder.svg'}
+                      alt={product.name}
+                      className="relative rounded-3xl shadow-elevated w-full object-contain aspect-[4/3]"
+                    />
                   </div>
                 </div>
               </CarouselItem>
@@ -106,8 +102,8 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
           
           {featuredProducts.length > 1 && (
             <>
-              <CarouselPrevious className="left-4 lg:-left-12" />
-              <CarouselNext className="right-4 lg:-right-12" />
+              <CarouselPrevious className="left-4 lg:-left-12 hidden sm:flex" />
+              <CarouselNext className="right-4 lg:-right-12 hidden sm:flex" />
             </>
           )}
         </Carousel>
