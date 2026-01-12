@@ -77,17 +77,17 @@ const FeaturedProductsCarousel = () => {
                 <div key={product.id} className="w-full flex-shrink-0 px-2">
                   <Card className="mx-auto max-w-4xl">
                     <CardContent className="p-4">
-                      <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+                      <div className="flex gap-4 items-start">
                         <img
                           src={product.image || '/placeholder.svg'}
                           alt={product.name}
-                          className="w-32 h-32 sm:w-48 sm:h-48 object-contain rounded-lg flex-shrink-0 bg-secondary"
+                          className="w-20 h-20 sm:w-32 sm:h-32 md:w-48 md:h-48 object-contain rounded-lg flex-shrink-0 bg-secondary"
                         />
                         
-                        <div className="flex-1 min-w-0 flex flex-col justify-center text-center sm:text-left">
-                          <h3 className="text-lg sm:text-2xl font-bold mb-2">{product.name}</h3>
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                          <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2">{product.name}</h3>
                           
-                          <div className="text-xl sm:text-3xl font-bold text-primary mb-3">
+                          <div className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-3">
                             ₹{Number(displayPrice).toLocaleString('en-IN')}
                           </div>
                           
