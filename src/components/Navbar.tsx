@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, X, Zap, LogOut, Shield } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Zap, LogOut, Shield, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCart } from '@/contexts/CartContext';
@@ -94,17 +94,24 @@ const Navbar = ({ onSearch }: NavbarProps) => {
                     {user.email}
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
                         <Link to="/admin" className="flex items-center">
                           <Shield className="w-4 h-4 mr-2" />
                           Admin Panel
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                     </>
                   )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
@@ -150,6 +157,12 @@ const Navbar = ({ onSearch }: NavbarProps) => {
               {user ? (
                 <>
                   <div className="px-4 py-2 text-sm text-muted-foreground">{user.email}</div>
+                  <Button variant="ghost" className="justify-start" asChild>
+                    <Link to="/settings">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Link>
+                  </Button>
                   {isAdmin && (
                     <Button variant="ghost" className="justify-start" asChild>
                       <Link to="/admin">

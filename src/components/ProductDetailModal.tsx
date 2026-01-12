@@ -1,11 +1,14 @@
-import { Star, ShoppingCart, X, Check, Package } from 'lucide-react';
+import { Star, ShoppingCart, X, Check, Package, Heart } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/contexts/CartContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
 import ProductReviews from './ProductReviews';
+import SignInDialog from './SignInDialog';
 import { useState, useEffect } from 'react';
 
 interface ProductDetailModalProps {
@@ -16,8 +19,11 @@ interface ProductDetailModalProps {
 
 const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProps) => {
   const { addToCart } = useCart();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -139,6 +145,10 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const discountPercent = getDiscountPercentage();
 
   const handleAddToCart = () => {
+    if (!user) {
+      setShowSignInDialog(true);
+      return;
+    }
     addToCart({
       id: product.id,
       name: product.name,
@@ -153,6 +163,18 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       ? ` (${Object.values(selectedVariants).join(', ')})`
       : '';
     toast.success(`${product.name}${variantText} added to cart!`);
+  };
+
+  const handleFavoriteClick = () => {
+    if (!user) {
+      setShowSignInDialog(true);
+      return;
+    }
+    if (isFavorite(product.id)) {
+      removeFavorite(product.id);
+    } else {
+      addFavorite(product.id);
+    }
   };
 
   const handleVariantSelect = (specKey: string, value: any) => {
@@ -181,6 +203,14 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               {product.badge && (
                 <Badge className="absolute top-3 left-3 z-10 text-xs">{product.badge}</Badge>
               )}
+              <Button
+                size="icon"
+                variant="secondary"
+                className="absolute top-3 right-3 z-10 h-9 w-9 rounded-full shadow-md"
+                onClick={handleFavoriteClick}
+              >
+                <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+              </Button>
               <img
                 src={selectedImage}
                 alt={product.name}
@@ -312,6 +342,8 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
             </div>
           </div>
         </div>
+
+        <SignInDialog open={showSignInDialog} onOpenChange={setShowSignInDialog} />
       </DialogContent>
     </Dialog>
   );

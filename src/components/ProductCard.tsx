@@ -1,9 +1,13 @@
-import { Star, ShoppingCart } from 'lucide-react';
+import { Star, ShoppingCart, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/contexts/CartContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
+import { useState } from 'react';
+import SignInDialog from './SignInDialog';
 
 interface ProductCardProps {
   product: DbProduct;
@@ -12,6 +16,9 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const { addToCart } = useCart();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const { user } = useAuth();
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
 
   const getDiscountPercentage = () => {
     if (product.original_price && product.discounted_price) {
@@ -26,6 +33,10 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      setShowSignInDialog(true);
+      return;
+    }
     addToCart({
       id: product.id,
       name: product.name,
@@ -39,6 +50,19 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
     toast.success(`${product.name} added to cart!`);
   };
 
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      setShowSignInDialog(true);
+      return;
+    }
+    if (isFavorite(product.id)) {
+      removeFavorite(product.id);
+    } else {
+      addFavorite(product.id);
+    }
+  };
+
   return (
     <div
       className="group relative bg-card rounded-2xl overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 animate-fade-in cursor-pointer"
@@ -48,6 +72,16 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
       {product.badge && (
         <Badge className="absolute top-4 left-4 z-10">{product.badge}</Badge>
       )}
+
+      {/* Favorite Button */}
+      <Button
+        size="icon"
+        variant="secondary"
+        className="absolute top-4 right-4 z-10 h-9 w-9 rounded-full shadow-md"
+        onClick={handleFavoriteClick}
+      >
+        <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+      </Button>
 
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-secondary">
@@ -113,6 +147,8 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
           </Button>
         </div>
       </div>
+
+      <SignInDialog open={showSignInDialog} onOpenChange={setShowSignInDialog} />
     </div>
   );
 };

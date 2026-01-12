@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Zap, Mail, Lock, Loader2, User, Phone, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import ImageCropper from '@/components/ImageCropper';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -16,8 +17,9 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [cropSrc, setCropSrc] = useState('');
   const [avatarPreview, setAvatarPreview] = useState('');
+  const [croppedBlob, setCroppedBlob] = useState<Blob | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
@@ -29,19 +31,25 @@ const Auth = () => {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onload = () => setCropSrc(reader.result as string);
+      reader.readAsDataURL(file);
     }
   };
 
-  const uploadAvatar = async (userId: string) => {
-    if (!avatarFile) return null;
+  const handleCropComplete = (blob: Blob) => {
+    setCroppedBlob(blob);
+    setAvatarPreview(URL.createObjectURL(blob));
+    setCropSrc('');
+  };
 
-    const fileExt = avatarFile.name.split('.').pop();
-    const fileName = `${userId}.${fileExt}`;
-    const { data, error } = await supabase.storage
+  const uploadAvatar = async (userId: string) => {
+    if (!croppedBlob) return null;
+
+    const fileName = `${userId}.jpg`;
+    const { error } = await supabase.storage
       .from('avatars')
-      .upload(fileName, avatarFile, { upsert: true });
+      .upload(fileName, croppedBlob, { upsert: true });
 
     if (error) {
       console.error('Avatar upload error:', error);
@@ -259,6 +267,14 @@ const Auth = () => {
           </Tabs>
         </Card>
       </div>
+
+      {cropSrc && (
+        <ImageCropper
+          src={cropSrc}
+          onCropComplete={handleCropComplete}
+          onCancel={() => setCropSrc('')}
+        />
+      )}
     </div>
   );
 };
