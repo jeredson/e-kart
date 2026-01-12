@@ -158,16 +158,41 @@ const Navbar = ({ onSearch }: NavbarProps) => {
               </SheetTrigger>
               <SheetContent side="top" className="h-auto">
                 <form onSubmit={handleSearch} className="pt-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <div className="relative" ref={searchRef}>
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
                     <Input
                       type="text"
                       placeholder="Search products..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => searchQuery.length > 1 && setShowSearchResults(true)}
                       className="pl-10"
                       autoFocus
                     />
+                    {showSearchResults && searchResults.length > 0 && (
+                      <div className="absolute top-full mt-2 w-full bg-background border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                        {searchResults.map((product) => (
+                          <button
+                            key={product.id}
+                            onClick={() => handleProductClick(product)}
+                            className="w-full flex items-center gap-3 p-3 hover:bg-secondary transition-colors text-left"
+                          >
+                            <img
+                              src={product.image || '/placeholder.svg'}
+                              alt={product.name}
+                              className="w-12 h-12 object-cover rounded"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{product.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{product.brand} {product.model}</p>
+                              <p className="text-sm font-semibold text-primary mt-1">
+                                ₹{Number(product.discounted_price || product.price).toLocaleString('en-IN')}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </form>
               </SheetContent>
