@@ -10,6 +10,7 @@ import { Loader2, Upload, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useCloudinaryProfileUpload } from '@/hooks/useCloudinaryProfileUpload';
+import ImageCropper from '@/components/ImageCropper';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ const Settings = () => {
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [cropSrc, setCropSrc] = useState('');
   const { uploadProfileImage, isUploading } = useCloudinaryProfileUpload();
 
   useEffect(() => {
@@ -45,17 +47,25 @@ const Settings = () => {
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const uploadedUrl = await uploadProfileImage(file);
-      if (uploadedUrl) {
-        setAvatarUrl(uploadedUrl);
-        toast.success('Profile picture uploaded successfully');
-      } else {
-        toast.error('Failed to upload profile picture');
-      }
+      const reader = new FileReader();
+      reader.onload = () => setCropSrc(reader.result as string);
+      reader.readAsDataURL(file);
     }
+  };
+
+  const handleCropComplete = async (blob: Blob) => {
+    const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+    const uploadedUrl = await uploadProfileImage(file);
+    if (uploadedUrl) {
+      setAvatarUrl(uploadedUrl);
+      toast.success('Profile picture uploaded successfully');
+    } else {
+      toast.error('Failed to upload profile picture');
+    }
+    setCropSrc('');
   };
 
   const handleSave = async () => {
@@ -107,15 +117,12 @@ const Settings = () => {
                   accept="image/*" 
                   onChange={handleAvatarChange} 
                   className="hidden" 
-                  disabled={isUploading || isLoading}
+                  disabled={isLoading}
                 />
-                <Button variant="outline" size="sm" asChild disabled={isUploading || isLoading}>
+                <Button variant="outline" size="sm" asChild disabled={isLoading}>
                   <span className="cursor-pointer">
-                    {isUploading ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Uploading...</>
-                    ) : (
-                      <><Upload className="w-4 h-4 mr-2" />Change Photo</>
-                    )}
+                    <Upload className="w-4 h-4 mr-2" />
+                    Change Photo
                   </span>
                 </Button>
               </label>
@@ -159,11 +166,19 @@ const Settings = () => {
             </div>
 
             <Button onClick={handleSave} disabled={isLoading || isUploading} className="w-full">
-              {isLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : 'Save Changes'}
+              {isLoading || isUploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : 'Save Changes'}
             </Button>
           </CardContent>
         </Card>
       </div>
+
+      {cropSrc && (
+        <ImageCropper
+          src={cropSrc}
+          onCropComplete={handleCropComplete}
+          onCancel={() => setCropSrc('')}
+        />
+      )}
     </div>
   );
 };

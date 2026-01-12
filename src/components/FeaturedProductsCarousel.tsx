@@ -60,9 +60,9 @@ const FeaturedProductsCarousel = () => {
   };
 
   return (
-    <section className="py-16 bg-muted/30">
+    <section className="py-8 md:py-16 bg-muted/30">
       <div className="container mx-auto px-4 lg:px-8">
-        <h2 className="text-3xl font-bold text-center mb-12">Featured Products</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Featured Products</h2>
         
         <div className="relative overflow-hidden">
           <div 
@@ -75,37 +75,55 @@ const FeaturedProductsCarousel = () => {
               
               return (
                 <div key={product.id} className="w-full flex-shrink-0 px-2">
-                  <Card className="mx-auto max-w-4xl">
-                    <CardContent className="p-4">
-                      <div className="flex gap-4 items-start">
-                        <img
-                          src={product.image || '/placeholder.svg'}
-                          alt={product.name}
-                          className="w-20 h-20 sm:w-32 sm:h-32 md:w-48 md:h-48 object-contain rounded-lg flex-shrink-0 bg-secondary"
-                        />
+                  <Card className="mx-auto max-w-4xl bg-background border shadow-lg">
+                    <CardContent className="p-4 md:p-6">
+                      <div className="flex gap-4 md:gap-6 items-center">
+                        <div className="relative bg-secondary rounded-lg p-2 md:p-4 flex-shrink-0">
+                          <img
+                            src={product.image || '/placeholder.svg'}
+                            alt={product.name}
+                            className="w-24 h-24 md:w-48 md:h-48 object-contain"
+                          />
+                        </div>
                         
-                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                          <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2">{product.name}</h3>
-                          
-                          <div className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-3">
-                            ₹{Number(displayPrice).toLocaleString('en-IN')}
+                        <div className="flex-1 min-w-0 space-y-2 md:space-y-4">
+                          <div>
+                            <h3 className="text-lg md:text-2xl lg:text-3xl font-bold text-foreground leading-tight">
+                              {product.name}
+                            </h3>
+                            {product.description && (
+                              <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2">
+                                {product.description}
+                              </p>
+                            )}
                           </div>
                           
-                          <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="text-xl md:text-2xl lg:text-3xl font-bold text-primary">
+                            ₹{Number(displayPrice).toLocaleString('en-IN')}
+                            {product.original_price && product.original_price > displayPrice && (
+                              <span className="text-sm md:text-base text-muted-foreground line-through ml-2">
+                                ₹{Number(product.original_price).toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
                             <Button 
                               onClick={(e) => handleAddToCart(e, product)}
                               size="sm"
-                              className="w-full sm:w-auto"
+                              className="flex-1 sm:flex-none"
                             >
+                              <ShoppingCart className="w-4 h-4 mr-2" />
                               Add to Cart
                             </Button>
                             <Button 
                               variant="outline"
                               onClick={() => setSelectedProduct(product)}
                               size="sm"
-                              className="w-full sm:w-auto"
+                              className="flex-1 sm:flex-none"
                             >
-                              View
+                              <Eye className="w-4 h-4 mr-2" />
+                              View Details
                             </Button>
                           </div>
                         </div>
