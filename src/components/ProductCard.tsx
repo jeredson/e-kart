@@ -33,7 +33,7 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (product.stock_quantity === 0) {
+    if (!product.in_stock) {
       toast.error('This product is out of stock');
       return;
     }
@@ -96,7 +96,7 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         />
         
         {/* Quick Add Button */}
-        {product.stock_quantity > 0 && (
+        {product.in_stock && (
           <Button
             size="icon"
             className="absolute bottom-4 right-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-medium"
@@ -147,11 +147,11 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
             ) : (
               <span className="font-display font-bold text-xl">₹{Number(displayPrice).toLocaleString('en-IN')}</span>
             )}
-            {product.stock_quantity === 0 && (
+            {!product.in_stock && (
               <span className="text-sm font-medium text-red-600">Out of Stock</span>
             )}
           </div>
-          {product.stock_quantity > 0 && (
+          {product.in_stock && (
             <Button size="sm" variant="secondary" onClick={handleAddToCart}>
               Add to Cart
             </Button>

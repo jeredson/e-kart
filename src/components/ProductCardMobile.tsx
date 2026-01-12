@@ -15,7 +15,7 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (product.stock_quantity === 0) {
+    if (!product.in_stock) {
       toast.error('This product is out of stock');
       return;
     }
@@ -78,11 +78,11 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
           <div className="flex items-center justify-between gap-2 mt-3">
             <div className="flex flex-col">
               <span className="font-bold text-lg text-primary">₹{Number(product.price).toLocaleString('en-IN')}</span>
-              {product.stock_quantity === 0 && (
+              {!product.in_stock && (
                 <span className="text-xs font-medium text-red-600">Out of Stock</span>
               )}
             </div>
-            {product.stock_quantity > 0 && (
+            {product.in_stock && (
               <Button 
                 size="sm" 
                 className="h-8 px-3 text-xs"
