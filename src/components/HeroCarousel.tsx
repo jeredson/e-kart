@@ -41,6 +41,7 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
   return (
     <section className="relative overflow-hidden gradient-hero">
       <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-24">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-8 lg:mb-12">Featured Products</h2>
         <Carousel className="w-full" opts={{ loop: true }} setApi={setApi}>
           <CarouselContent>
             {featuredProducts.map((product) => (
