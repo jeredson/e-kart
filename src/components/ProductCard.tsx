@@ -119,9 +119,9 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         {/* Name & Description */}
         <div>
           {product.brand && (
-            <p className="text-xs text-muted-foreground mb-0.5">{product.brand}</p>
+            <p className="text-sm font-semibold text-foreground mb-0.5">{product.brand}</p>
           )}
-          <h3 className="font-display font-semibold text-lg leading-tight group-hover:text-primary transition-colors">
+          <h3 className="font-display font-medium text-base leading-tight group-hover:text-primary transition-colors">
             {product.model || product.name}
           </h3>
           <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
