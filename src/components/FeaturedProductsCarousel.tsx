@@ -76,57 +76,33 @@ const FeaturedProductsCarousel = () => {
               return (
                 <div key={product.id} className="w-full flex-shrink-0 px-2">
                   <Card className="mx-auto max-w-4xl">
-                    <CardContent className="p-4 sm:p-6">
-                      <div className="flex gap-4 sm:gap-6">
+                    <CardContent className="p-6">
+                      <div className="flex gap-6 items-start">
                         <img
                           src={product.image || '/placeholder.svg'}
                           alt={product.name}
-                          className="w-32 h-32 sm:w-48 sm:h-48 object-contain rounded-lg flex-shrink-0 bg-secondary"
+                          className="w-24 h-24 sm:w-32 sm:h-32 md:w-48 md:h-48 object-contain rounded-lg flex-shrink-0 bg-secondary"
                         />
                         
-                        <div className="flex-1 min-w-0 flex flex-col">
-                          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">{product.name}</h3>
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                          <h3 className="text-xl sm:text-2xl font-bold mb-3">{product.name}</h3>
                           
-                          {/* Specifications */}
-                          {product.specifications && (
-                            <div className="text-xs sm:text-sm text-muted-foreground space-y-1 mb-3 line-clamp-3">
-                              {Object.entries(product.specifications as Record<string, any>)
-                                .filter(([_, value]) => !Array.isArray(value))
-                                .slice(0, 3)
-                                .map(([key, value]) => (
-                                  <div key={key}>
-                                    <span className="font-medium">{key}:</span> {String(value)}
-                                  </div>
-                                ))}
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-2xl sm:text-3xl font-bold text-primary">₹{Number(displayPrice).toLocaleString('en-IN')}</span>
-                            {product.original_price && product.original_price > displayPrice && (
-                              <>
-                                <span className="text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString('en-IN')}</span>
-                                {discountPercent > 0 && (
-                                  <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">{discountPercent}% OFF</span>
-                                )}
-                              </>
-                            )}
+                          <div className="text-2xl sm:text-3xl font-bold text-primary mb-4">
+                            ₹{Number(displayPrice).toLocaleString('en-IN')}
                           </div>
                           
-                          <div className="flex gap-2 mt-auto">
+                          <div className="flex gap-3">
                             <Button 
                               onClick={(e) => handleAddToCart(e, product)}
-                              className="flex-1 sm:flex-none"
+                              size="lg"
                             >
-                              <ShoppingCart className="w-4 h-4 mr-2" />
                               Add to Cart
                             </Button>
                             <Button 
                               variant="outline"
                               onClick={() => setSelectedProduct(product)}
-                              className="flex-1 sm:flex-none"
+                              size="lg"
                             >
-                              <Eye className="w-4 h-4 mr-2" />
                               View
                             </Button>
                           </div>
