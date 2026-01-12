@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface VariantPrice {
@@ -12,9 +13,11 @@ interface VariantPrice {
 interface VariantPricingInputProps {
   value?: Record<string, Record<string, number>>;
   onChange: (value: Record<string, Record<string, number>>) => void;
+  exceptions?: string[];
+  onExceptionsChange?: (exceptions: string[]) => void;
 }
 
-export const VariantPricingInput = ({ value = {}, onChange }: VariantPricingInputProps) => {
+export const VariantPricingInput = ({ value = {}, onChange, exceptions = [], onExceptionsChange }: VariantPricingInputProps) => {
   const [variants, setVariants] = useState<VariantPrice[]>(() => {
     const existing: VariantPrice[] = [];
     Object.values(value).forEach(group => {
@@ -42,6 +45,14 @@ export const VariantPricingInput = ({ value = {}, onChange }: VariantPricingInpu
     updateParent(newVariants);
   };
 
+  const toggleException = (combination: string) => {
+    if (!onExceptionsChange) return;
+    const newExceptions = exceptions.includes(combination)
+      ? exceptions.filter(e => e !== combination)
+      : [...exceptions, combination];
+    onExceptionsChange(newExceptions);
+  };
+
   const updateParent = (variantList: VariantPrice[]) => {
     const pricing: Record<string, Record<string, number>> = { variants: {} };
     variantList.forEach(v => {
@@ -62,11 +73,18 @@ export const VariantPricingInput = ({ value = {}, onChange }: VariantPricingInpu
         </Button>
       </div>
       <div className="text-xs text-muted-foreground mb-2">
-        Format: RAM_Storage (e.g., 8GB_128GB, 12GB_256GB)
+        Format: RAM_Storage (e.g., 8GB_128GB, 12GB_256GB). Check to mark as unavailable.
       </div>
       <div className="space-y-2 max-h-48 overflow-y-auto">
         {variants.map((variant, index) => (
-          <div key={index} className="flex gap-2">
+          <div key={index} className="flex gap-2 items-center">
+            {onExceptionsChange && (
+              <Checkbox
+                checked={exceptions.includes(variant.combination)}
+                onCheckedChange={() => toggleException(variant.combination)}
+                disabled={!variant.combination}
+              />
+            )}
             <Input
               placeholder="e.g., 8GB_128GB"
               value={variant.combination}

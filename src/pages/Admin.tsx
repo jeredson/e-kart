@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProducts, useCategories, useCreateProduct, useUpdateProduct, useDeleteProduct, useCreateCategory, useToggleFeatured, DbProduct } from '@/hooks/useProducts';
+import { useProducts, useCategories, useCreateProduct, useUpdateProduct, useDeleteProduct, useCreateCategory, useDeleteCategory, useToggleFeatured, DbProduct } from '@/hooks/useProducts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +37,7 @@ const Admin = () => {
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
   const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
   const toggleFeatured = useToggleFeatured();
 
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
@@ -49,7 +50,8 @@ const Admin = () => {
     model: '',
     name: '',
     description: '',
-    price: '',
+    original_price: '',
+    discounted_price: '',
     image: '',
     category_id: '',
     badge: '',
@@ -57,6 +59,7 @@ const Admin = () => {
   });
   const [specifications, setSpecifications] = useState<SpecificationRow[]>([]);
   const [variantPricing, setVariantPricing] = useState<Record<string, Record<string, number>>>({});
+  const [variantExceptions, setVariantExceptions] = useState<string[]>([]);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -71,7 +74,8 @@ const Admin = () => {
       model: '',
       name: '',
       description: '',
-      price: '',
+      original_price: '',
+      discounted_price: '',
       image: '',
       category_id: '',
       badge: '',
@@ -79,6 +83,7 @@ const Admin = () => {
     });
     setSpecifications([]);
     setVariantPricing({});
+    setVariantExceptions([]);
     setEditingProduct(null);
   };
 
@@ -89,13 +94,13 @@ const Admin = () => {
       model: product.model || '',
       name: product.name,
       description: product.description || '',
-      price: String(product.price),
+      original_price: String(product.original_price || ''),
+      discounted_price: String(product.discounted_price || product.price),
       image: product.image || '',
       category_id: product.category_id || '',
       badge: product.badge || '',
       in_stock: product.in_stock !== false,
     });
-    // Convert JSON specs to new array format
     const specs = product.specifications as Record<string, any> | null;
     if (specs && typeof specs === 'object') {
       const convertedSpecs: SpecificationRow[] = [];
@@ -110,23 +115,29 @@ const Admin = () => {
     } else {
       setSpecifications([]);
     }
-    // Load variant pricing
     setVariantPricing((product.variant_pricing as Record<string, Record<string, number>>) || {});
+    setVariantExceptions((product.variant_exceptions as string[]) || []);
     setIsProductDialogOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.brand || !formData.model || !formData.price) {
-      toast.error('Brand, model, and price are required');
+    if (!formData.brand || !formData.model) {
+      toast.error('Brand and model are required');
       return;
     }
 
-    // Auto-generate name from brand and model
+    const originalPrice = parseFloat(formData.original_price);
+    const discountedPrice = parseFloat(formData.discounted_price);
+
+    if (!discountedPrice) {
+      toast.error('Discounted price is required');
+      return;
+    }
+
     const productName = `${formData.brand} ${formData.model}`.trim();
 
-    // Convert specifications array to object
     let specsObject: Record<string, any> | undefined;
     const validSpecs = specifications.filter(row => row.key.trim() && row.values.some(v => v.value.trim()));
     if (validSpecs.length > 0) {
@@ -134,10 +145,8 @@ const Admin = () => {
       validSpecs.forEach(row => {
         const cleanValues = row.values.filter(v => v.value.trim());
         if (cleanValues.length === 1 && !cleanValues[0].color && !cleanValues[0].image) {
-          // Single value without color/image - store as string for backward compatibility
           specsObject![row.key.trim()] = cleanValues[0].value.trim();
         } else {
-          // Multiple values or values with color/image - store as array
           specsObject![row.key.trim()] = cleanValues;
         }
       });
@@ -148,13 +157,16 @@ const Admin = () => {
       model: formData.model,
       name: productName,
       description: formData.description || undefined,
-      price: parseFloat(formData.price),
+      price: discountedPrice,
+      original_price: originalPrice || undefined,
+      discounted_price: discountedPrice,
       image: formData.image || undefined,
       category_id: formData.category_id || undefined,
       badge: formData.badge || undefined,
       in_stock: formData.in_stock,
       specifications: specsObject,
       variant_pricing: Object.keys(variantPricing).length > 0 ? variantPricing : undefined,
+      variant_exceptions: variantExceptions.length > 0 ? variantExceptions : undefined,
     };
 
     if (editingProduct) {
@@ -184,6 +196,12 @@ const Admin = () => {
     setIsCategoryDialogOpen(false);
   };
 
+  const handleDeleteCategory = async (id: string) => {
+    if (confirm('Are you sure you want to delete this category? Products in this category will not be deleted.')) {
+      await deleteCategory.mutateAsync(id);
+    }
+  };
+
   if (authLoading || productsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -194,7 +212,6 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -214,7 +231,6 @@ const Admin = () => {
       </header>
 
       <main className="container mx-auto px-4 lg:px-8 py-8">
-        {/* Actions */}
         <div className="flex flex-wrap gap-4 mb-8">
           <Dialog open={isProductDialogOpen} onOpenChange={(open) => {
             setIsProductDialogOpen(open);
@@ -264,26 +280,37 @@ const Admin = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price *</Label>
+                    <Label htmlFor="original_price">Original Price</Label>
                     <Input
-                      id="price"
+                      id="original_price"
                       type="number"
                       step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      value={formData.original_price}
+                      onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
                       placeholder="0.00"
                     />
                   </div>
-
                   <div className="space-y-2">
-                    <Label htmlFor="badge">Badge</Label>
+                    <Label htmlFor="discounted_price">Discounted Price *</Label>
                     <Input
-                      id="badge"
-                      value={formData.badge}
-                      onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                      placeholder="New, Sale, etc."
+                      id="discounted_price"
+                      type="number"
+                      step="0.01"
+                      value={formData.discounted_price}
+                      onChange={(e) => setFormData({ ...formData, discounted_price: e.target.value })}
+                      placeholder="0.00"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="badge">Badge</Label>
+                  <Input
+                    id="badge"
+                    value={formData.badge}
+                    onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                    placeholder="New, Sale, etc."
+                  />
                 </div>
 
                 <ImageUpload
@@ -328,6 +355,8 @@ const Admin = () => {
                 <VariantPricingInput
                   value={variantPricing}
                   onChange={setVariantPricing}
+                  exceptions={variantExceptions}
+                  onExceptionsChange={setVariantExceptions}
                 />
 
                 <Button type="submit" className="w-full" disabled={createProduct.isPending || updateProduct.isPending}>
@@ -370,82 +399,83 @@ const Admin = () => {
           </Dialog>
         </div>
 
-        {/* Products Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Products ({products?.length || 0})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Image</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Featured</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products?.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <img
-                          src={product.image || '/placeholder.svg'}
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.category?.name || '-'}</TableCell>
-                      <TableCell>₹{Number(product.price).toFixed(2)}</TableCell>
-                      <TableCell>
-                        <span className={product.in_stock !== false ? 'text-green-500' : 'text-destructive'}>
-                          {product.in_stock !== false ? 'In Stock' : 'Out of Stock'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleFeatured.mutate({ id: product.id, featured: !product.featured })}
-                          className={product.featured ? 'text-yellow-500' : 'text-muted-foreground'}
-                        >
-                          <Star className={`w-4 h-4 ${product.featured ? 'fill-current' : ''}`} />
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive"
-                            onClick={() => handleDelete(product.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {(!products || products.length === 0) && (
+        <div className="grid md:grid-cols-2 gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Products ({products?.length || 0})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No products yet. Add your first product!
-                      </TableCell>
+                      <TableHead>Image</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {products?.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <img
+                            src={product.image || '/placeholder.svg'}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>₹{Number(product.price).toFixed(2)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => toggleFeatured.mutate({ id: product.id, featured: !product.featured })}>
+                              <Star className={`w-4 h-4 ${product.featured ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(product.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {(!products || products.length === 0) && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          No products yet. Add your first product!
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Categories ({categories?.length || 0})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {categories?.map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+                    <span className="font-medium">{cat.name}</span>
+                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteCategory(cat.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                {(!categories || categories.length === 0) && (
+                  <p className="text-center py-8 text-muted-foreground">No categories yet.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   );

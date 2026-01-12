@@ -10,6 +10,8 @@ export interface DbProduct {
   name: string;
   description: string | null;
   price: number;
+  original_price: number | null;
+  discounted_price: number | null;
   image: string | null;
   category_id: string | null;
   badge: string | null;
@@ -18,6 +20,8 @@ export interface DbProduct {
   in_stock: boolean | null;
   featured: boolean | null;
   specifications: Json | null;
+  variant_pricing: Json | null;
+  variant_exceptions: Json | null;
   created_at: string;
   updated_at: string;
   category?: { id: string; name: string } | null;
@@ -111,11 +115,15 @@ export const useCreateProduct = () => {
       name: string;
       description?: string;
       price: number;
+      original_price?: number;
+      discounted_price?: number;
       image?: string;
       category_id?: string;
       badge?: string;
       in_stock?: boolean;
-      specifications?: Record<string, string>;
+      specifications?: Record<string, any>;
+      variant_pricing?: Record<string, any>;
+      variant_exceptions?: string[];
     }) => {
       const { data, error } = await supabase
         .from('products')
@@ -147,11 +155,15 @@ export const useUpdateProduct = () => {
       name?: string;
       description?: string;
       price?: number;
+      original_price?: number;
+      discounted_price?: number;
       image?: string;
       category_id?: string;
       badge?: string;
       in_stock?: boolean;
-      specifications?: Record<string, string>;
+      specifications?: Record<string, any>;
+      variant_pricing?: Record<string, any>;
+      variant_exceptions?: string[];
     }) => {
       const { data, error } = await supabase
         .from('products')
@@ -212,6 +224,28 @@ export const useCreateCategory = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       toast.success('Category created successfully!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+};
+
+export const useDeleteCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Category deleted successfully!');
     },
     onError: (error: Error) => {
       toast.error(error.message);

@@ -32,15 +32,15 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     ? product.specifications as Record<string, unknown>
     : null;
 
-  // Calculate dynamic price based on selected variants
+  const variantExceptions = product.variant_exceptions as string[] | null;
+
   const getPrice = () => {
     const variantPricing = product.variant_pricing as Record<string, Record<string, number>> | null;
     
     if (!variantPricing) {
-      return Number(product.price);
+      return Number(product.discounted_price || product.price);
     }
 
-    // Filter out color variants for pricing (color doesn't affect price)
     const pricingVariants: Record<string, string> = {};
     Object.entries(selectedVariants).forEach(([key, value]) => {
       if (!isColorSpec(key)) {
@@ -49,10 +49,9 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     });
 
     if (Object.keys(pricingVariants).length === 0) {
-      return Number(product.price);
+      return Number(product.discounted_price || product.price);
     }
 
-    // Try exact match first (e.g., "8GB_128GB")
     const variantKey = Object.values(pricingVariants).join('_');
     
     for (const pricingGroup of Object.values(variantPricing)) {
@@ -60,12 +59,10 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
         return pricingGroup[variantKey];
       }
       
-      // Try partial match (e.g., just "128GB" when only storage is selected)
       for (const [key, price] of Object.entries(pricingGroup)) {
         const keyParts = key.split('_');
         const selectedValues = Object.values(pricingVariants);
         
-        // Check if all selected values are in this variant key
         const allMatch = selectedValues.every(val => keyParts.includes(val));
         if (allMatch && keyParts.length === selectedValues.length) {
           return price;
@@ -73,7 +70,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       }
     }
 
-    return Number(product.price);
+    return Number(product.discounted_price || product.price);
   };
 
   const isColorSpec = (key: string) => {
@@ -81,6 +78,16 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   };
 
   const currentPrice = getPrice();
+
+  const getDiscountPercentage = () => {
+    if (product.original_price && currentPrice) {
+      const discount = ((product.original_price - currentPrice) / product.original_price) * 100;
+      return Math.round(discount);
+    }
+    return 0;
+  };
+
+  const discountPercent = getDiscountPercentage();
 
   const handleAddToCart = () => {
     addToCart({
@@ -121,7 +128,6 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
         <div className="max-h-[90vh] overflow-y-auto">
           <div className="grid md:grid-cols-2 gap-0">
-            {/* Image Section */}
             <div className="relative aspect-[4/3] md:aspect-square bg-secondary">
               {product.badge && (
                 <Badge className="absolute top-3 left-3 z-10 text-xs">{product.badge}</Badge>
@@ -133,19 +139,15 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               />
             </div>
 
-            {/* Content Section */}
             <div className="p-3 sm:p-4 md:p-6 flex flex-col">
-              {/* Category */}
               {product.category && (
                 <span className="text-xs text-muted-foreground mb-1">
                   {product.category.name}
                 </span>
               )}
 
-              {/* Name */}
               <h2 className="font-display font-bold text-base sm:text-lg md:text-2xl mb-1 md:mb-2 leading-tight">{product.name}</h2>
 
-              {/* Rating */}
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex items-center gap-1">
                   <Star className="w-3 h-3 fill-primary text-primary" />
@@ -156,12 +158,24 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 </span>
               </div>
 
-              {/* Price */}
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
+              <div className="mb-2">
+                {product.original_price && product.original_price > currentPrice ? (
+                  <>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
+                      {discountPercent > 0 && (
+                        <span className="text-sm font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">
+                          {discountPercent}% OFF
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString('en-IN')}</span>
+                  </>
+                ) : (
+                  <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
+                )}
               </div>
 
-              {/* Stock Status */}
               <div className="flex items-center gap-2 mb-2">
                 {product.in_stock !== false ? (
                   <>
@@ -176,10 +190,8 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 )}
               </div>
 
-              {/* Description */}
               <p className="text-muted-foreground text-xs sm:text-sm mb-3 line-clamp-3">{product.description}</p>
 
-              {/* Specifications */}
               {specs && Object.keys(specs).length > 0 && (
                 <div className="mb-3">
                   <h3 className="font-semibold text-sm mb-2">Specifications</h3>
@@ -190,25 +202,31 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                           <div key={key}>
                             <div className="text-xs font-medium mb-1">{key}</div>
                             <div className="flex flex-wrap gap-2">
-                              {value.map((item: any, idx: number) => (
-                                <button
-                                  key={idx}
-                                  type="button"
-                                  onClick={() => handleVariantSelect(key, item)}
-                                  className={`px-3 py-1.5 text-xs rounded border-2 transition-colors ${
-                                    selectedVariants[key] === item.value
-                                      ? 'border-primary bg-primary text-primary-foreground'
-                                      : 'border-border hover:border-primary'
-                                  }`}
-                                  style={isColorSpec(key) && item.color ? {
-                                    backgroundColor: selectedVariants[key] === item.value ? item.color : 'transparent',
-                                    borderColor: selectedVariants[key] === item.value ? item.color : undefined,
-                                    color: selectedVariants[key] === item.value ? '#fff' : undefined
-                                  } : {}}
-                                >
-                                  {item.value}
-                                </button>
-                              ))}
+                              {value.map((item: any, idx: number) => {
+                                const isException = variantExceptions?.includes(item.value);
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => !isException && handleVariantSelect(key, item)}
+                                    disabled={isException}
+                                    className={`px-3 py-1.5 text-xs rounded border-2 transition-colors ${
+                                      isException
+                                        ? 'border-muted bg-muted text-muted-foreground line-through cursor-not-allowed opacity-50'
+                                        : selectedVariants[key] === item.value
+                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        : 'border-border hover:border-primary'
+                                    }`}
+                                    style={!isException && isColorSpec(key) && item.color ? {
+                                      backgroundColor: selectedVariants[key] === item.value ? item.color : 'transparent',
+                                      borderColor: selectedVariants[key] === item.value ? item.color : undefined,
+                                      color: selectedVariants[key] === item.value ? '#fff' : undefined
+                                    } : {}}
+                                  >
+                                    {item.value}
+                                  </button>
+                                );
+                              })}
                             </div>
                           </div>
                         );
@@ -225,12 +243,10 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 </div>
               )}
 
-              {/* Reviews Section */}
               <div className="mb-3 border-t border-border pt-3">
                 <ProductReviews productId={product.id} />
               </div>
 
-              {/* Add to Cart Button */}
               <Button
                 size="sm"
                 className="w-full h-9 sm:h-10"

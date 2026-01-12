@@ -13,6 +13,17 @@ interface ProductCardProps {
 const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const { addToCart } = useCart();
 
+  const getDiscountPercentage = () => {
+    if (product.original_price && product.discounted_price) {
+      const discount = ((product.original_price - product.discounted_price) / product.original_price) * 100;
+      return Math.round(discount);
+    }
+    return 0;
+  };
+
+  const displayPrice = product.discounted_price || product.price;
+  const discountPercent = getDiscountPercentage();
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     addToCart({
@@ -80,8 +91,22 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
         {/* Price */}
         <div className="flex items-center justify-between pt-2">
-          <div className="flex items-baseline gap-2">
-            <span className="font-display font-bold text-xl">₹{Number(product.price).toLocaleString('en-IN')}</span>
+          <div className="flex flex-col gap-1">
+            {product.original_price && product.original_price > displayPrice ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="font-display font-bold text-xl">₹{Number(displayPrice).toLocaleString('en-IN')}</span>
+                  {discountPercent > 0 && (
+                    <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                      {discountPercent}% OFF
+                    </span>
+                  )}
+                </div>
+                <span className="text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString('en-IN')}</span>
+              </>
+            ) : (
+              <span className="font-display font-bold text-xl">₹{Number(displayPrice).toLocaleString('en-IN')}</span>
+            )}
           </div>
           <Button size="sm" variant="secondary" onClick={handleAddToCart}>
             Add to Cart
