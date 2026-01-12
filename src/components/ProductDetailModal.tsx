@@ -34,6 +34,26 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
   const variantExceptions = product.variant_exceptions as string[] | null;
 
+  const isColorSpec = (key: string) => {
+    return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
+  };
+
+  const isVariantCombinationException = () => {
+    if (!variantExceptions || variantExceptions.length === 0) return false;
+    
+    const pricingVariants: string[] = [];
+    Object.entries(selectedVariants).forEach(([key, value]) => {
+      if (!isColorSpec(key)) {
+        pricingVariants.push(value);
+      }
+    });
+    
+    if (pricingVariants.length === 0) return false;
+    
+    const variantKey = pricingVariants.join('_');
+    return variantExceptions.includes(variantKey);
+  };
+
   const getPrice = () => {
     const variantPricing = product.variant_pricing as Record<string, Record<string, any>> | null;
     
@@ -104,12 +124,9 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     return product.original_price;
   };
 
-  const isColorSpec = (key: string) => {
-    return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
-  };
-
   const currentPrice = getPrice();
   const originalPrice = getOriginalPrice();
+  const isVariantAvailable = !isVariantCombinationException();
 
   const getDiscountPercentage = () => {
     if (originalPrice && currentPrice) {
@@ -191,25 +208,29 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               </div>
 
               <div className="mb-2">
-                {originalPrice && originalPrice > currentPrice ? (
-                  <>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
-                      {discountPercent > 0 && (
-                        <span className="text-sm font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">
-                          {discountPercent}% OFF
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-sm text-muted-foreground line-through">₹{Number(originalPrice).toLocaleString('en-IN')}</span>
-                  </>
+                {isVariantAvailable ? (
+                  originalPrice && originalPrice > currentPrice ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
+                        {discountPercent > 0 && (
+                          <span className="text-sm font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">
+                            {discountPercent}% OFF
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm text-muted-foreground line-through">₹{Number(originalPrice).toLocaleString('en-IN')}</span>
+                    </>
+                  ) : (
+                    <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
+                  )
                 ) : (
-                  <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-destructive">Not Available</div>
                 )}
               </div>
 
               <div className="flex items-center gap-2 mb-2">
-                {product.in_stock !== false ? (
+                {product.in_stock !== false && isVariantAvailable ? (
                   <>
                     <Check className="w-3 h-3 text-green-500" />
                     <span className="text-green-500 text-xs font-medium">In Stock</span>
@@ -217,7 +238,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 ) : (
                   <>
                     <Package className="w-3 h-3 text-destructive" />
-                    <span className="text-destructive text-xs font-medium">Out of Stock</span>
+                    <span className="text-destructive text-xs font-medium">{!isVariantAvailable ? 'Variant Not Available' : 'Out of Stock'}</span>
                   </>
                 )}
               </div>
@@ -244,7 +265,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                                     disabled={isException}
                                     className={`px-3 py-1.5 text-xs rounded border-2 transition-colors ${
                                       isException
-                                        ? 'border-muted bg-muted text-muted-foreground line-through cursor-not-allowed opacity-50'
+                                        ? 'border-muted bg-muted text-muted-foreground cursor-not-allowed opacity-50'
                                         : selectedVariants[key] === item.value
                                         ? 'border-primary bg-primary text-primary-foreground'
                                         : 'border-border hover:border-primary'
@@ -283,10 +304,10 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 size="sm"
                 className="w-full h-9 sm:h-10"
                 onClick={handleAddToCart}
-                disabled={product.in_stock === false}
+                disabled={product.in_stock === false || !isVariantAvailable}
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
-                Add to Cart
+                {!isVariantAvailable ? 'Not Available' : 'Add to Cart'}
               </Button>
             </div>
           </div>
