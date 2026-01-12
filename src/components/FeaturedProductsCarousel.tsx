@@ -1,11 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, ShoppingCart, Eye } from 'lucide-react';
 import { useFeaturedProducts } from '@/hooks/useProducts';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import ProductDetailModal from './ProductDetailModal';
+import SignInDialog from './SignInDialog';
 
 const FeaturedProductsCarousel = () => {
   const { data: featuredProducts, isLoading } = useFeaturedProducts();
+  const { addToCart } = useCart();
+  const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
 
   useEffect(() => {
     if (!featuredProducts || featuredProducts.length <= 1) return;
@@ -30,6 +40,25 @@ const FeaturedProductsCarousel = () => {
     return 0;
   };
 
+  const handleAddToCart = (e: React.MouseEvent, product: any) => {
+    e.stopPropagation();
+    if (!user) {
+      setShowSignInDialog(true);
+      return;
+    }
+    addToCart({
+      id: product.id,
+      name: product.name,
+      description: product.description || '',
+      price: Number(product.discounted_price || product.price),
+      image: product.image || '',
+      category: product.category?.name || 'General',
+      rating: Number(product.rating) || 4.5,
+      reviews: product.reviews_count || 0,
+    });
+    toast.success(`${product.name} added to cart!`);
+  };
+
   return (
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4 lg:px-8">
@@ -46,33 +75,60 @@ const FeaturedProductsCarousel = () => {
               
               return (
                 <div key={product.id} className="w-full flex-shrink-0 px-2">
-                  <Card className="mx-auto max-w-2xl">
-                    <CardContent className="p-4">
-                      <div className="flex gap-4 items-center">
+                  <Card className="mx-auto max-w-4xl">
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex gap-4 sm:gap-6">
                         <img
                           src={product.image || '/placeholder.svg'}
                           alt={product.name}
-                          className="w-24 h-24 sm:w-32 sm:h-32 object-contain rounded-lg flex-shrink-0"
+                          className="w-32 h-32 sm:w-48 sm:h-48 object-contain rounded-lg flex-shrink-0 bg-secondary"
                         />
                         
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base sm:text-lg font-semibold mb-1 line-clamp-2">{product.name}</h3>
-                          <div className="flex items-center gap-1 mb-2">
-                            {[...Array(5)].map((_, i) => (
-                              <Star key={i} className={`w-3 h-3 ${i < (product.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
-                            ))}
-                            <span className="text-xs text-muted-foreground ml-1">({product.rating || 0})</span>
-                          </div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-lg sm:text-xl font-bold text-primary">₹{Number(displayPrice).toLocaleString()}</span>
+                        <div className="flex-1 min-w-0 flex flex-col">
+                          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">{product.name}</h3>
+                          
+                          {/* Specifications */}
+                          {product.specifications && (
+                            <div className="text-xs sm:text-sm text-muted-foreground space-y-1 mb-3 line-clamp-3">
+                              {Object.entries(product.specifications as Record<string, any>)
+                                .filter(([_, value]) => !Array.isArray(value))
+                                .slice(0, 3)
+                                .map(([key, value]) => (
+                                  <div key={key}>
+                                    <span className="font-medium">{key}:</span> {String(value)}
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-2xl sm:text-3xl font-bold text-primary">₹{Number(displayPrice).toLocaleString('en-IN')}</span>
                             {product.original_price && product.original_price > displayPrice && (
                               <>
-                                <span className="text-xs sm:text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString()}</span>
+                                <span className="text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString('en-IN')}</span>
                                 {discountPercent > 0 && (
-                                  <span className="text-xs font-semibold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">{discountPercent}% OFF</span>
+                                  <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">{discountPercent}% OFF</span>
                                 )}
                               </>
                             )}
+                          </div>
+                          
+                          <div className="flex gap-2 mt-auto">
+                            <Button 
+                              onClick={(e) => handleAddToCart(e, product)}
+                              className="flex-1 sm:flex-none"
+                            >
+                              <ShoppingCart className="w-4 h-4 mr-2" />
+                              Add to Cart
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => setSelectedProduct(product)}
+                              className="flex-1 sm:flex-none"
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              View
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -94,6 +150,13 @@ const FeaturedProductsCarousel = () => {
           ))}
         </div>
       </div>
+
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={!!selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
+      <SignInDialog open={showSignInDialog} onOpenChange={setShowSignInDialog} />
     </section>
   );
 };
