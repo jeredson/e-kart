@@ -60,9 +60,9 @@ const FeaturedProductsCarousel = () => {
   };
 
   return (
-    <section className="py-8 md:py-16 bg-muted/30">
+    <section className="py-12 md:py-20 bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto px-4 lg:px-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Featured Products</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 md:mb-16 text-gray-800">Featured Products</h2>
         
         <div className="relative overflow-hidden">
           <div 
@@ -75,45 +75,45 @@ const FeaturedProductsCarousel = () => {
               const discountPercent = getDiscountPercentage(product);
               
               return (
-                <div key={product.id} className="w-full flex-shrink-0 px-2">
-                  <div className="mx-auto max-w-6xl bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 md:p-8 shadow-xl">
-                    <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center">
+                <div key={product.id} className="w-full flex-shrink-0 px-4">
+                  <div className="mx-auto max-w-7xl bg-white rounded-3xl p-8 md:p-12 shadow-2xl border border-gray-100">
+                    <div className="flex flex-row gap-8 md:gap-16 items-center min-h-[300px] md:min-h-[400px]">
                       {/* Product Image */}
-                      <div className="w-full md:w-1/2 flex justify-center">
-                        <div className="relative bg-white rounded-2xl p-6 shadow-lg">
+                      <div className="w-1/3 md:w-2/5 flex justify-center">
+                        <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 md:p-8 shadow-lg">
                           <img
                             src={product.image || '/placeholder.svg'}
                             alt={product.name}
-                            className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 object-contain"
+                            className="w-24 h-24 md:w-48 md:h-48 lg:w-64 lg:h-64 object-contain"
                           />
                         </div>
                       </div>
                       
                       {/* Product Details */}
-                      <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
-                        <div>
-                          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
+                      <div className="flex-1 space-y-4 md:space-y-6">
+                        <div className="space-y-3 md:space-y-4">
+                          <h1 className="text-lg md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
                             {product.name}
                           </h1>
                           {product.description && (
-                            <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4">
+                            <p className="text-xs md:text-base text-gray-600 leading-relaxed max-w-2xl">
                               {product.description}
                             </p>
                           )}
                         </div>
                         
                         {/* Pricing */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap">
-                            <span className="text-3xl md:text-4xl lg:text-5xl font-bold text-blue-600">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3 md:gap-4 flex-wrap">
+                            <span className="text-xl md:text-4xl lg:text-5xl font-bold text-blue-600">
                               ₹{Number(displayPrice).toLocaleString('en-IN')}
                             </span>
                             {originalPrice && originalPrice > displayPrice && (
                               <>
-                                <span className="text-xl md:text-2xl text-gray-500 line-through">
+                                <span className="text-sm md:text-2xl text-gray-500 line-through">
                                   ₹{Number(originalPrice).toLocaleString('en-IN')}
                                 </span>
-                                <span className="bg-green-500 text-white px-4 py-2 rounded-full text-sm md:text-base font-bold">
+                                <span className="bg-green-500 text-white px-2 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-base font-bold">
                                   {discountPercent}% OFF
                                 </span>
                               </>
@@ -122,22 +122,22 @@ const FeaturedProductsCarousel = () => {
                         </div>
                         
                         {/* Action Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4 md:pt-6">
                           <Button 
                             onClick={(e) => handleAddToCart(e, product)}
                             size="lg"
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-base font-semibold rounded-xl shadow-lg"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 md:px-8 md:py-4 text-sm md:text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
                           >
-                            <ShoppingCart className="w-5 h-5 mr-2" />
+                            <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                             Add to Cart
                           </Button>
                           <Button 
                             variant="outline"
                             onClick={() => setSelectedProduct(product)}
                             size="lg"
-                            className="flex-1 border-2 border-gray-300 hover:border-gray-400 px-8 py-3 text-base font-semibold rounded-xl"
+                            className="border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-6 py-3 md:px-8 md:py-4 text-sm md:text-base font-semibold rounded-xl transition-all"
                           >
-                            View
+                            View Details
                           </Button>
                         </div>
                       </div>
@@ -149,12 +149,12 @@ const FeaturedProductsCarousel = () => {
           </div>
         </div>
 
-        <div className="flex justify-center gap-2 mt-8">
+        <div className="flex justify-center gap-3 mt-10 md:mt-12">
           {featuredProducts.map((_, index) => (
             <button
               key={index}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-blue-600' : 'bg-gray-300'
+              className={`w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-300 ${
+                index === currentIndex ? 'bg-blue-600 scale-110' : 'bg-gray-300 hover:bg-gray-400'
               }`}
               onClick={() => setCurrentIndex(index)}
             />
