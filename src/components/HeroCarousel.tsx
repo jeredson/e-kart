@@ -45,49 +45,57 @@ const HeroCarousel = ({ onExplore }: HeroCarouselProps) => {
           <CarouselContent>
             {featuredProducts.map((product) => (
               <CarouselItem key={product.id}>
-                <div className="grid lg:grid-cols-2 gap-12 items-center">
-                  <div className="space-y-6 animate-slide-up">
-                    <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-                      {product.name}
-                    </h1>
+                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-12 items-center">
+                  <div className="flex gap-4 lg:flex-col lg:gap-6 w-full animate-slide-up">
+                    <img
+                      src={product.image || '/placeholder.svg'}
+                      alt={product.name}
+                      className="w-32 h-32 lg:hidden rounded-2xl shadow-elevated object-contain flex-shrink-0"
+                    />
                     
-                    <p className="text-muted-foreground text-lg max-w-md line-clamp-3">
-                      {product.description || 'Discover our premium selection of tech products.'}
-                    </p>
+                    <div className="flex-1 lg:space-y-6">
+                      <h1 className="font-display text-xl sm:text-2xl lg:text-6xl font-bold leading-tight line-clamp-2 lg:line-clamp-none">
+                        {product.name}
+                      </h1>
+                      
+                      <p className="text-muted-foreground text-sm lg:text-lg max-w-md line-clamp-2 lg:line-clamp-3 hidden sm:block">
+                        {product.description || 'Discover our premium selection of tech products.'}
+                      </p>
 
-                    <div className="text-3xl font-bold text-primary">
-                      ₹{Number(product.price).toLocaleString('en-IN')}
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-4">
-                      <Button 
-                        size="lg" 
-                        className="shadow-glow group"
-                        onClick={() => addToCart({
-                          id: product.id,
-                          name: product.name,
-                          description: product.description || '',
-                          price: Number(product.price),
-                          category: product.category?.name || 'Uncategorized',
-                          image: product.image || '/placeholder.svg',
-                          rating: Number(product.rating) || 0,
-                          reviews: product.reviews_count || 0,
-                          badge: product.badge || undefined,
-                        })}
-                      >
-                        Add to Cart
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                      <Button size="lg" variant="outline" onClick={() => {
-                        setSelectedProduct(product);
-                        setIsModalOpen(true);
-                      }}>
-                        View Product
-                      </Button>
+                      <div className="text-xl lg:text-3xl font-bold text-primary">
+                        ₹{Number(product.discounted_price || product.price).toLocaleString('en-IN')}
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 lg:gap-4">
+                        <Button 
+                          size="sm"
+                          className="shadow-glow group lg:text-base"
+                          onClick={() => addToCart({
+                            id: product.id,
+                            name: product.name,
+                            description: product.description || '',
+                            price: Number(product.discounted_price || product.price),
+                            category: product.category?.name || 'Uncategorized',
+                            image: product.image || '/placeholder.svg',
+                            rating: Number(product.rating) || 0,
+                            reviews: product.reviews_count || 0,
+                            badge: product.badge || undefined,
+                          })}
+                        >
+                          Add to Cart
+                          <ArrowRight className="w-3 h-3 lg:w-4 lg:h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="lg:text-base" onClick={() => {
+                          setSelectedProduct(product);
+                          setIsModalOpen(true);
+                        }}>
+                          View
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="relative animate-fade-in">
+                  <div className="relative animate-fade-in hidden lg:block">
                     <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-3xl blur-3xl" />
                     <img
                       src={product.image || '/placeholder.svg'}
