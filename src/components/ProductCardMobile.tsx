@@ -54,9 +54,9 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
           <div className="space-y-2">
             {/* Brand & Model */}
             {product.brand && (
-              <p className="text-xs text-muted-foreground">{product.brand}</p>
+              <p className="text-sm font-semibold text-foreground">{product.brand}</p>
             )}
-            <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="font-medium text-xs leading-tight line-clamp-2 group-hover:text-primary transition-colors">
               {product.model || product.name}
             </h3>
 

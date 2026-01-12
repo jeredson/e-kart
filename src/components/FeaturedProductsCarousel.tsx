@@ -22,7 +22,7 @@ const FeaturedProductsCarousel = () => {
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % featuredProducts.length);
-    }, 3000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [featuredProducts]);
@@ -147,18 +147,6 @@ const FeaturedProductsCarousel = () => {
               );
             })}
           </div>
-        </div>
-
-        <div className="flex justify-center gap-3 mt-10 md:mt-12">
-          {featuredProducts.map((_, index) => (
-            <button
-              key={index}
-              className={`w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-300 ${
-                index === currentIndex ? 'bg-blue-600 scale-110' : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-              onClick={() => setCurrentIndex(index)}
-            />
-          ))}
         </div>
       </div>
 
