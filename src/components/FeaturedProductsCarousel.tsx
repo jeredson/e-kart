@@ -45,36 +45,31 @@ const FeaturedProductsCarousel = () => {
               const discountPercent = getDiscountPercentage(product);
               
               return (
-                <div key={product.id} className="w-full flex-shrink-0">
+                <div key={product.id} className="w-full flex-shrink-0 px-2">
                   <Card className="mx-auto max-w-2xl">
                     <CardContent className="p-4">
-                      <div className="flex gap-4">
+                      <div className="flex gap-4 items-center">
                         <img
                           src={product.image || '/placeholder.svg'}
                           alt={product.name}
-                          className="w-32 h-32 object-contain rounded-lg flex-shrink-0"
+                          className="w-24 h-24 sm:w-32 sm:h-32 object-contain rounded-lg flex-shrink-0"
                         />
                         
-                        <div className="flex-1 flex flex-col justify-center">
-                          <h3 className="text-lg font-semibold mb-2 line-clamp-2">{product.name}</h3>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold mb-1 line-clamp-2">{product.name}</h3>
                           <div className="flex items-center gap-1 mb-2">
                             {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`w-4 h-4 ${i < (product.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-                              />
+                              <Star key={i} className={`w-3 h-3 ${i < (product.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
                             ))}
-                            <span className="text-sm text-muted-foreground ml-1">({product.rating || 0})</span>
+                            <span className="text-xs text-muted-foreground ml-1">({product.rating || 0})</span>
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xl font-bold text-primary">₹{Number(displayPrice).toLocaleString()}</span>
+                            <span className="text-lg sm:text-xl font-bold text-primary">₹{Number(displayPrice).toLocaleString()}</span>
                             {product.original_price && product.original_price > displayPrice && (
                               <>
-                                <span className="text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString()}</span>
+                                <span className="text-xs sm:text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString()}</span>
                                 {discountPercent > 0 && (
-                                  <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded">
-                                    {discountPercent}% OFF
-                                  </span>
+                                  <span className="text-xs font-semibold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">{discountPercent}% OFF</span>
                                 )}
                               </>
                             )}

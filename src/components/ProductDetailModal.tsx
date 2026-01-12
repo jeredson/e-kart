@@ -35,7 +35,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const variantExceptions = product.variant_exceptions as string[] | null;
 
   const getPrice = () => {
-    const variantPricing = product.variant_pricing as Record<string, Record<string, number>> | null;
+    const variantPricing = product.variant_pricing as Record<string, Record<string, any>> | null;
     
     if (!variantPricing) {
       return Number(product.discounted_price || product.price);
@@ -55,17 +55,18 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     const variantKey = Object.values(pricingVariants).join('_');
     
     for (const pricingGroup of Object.values(variantPricing)) {
-      if (pricingGroup[variantKey]) {
-        return pricingGroup[variantKey];
+      const priceData = pricingGroup[variantKey];
+      if (priceData) {
+        return typeof priceData === 'object' ? priceData.discountedPrice : priceData;
       }
       
-      for (const [key, price] of Object.entries(pricingGroup)) {
+      for (const [key, priceInfo] of Object.entries(pricingGroup)) {
         const keyParts = key.split('_');
         const selectedValues = Object.values(pricingVariants);
         
         const allMatch = selectedValues.every(val => keyParts.includes(val));
         if (allMatch && keyParts.length === selectedValues.length) {
-          return price;
+          return typeof priceInfo === 'object' ? priceInfo.discountedPrice : priceInfo;
         }
       }
     }
@@ -73,15 +74,46 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     return Number(product.discounted_price || product.price);
   };
 
+  const getOriginalPrice = () => {
+    const variantPricing = product.variant_pricing as Record<string, Record<string, any>> | null;
+    
+    if (!variantPricing) {
+      return product.original_price;
+    }
+
+    const pricingVariants: Record<string, string> = {};
+    Object.entries(selectedVariants).forEach(([key, value]) => {
+      if (!isColorSpec(key)) {
+        pricingVariants[key] = value;
+      }
+    });
+
+    if (Object.keys(pricingVariants).length === 0) {
+      return product.original_price;
+    }
+
+    const variantKey = Object.values(pricingVariants).join('_');
+    
+    for (const pricingGroup of Object.values(variantPricing)) {
+      const priceData = pricingGroup[variantKey];
+      if (priceData && typeof priceData === 'object') {
+        return priceData.originalPrice;
+      }
+    }
+
+    return product.original_price;
+  };
+
   const isColorSpec = (key: string) => {
     return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
   };
 
   const currentPrice = getPrice();
+  const originalPrice = getOriginalPrice();
 
   const getDiscountPercentage = () => {
-    if (product.original_price && currentPrice) {
-      const discount = ((product.original_price - currentPrice) / product.original_price) * 100;
+    if (originalPrice && currentPrice) {
+      const discount = ((originalPrice - currentPrice) / originalPrice) * 100;
       return Math.round(discount);
     }
     return 0;
@@ -159,7 +191,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               </div>
 
               <div className="mb-2">
-                {product.original_price && product.original_price > currentPrice ? (
+                {originalPrice && originalPrice > currentPrice ? (
                   <>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
@@ -169,7 +201,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                         </span>
                       )}
                     </div>
-                    <span className="text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString('en-IN')}</span>
+                    <span className="text-sm text-muted-foreground line-through">₹{Number(originalPrice).toLocaleString('en-IN')}</span>
                   </>
                 ) : (
                   <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
