@@ -71,84 +71,91 @@ const FeaturedProductsCarousel = () => {
           >
             {featuredProducts.map((product) => {
               const displayPrice = product.discounted_price || product.price;
+              const originalPrice = product.original_price;
               const discountPercent = getDiscountPercentage(product);
               
               return (
                 <div key={product.id} className="w-full flex-shrink-0 px-2">
-                  <Card className="mx-auto max-w-4xl bg-background border shadow-lg">
-                    <CardContent className="p-4 md:p-6">
-                      <div className="flex gap-4 md:gap-6 items-start">
-                        <div className="relative bg-secondary rounded-lg p-3 md:p-4 flex-shrink-0">
+                  <div className="mx-auto max-w-6xl bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 md:p-8 shadow-xl">
+                    <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center">
+                      {/* Product Image */}
+                      <div className="w-full md:w-1/2 flex justify-center">
+                        <div className="relative bg-white rounded-2xl p-6 shadow-lg">
                           <img
                             src={product.image || '/placeholder.svg'}
                             alt={product.name}
-                            className="w-32 h-32 md:w-48 md:h-48 object-contain"
+                            className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 object-contain"
                           />
                         </div>
+                      </div>
+                      
+                      {/* Product Details */}
+                      <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
+                        <div>
+                          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
+                            {product.name}
+                          </h1>
+                          {product.description && (
+                            <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4">
+                              {product.description}
+                            </p>
+                          )}
+                        </div>
                         
-                        <div className="flex-1 min-w-0 space-y-2 md:space-y-3">
-                          <div>
-                            <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground leading-tight mb-2">
-                              {product.name}
-                            </h3>
-                            {product.description && (
-                              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                                {product.description}
-                              </p>
+                        {/* Pricing */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap">
+                            <span className="text-3xl md:text-4xl lg:text-5xl font-bold text-blue-600">
+                              ₹{Number(displayPrice).toLocaleString('en-IN')}
+                            </span>
+                            {originalPrice && originalPrice > displayPrice && (
+                              <>
+                                <span className="text-xl md:text-2xl text-gray-500 line-through">
+                                  ₹{Number(originalPrice).toLocaleString('en-IN')}
+                                </span>
+                                <span className="bg-green-500 text-white px-4 py-2 rounded-full text-sm md:text-base font-bold">
+                                  {discountPercent}% OFF
+                                </span>
+                              </>
                             )}
                           </div>
-                          
-                          <div className="space-y-2">
-                            <div className="flex items-baseline gap-3 flex-wrap">
-                              <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary">
-                                ₹{Number(displayPrice).toLocaleString('en-IN')}
-                              </span>
-                              {product.original_price && product.original_price > displayPrice && (
-                                <>
-                                  <span className="text-lg md:text-xl text-muted-foreground line-through">
-                                    ₹{Number(product.original_price).toLocaleString('en-IN')}
-                                  </span>
-                                  <span className="text-sm md:text-base bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold">
-                                    {discountPercent}% OFF
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="flex gap-3 pt-2">
-                            <Button 
-                              onClick={(e) => handleAddToCart(e, product)}
-                              size="default"
-                              className="px-6 py-2"
-                            >
-                              <ShoppingCart className="w-4 h-4 mr-2" />
-                              Add to Cart
-                            </Button>
-                            <Button 
-                              variant="outline"
-                              onClick={() => setSelectedProduct(product)}
-                              size="default"
-                              className="px-6 py-2"
-                            >
-                              View
-                            </Button>
-                          </div>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                          <Button 
+                            onClick={(e) => handleAddToCart(e, product)}
+                            size="lg"
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-base font-semibold rounded-xl shadow-lg"
+                          >
+                            <ShoppingCart className="w-5 h-5 mr-2" />
+                            Add to Cart
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            onClick={() => setSelectedProduct(product)}
+                            size="lg"
+                            className="flex-1 border-2 border-gray-300 hover:border-gray-400 px-8 py-3 text-base font-semibold rounded-xl"
+                          >
+                            View
+                          </Button>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        <div className="flex justify-center gap-2 mt-6">
+        <div className="flex justify-center gap-2 mt-8">
           {featuredProducts.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-colors ${index === currentIndex ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                index === currentIndex ? 'bg-blue-600' : 'bg-gray-300'
+              }`}
               onClick={() => setCurrentIndex(index)}
             />
           ))}
