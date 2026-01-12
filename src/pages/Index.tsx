@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
-import HeroCarousel from '@/components/HeroCarousel';
+import FeaturedProductsCarousel from '@/components/FeaturedProductsCarousel';
 import ProductGrid from '@/components/ProductGrid';
 import Footer from '@/components/Footer';
 
@@ -17,7 +17,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar onSearch={setSearchQuery} />
       <main>
-        <HeroCarousel onExplore={scrollToProducts} />
+        <FeaturedProductsCarousel />
         <div ref={productSectionRef}>
           <ProductGrid
             selectedCategory={selectedCategory}
