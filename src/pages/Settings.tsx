@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Upload, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import ImageCropper from '@/components/ImageCropper';
+import { useCloudinaryProfileUpload } from '@/hooks/useCloudinaryProfileUpload';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -19,8 +19,7 @@ const Settings = () => {
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [cropSrc, setCropSrc] = useState('');
-  const [croppedBlob, setCroppedBlob] = useState<Blob | null>(null);
+  const { uploadProfileImage, isUploading } = useCloudinaryProfileUpload();
 
   useEffect(() => {
     if (!user) {
@@ -46,51 +45,23 @@ const Settings = () => {
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setCropSrc(reader.result as string);
-      reader.readAsDataURL(file);
+      const uploadedUrl = await uploadProfileImage(file);
+      if (uploadedUrl) {
+        setAvatarUrl(uploadedUrl);
+        toast.success('Profile picture uploaded successfully');
+      } else {
+        toast.error('Failed to upload profile picture');
+      }
     }
-  };
-
-  const handleCropComplete = (blob: Blob) => {
-    setCroppedBlob(blob);
-    setAvatarUrl(URL.createObjectURL(blob));
-    setCropSrc('');
-  };
-
-  const uploadAvatar = async () => {
-    if (!croppedBlob || !user) return null;
-
-    const fileName = `${user.id}.jpg`;
-    const { error } = await supabase.storage
-      .from('avatars')
-      .upload(fileName, croppedBlob, { upsert: true });
-
-    if (error) {
-      console.error('Avatar upload error:', error);
-      return null;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(fileName);
-
-    return publicUrl;
   };
 
   const handleSave = async () => {
     if (!user) return;
 
     setIsLoading(true);
-    let newAvatarUrl = avatarUrl;
-
-    if (croppedBlob) {
-      const uploadedUrl = await uploadAvatar();
-      if (uploadedUrl) newAvatarUrl = uploadedUrl;
-    }
 
     const { error } = await supabase
       .from('user_profiles')
@@ -99,7 +70,7 @@ const Settings = () => {
         first_name: firstName,
         last_name: lastName,
         phone_number: phoneNumber,
-        avatar_url: newAvatarUrl,
+        avatar_url: avatarUrl,
         updated_at: new Date().toISOString(),
       });
 
@@ -109,7 +80,6 @@ const Settings = () => {
       toast.error('Failed to update profile');
     } else {
       toast.success('Profile updated successfully');
-      setCroppedBlob(null);
     }
   };
 
@@ -132,11 +102,20 @@ const Settings = () => {
                 <AvatarFallback>{firstName[0]}{lastName[0]}</AvatarFallback>
               </Avatar>
               <label>
-                <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
-                <Button variant="outline" size="sm" asChild>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleAvatarChange} 
+                  className="hidden" 
+                  disabled={isUploading || isLoading}
+                />
+                <Button variant="outline" size="sm" asChild disabled={isUploading || isLoading}>
                   <span className="cursor-pointer">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Change Photo
+                    {isUploading ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Uploading...</>
+                    ) : (
+                      <><Upload className="w-4 h-4 mr-2" />Change Photo</>
+                    )}
                   </span>
                 </Button>
               </label>
@@ -179,20 +158,12 @@ const Settings = () => {
               <Input id="email" value={user?.email || ''} disabled />
             </div>
 
-            <Button onClick={handleSave} disabled={isLoading} className="w-full">
+            <Button onClick={handleSave} disabled={isLoading || isUploading} className="w-full">
               {isLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : 'Save Changes'}
             </Button>
           </CardContent>
         </Card>
       </div>
-
-      {cropSrc && (
-        <ImageCropper
-          src={cropSrc}
-          onCropComplete={handleCropComplete}
-          onCancel={() => setCropSrc('')}
-        />
-      )}
     </div>
   );
 };
