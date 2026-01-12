@@ -203,10 +203,11 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               {product.badge && (
                 <Badge className="absolute top-3 left-3 z-10 text-xs">{product.badge}</Badge>
               )}
+              {/* Favorite button - Desktop only */}
               <Button
                 size="icon"
                 variant="secondary"
-                className="absolute top-3 right-3 z-40 h-9 w-9 rounded-full shadow-md"
+                className="hidden md:flex absolute top-3 right-3 z-40 h-9 w-9 rounded-full shadow-md"
                 onClick={handleFavoriteClick}
               >
                 <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
@@ -225,7 +226,18 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 </span>
               )}
 
-              <h2 className="font-display font-bold text-base sm:text-lg md:text-2xl mb-1 md:mb-2 leading-tight">{product.name}</h2>
+              <h2 className="font-display font-bold text-base sm:text-lg md:text-2xl mb-1 md:mb-2 leading-tight flex items-center justify-between gap-2">
+                <span className="flex-1">{product.name}</span>
+                {/* Favorite button - Mobile only */}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="md:hidden h-8 w-8 flex-shrink-0"
+                  onClick={handleFavoriteClick}
+                >
+                  <Heart className={`w-5 h-5 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                </Button>
+              </h2>
 
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex items-center gap-1">
