@@ -76,40 +76,60 @@ const FeaturedProductsCarousel = () => {
               return (
                 <div key={product.id} className="w-full flex-shrink-0 px-2">
                   <Card className="mx-auto max-w-4xl bg-background border shadow-lg">
-                    <CardContent className="p-3 md:p-6">
-                      <div className="flex gap-3 md:gap-6 items-center">
-                        <div className="relative bg-secondary rounded-lg p-2 flex-shrink-0">
+                    <CardContent className="p-4 md:p-6">
+                      <div className="flex gap-4 md:gap-6 items-start">
+                        <div className="relative bg-secondary rounded-lg p-3 md:p-4 flex-shrink-0">
                           <img
                             src={product.image || '/placeholder.svg'}
                             alt={product.name}
-                            className="w-16 h-16 md:w-48 md:h-48 object-contain"
+                            className="w-32 h-32 md:w-48 md:h-48 object-contain"
                           />
                         </div>
                         
-                        <div className="flex-1 min-w-0 space-y-1 md:space-y-4">
+                        <div className="flex-1 min-w-0 space-y-2 md:space-y-3">
                           <div>
-                            <h3 className="text-base md:text-2xl lg:text-3xl font-bold text-foreground leading-tight">
+                            <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground leading-tight mb-2">
                               {product.name}
                             </h3>
+                            {product.description && (
+                              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                                {product.description}
+                              </p>
+                            )}
                           </div>
                           
-                          <div className="text-lg md:text-2xl lg:text-3xl font-bold text-primary">
-                            ₹{Number(displayPrice).toLocaleString('en-IN')}
+                          <div className="space-y-2">
+                            <div className="flex items-baseline gap-3 flex-wrap">
+                              <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary">
+                                ₹{Number(displayPrice).toLocaleString('en-IN')}
+                              </span>
+                              {product.original_price && product.original_price > displayPrice && (
+                                <>
+                                  <span className="text-lg md:text-xl text-muted-foreground line-through">
+                                    ₹{Number(product.original_price).toLocaleString('en-IN')}
+                                  </span>
+                                  <span className="text-sm md:text-base bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold">
+                                    {discountPercent}% OFF
+                                  </span>
+                                </>
+                              )}
+                            </div>
                           </div>
                           
-                          <div className="flex gap-2">
+                          <div className="flex gap-3 pt-2">
                             <Button 
                               onClick={(e) => handleAddToCart(e, product)}
-                              size="sm"
-                              className="text-xs md:text-sm"
+                              size="default"
+                              className="px-6 py-2"
                             >
+                              <ShoppingCart className="w-4 h-4 mr-2" />
                               Add to Cart
                             </Button>
                             <Button 
                               variant="outline"
                               onClick={() => setSelectedProduct(product)}
-                              size="sm"
-                              className="text-xs md:text-sm"
+                              size="default"
+                              className="px-6 py-2"
                             >
                               View
                             </Button>
