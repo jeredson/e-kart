@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Zap, LogOut, Shield, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { supabase } from '@/integrations/supabase/client';
 import CartDrawer from './CartDrawer';
 
 interface NavbarProps {
@@ -17,8 +19,27 @@ interface NavbarProps {
 const Navbar = ({ onSearch }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userProfile, setUserProfile] = useState<{ first_name?: string; avatar_url?: string } | null>(null);
   const { totalItems } = useCart();
   const { user, isAdmin, signOut } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      loadUserProfile();
+    } else {
+      setUserProfile(null);
+    }
+  }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('first_name, avatar_url')
+      .eq('id', user.id)
+      .single();
+    if (data) setUserProfile(data);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,8 +106,14 @@ const Navbar = ({ onSearch }: NavbarProps) => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hidden sm:flex">
-                    <User className="w-5 h-5" />
+                  <Button variant="ghost" className="hidden sm:flex items-center gap-2 h-auto py-2 px-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={userProfile?.avatar_url} />
+                      <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                    </Avatar>
+                    {userProfile?.first_name && (
+                      <span className="text-sm font-medium">{userProfile.first_name}</span>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">

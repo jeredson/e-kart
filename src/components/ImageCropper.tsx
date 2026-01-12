@@ -11,9 +11,24 @@ interface ImageCropperProps {
 }
 
 const ImageCropper = ({ src, onCropComplete, onCancel }: ImageCropperProps) => {
-  const [crop, setCrop] = useState<Crop>({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
+  const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const imgRef = useRef<HTMLImageElement>(null);
+
+  const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    const size = Math.min(width, height);
+    const x = (width - size) / 2;
+    const y = (height - size) / 2;
+    
+    setCrop({
+      unit: 'px',
+      width: size,
+      height: size,
+      x,
+      y
+    });
+  };
 
   const getCroppedImg = async () => {
     if (!completedCrop || !imgRef.current) return;
@@ -23,8 +38,9 @@ const ImageCropper = ({ src, onCropComplete, onCancel }: ImageCropperProps) => {
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
 
-    canvas.width = completedCrop.width;
-    canvas.height = completedCrop.height;
+    const size = 400;
+    canvas.width = size;
+    canvas.height = size;
     const ctx = canvas.getContext('2d');
 
     if (!ctx) return;
@@ -37,8 +53,8 @@ const ImageCropper = ({ src, onCropComplete, onCancel }: ImageCropperProps) => {
       completedCrop.height * scaleY,
       0,
       0,
-      completedCrop.width,
-      completedCrop.height
+      size,
+      size
     );
 
     return new Promise<Blob>((resolve) => {
@@ -67,7 +83,7 @@ const ImageCropper = ({ src, onCropComplete, onCancel }: ImageCropperProps) => {
             aspect={1}
             circularCrop
           >
-            <img ref={imgRef} src={src} alt="Crop" className="max-h-96" />
+            <img ref={imgRef} src={src} alt="Crop" className="max-h-96" onLoad={onImageLoad} />
           </ReactCrop>
         </div>
         <DialogFooter>
