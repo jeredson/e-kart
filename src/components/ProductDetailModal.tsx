@@ -191,7 +191,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-2 z-10 bg-background/80 backdrop-blur-sm h-8 w-8"
+          className="absolute right-2 top-2 z-50 bg-background/80 backdrop-blur-sm h-8 w-8"
           onClick={onClose}
         >
           <X className="w-4 h-4" />
@@ -206,7 +206,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               <Button
                 size="icon"
                 variant="secondary"
-                className="absolute top-3 right-3 z-10 h-9 w-9 rounded-full shadow-md"
+                className="absolute top-3 right-3 z-40 h-9 w-9 rounded-full shadow-md"
                 onClick={handleFavoriteClick}
               >
                 <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />

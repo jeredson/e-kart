@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { Heart, Trash2, ShoppingCart } from 'lucide-react';
+import { Heart, Trash2, ShoppingCart, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useCart } from '@/contexts/CartContext';
@@ -16,21 +17,40 @@ const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
   const { favorites, removeFavorite } = useFavorites();
   const { addToCart } = useCart();
   const [products, setProducts] = useState<DbProduct[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState<DbProduct[]>([]);
 
   useEffect(() => {
     if (favorites.length > 0) {
       loadFavoriteProducts();
     } else {
       setProducts([]);
+      setFilteredProducts([]);
     }
   }, [favorites]);
+
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = products.filter(p => 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.model?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+    } else {
+      setFilteredProducts(products);
+    }
+  }, [searchQuery, products]);
 
   const loadFavoriteProducts = async () => {
     const { data } = await supabase
       .from('products')
       .select('*, category:categories(name)')
       .in('id', favorites);
-    if (data) setProducts(data as DbProduct[]);
+    if (data) {
+      setProducts(data as DbProduct[]);
+      setFilteredProducts(data as DbProduct[]);
+    }
   };
 
   const handleAddToCart = (product: DbProduct) => {
@@ -69,8 +89,26 @@ const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
             </p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto py-4 space-y-4">
-            {products.map((product) => (
+          <>
+            <div className="py-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search favorites..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-4">
+              {filteredProducts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <p className="text-muted-foreground text-sm">No products found</p>
+                </div>
+              ) : (
+                filteredProducts.map((product) => (
               <div key={product.id} className="flex gap-4 p-3 rounded-lg bg-secondary/50">
                 <img
                   src={product.image || '/placeholder.svg'}
@@ -103,8 +141,10 @@ const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+                ))
+              )}
+            </div>
+          </>
         )}
       </SheetContent>
     </Sheet>

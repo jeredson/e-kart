@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Zap, LogOut, Shield, Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,8 +11,10 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
+import { DbProduct } from '@/hooks/useProducts';
 import CartDrawer from './CartDrawer';
 import FavoritesDrawer from './FavoritesDrawer';
+import ProductDetailModal from './ProductDetailModal';
 
 interface NavbarProps {
   onSearch: (query: string) => void;
@@ -21,7 +23,11 @@ interface NavbarProps {
 const Navbar = ({ onSearch }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<DbProduct[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<DbProduct | null>(null);
   const [userProfile, setUserProfile] = useState<{ first_name?: string; avatar_url?: string } | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
   const { totalItems } = useCart();
   const { favorites } = useFavorites();
   const { user, isAdmin, signOut } = useAuth();
@@ -34,6 +40,25 @@ const Navbar = ({ onSearch }: NavbarProps) => {
     }
   }, [user]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim().length > 1) {
+      searchProducts(searchQuery);
+    } else {
+      setSearchResults([]);
+      setShowSearchResults(false);
+    }
+  }, [searchQuery]);
+
   const loadUserProfile = async () => {
     if (!user) return;
     const { data } = await supabase
@@ -44,9 +69,27 @@ const Navbar = ({ onSearch }: NavbarProps) => {
     if (data) setUserProfile(data);
   };
 
+  const searchProducts = async (query: string) => {
+    const { data } = await supabase
+      .from('products')
+      .select('*, category:categories(name)')
+      .or(`name.ilike.%${query}%,brand.ilike.%${query}%,model.ilike.%${query}%`)
+      .limit(5);
+    if (data) {
+      setSearchResults(data as DbProduct[]);
+      setShowSearchResults(true);
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch(searchQuery);
+    setShowSearchResults(false);
+  };
+
+  const handleProductClick = (product: DbProduct) => {
+    setSelectedProduct(product);
+    setShowSearchResults(false);
   };
 
   const handleSignOut = async () => {
@@ -67,15 +110,40 @@ const Navbar = ({ onSearch }: NavbarProps) => {
 
           {/* Search Bar - Desktop */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="relative w-full" ref={searchRef}>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
               <Input
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.length > 1 && setShowSearchResults(true)}
                 className="pl-10 bg-secondary border-0 focus-visible:ring-primary"
               />
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="absolute top-full mt-2 w-full bg-background border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                  {searchResults.map((product) => (
+                    <button
+                      key={product.id}
+                      onClick={() => handleProductClick(product)}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-secondary transition-colors text-left"
+                    >
+                      <img
+                        src={product.image || '/placeholder.svg'}
+                        alt={product.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{product.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{product.brand} {product.model}</p>
+                        <p className="text-sm font-semibold text-primary mt-1">
+                          ₹{Number(product.discounted_price || product.price).toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </form>
 
@@ -230,6 +298,12 @@ const Navbar = ({ onSearch }: NavbarProps) => {
           </div>
         )}
       </div>
+
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={!!selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
     </nav>
   );
 };
