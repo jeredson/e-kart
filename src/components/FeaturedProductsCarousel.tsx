@@ -22,9 +22,10 @@ const FeaturedProductsCarousel = () => {
   }
 
   const getDiscountPercentage = (product: any) => {
-    if (product.original_price && product.discounted_price) {
-      const discount = ((product.original_price - product.discounted_price) / product.original_price) * 100;
-      return Math.round(discount);
+    const original = product.original_price;
+    const discounted = product.discounted_price || product.price;
+    if (original && original > discounted) {
+      return Math.round(((original - discounted) / original) * 100);
     }
     return 0;
   };
@@ -46,41 +47,30 @@ const FeaturedProductsCarousel = () => {
               return (
                 <div key={product.id} className="w-full flex-shrink-0">
                   <Card className="mx-auto max-w-2xl">
-                    <CardContent className="p-4 md:p-6">
-                      {/* Mobile: Horizontal Layout */}
-                      <div className="flex md:flex-col gap-4 md:gap-0">
-                        <div className="w-32 h-32 md:w-full md:h-auto flex-shrink-0">
-                          <img
-                            src={product.image || '/placeholder.svg'}
-                            alt={product.name}
-                            className="w-full h-full object-contain rounded-lg md:mx-auto md:mb-4"
-                          />
-                        </div>
+                    <CardContent className="p-4">
+                      <div className="flex gap-4">
+                        <img
+                          src={product.image || '/placeholder.svg'}
+                          alt={product.name}
+                          className="w-32 h-32 object-contain rounded-lg flex-shrink-0"
+                        />
                         
-                        <div className="flex-1 flex flex-col justify-center md:text-center">
-                          <h3 className="text-lg md:text-xl font-semibold mb-2">{product.name}</h3>
-                          <div className="flex md:justify-center items-center gap-1 mb-2">
+                        <div className="flex-1 flex flex-col justify-center">
+                          <h3 className="text-lg font-semibold mb-2 line-clamp-2">{product.name}</h3>
+                          <div className="flex items-center gap-1 mb-2">
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-4 h-4 ${
-                                  i < (product.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                                }`}
+                                className={`w-4 h-4 ${i < (product.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
                               />
                             ))}
-                            <span className="text-sm text-muted-foreground ml-1">
-                              ({product.rating || 0})
-                            </span>
+                            <span className="text-sm text-muted-foreground ml-1">({product.rating || 0})</span>
                           </div>
-                          <div className="flex md:justify-center items-center gap-2">
-                            <div className="text-xl md:text-2xl font-bold text-primary">
-                              ₹{Number(displayPrice).toLocaleString()}
-                            </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xl font-bold text-primary">₹{Number(displayPrice).toLocaleString()}</span>
                             {product.original_price && product.original_price > displayPrice && (
                               <>
-                                <span className="text-sm text-muted-foreground line-through">
-                                  ₹{Number(product.original_price).toLocaleString()}
-                                </span>
+                                <span className="text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString()}</span>
                                 {discountPercent > 0 && (
                                   <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded">
                                     {discountPercent}% OFF
@@ -103,9 +93,7 @@ const FeaturedProductsCarousel = () => {
           {featuredProducts.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-primary' : 'bg-muted-foreground/30'
-              }`}
+              className={`w-2 h-2 rounded-full transition-colors ${index === currentIndex ? 'bg-primary' : 'bg-muted-foreground/30'}`}
               onClick={() => setCurrentIndex(index)}
             />
           ))}
