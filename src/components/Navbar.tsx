@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, X, Zap, LogOut, Shield, Settings } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Zap, LogOut, Shield, Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCart } from '@/contexts/CartContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import CartDrawer from './CartDrawer';
+import FavoritesDrawer from './FavoritesDrawer';
 
 interface NavbarProps {
   onSearch: (query: string) => void;
@@ -21,6 +23,7 @@ const Navbar = ({ onSearch }: NavbarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userProfile, setUserProfile] = useState<{ first_name?: string; avatar_url?: string } | null>(null);
   const { totalItems } = useCart();
+  const { favorites } = useFavorites();
   const { user, isAdmin, signOut } = useAuth();
 
   useEffect(() => {
@@ -152,6 +155,18 @@ const Navbar = ({ onSearch }: NavbarProps) => {
                 </Link>
               </Button>
             )}
+
+            {/* Favorites */}
+            <FavoritesDrawer>
+              <Button variant="ghost" size="icon" className="relative">
+                <Heart className="w-5 h-5" />
+                {favorites.length > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                    {favorites.length}
+                  </Badge>
+                )}
+              </Button>
+            </FavoritesDrawer>
 
             {/* Cart */}
             <CartDrawer>
