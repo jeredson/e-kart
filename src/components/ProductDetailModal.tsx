@@ -24,6 +24,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   if (!product) return null;
 
@@ -52,44 +53,47 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
   };
 
-  useEffect(() => {
-    if (product) {
-      setSelectedImage(product.image || '/placeholder.svg');
-      
-      // Auto-select variants
-      const autoSelectedVariants: Record<string, string> = {};
-      
-      if (orderedSpecs && typeof orderedSpecs === 'object') {
-        Object.entries(orderedSpecs).forEach(([key, value]) => {
-          // Skip the _ordered key if it exists
-          if (key === '_ordered') return;
+  // Auto-select variants only once when product changes
+  if (product && !initialized) {
+    const autoSelectedVariants: Record<string, string> = {};
+    let autoSelectedImage = product.image || '/placeholder.svg';
+    
+    if (orderedSpecs && typeof orderedSpecs === 'object') {
+      Object.entries(orderedSpecs).forEach(([key, value]) => {
+        if (key === '_ordered') return;
+        
+        if (Array.isArray(value) && value.length > 0) {
+          const validOptions = value.filter((item: any) => {
+            const isException = (product.variant_exceptions as string[])?.includes(item.value);
+            return !isException;
+          });
           
-          if (Array.isArray(value) && value.length > 0) {
-            // Auto-select first valid option for arrays
-            const validOptions = value.filter((item: any) => {
-              const isException = (product.variant_exceptions as string[])?.includes(item.value);
-              return !isException;
-            });
+          if (validOptions.length > 0) {
+            const selectedOption = validOptions[0];
+            autoSelectedVariants[key] = selectedOption.value;
             
-            if (validOptions.length > 0) {
-              const selectedOption = validOptions[0];
-              autoSelectedVariants[key] = selectedOption.value;
-              
-              // Set image if it's the first color option with an image
-              if (isColorSpec(key) && selectedOption.image) {
-                setSelectedImage(selectedOption.image);
-              }
+            if (isColorSpec(key) && selectedOption.image) {
+              autoSelectedImage = selectedOption.image;
             }
-          } else if (typeof value === 'string') {
-            // Auto-select single string values
-            autoSelectedVariants[key] = value;
           }
-        });
-      }
-      
-      setSelectedVariants(autoSelectedVariants);
+        } else if (typeof value === 'string') {
+          autoSelectedVariants[key] = value;
+        }
+      });
     }
-  }, [product]);
+    
+    // Set state synchronously during render
+    if (!initialized) {
+      setSelectedVariants(autoSelectedVariants);
+      setSelectedImage(autoSelectedImage);
+      setInitialized(true);
+    }
+  }
+
+  // Reset when product changes
+  useEffect(() => {
+    setInitialized(false);
+  }, [product?.id]);
 
   const variantExceptions = product.variant_exceptions as string[] | null;
 
