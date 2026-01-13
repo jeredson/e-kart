@@ -2,8 +2,11 @@ import { Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
+import { useState } from 'react';
+import SignInDialog from './SignInDialog';
 
 interface ProductCardMobileProps {
   product: DbProduct;
@@ -12,6 +15,8 @@ interface ProductCardMobileProps {
 
 const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -19,6 +24,50 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
       toast.error('This product is out of stock');
       return;
     }
+    if (!user) {
+      setShowSignInDialog(true);
+      return;
+    }
+
+    // Extract first variants from specifications
+    const getFirstVariants = () => {
+      const variants: Record<string, string> = {};
+      let variantImage = product.image;
+
+      if (product.specifications && typeof product.specifications === 'object') {
+        const specs = product.specifications as Record<string, any>;
+        
+        // Handle ordered specifications format
+        let orderedSpecs = specs;
+        if (specs._ordered && Array.isArray(specs._ordered)) {
+          orderedSpecs = {};
+          specs._ordered.forEach((spec: any) => {
+            orderedSpecs[spec.key] = spec.values;
+          });
+        }
+
+        Object.entries(orderedSpecs).forEach(([key, value]) => {
+          if (key === '_ordered') return;
+          
+          if (Array.isArray(value) && value.length > 0) {
+            const firstOption = value[0];
+            if (firstOption && typeof firstOption === 'object' && firstOption.value) {
+              variants[key] = firstOption.value;
+              
+              // Use first color variant image if available
+              if (key.toLowerCase().includes('color') && firstOption.image) {
+                variantImage = firstOption.image;
+              }
+            }
+          }
+        });
+      }
+
+      return { variants, variantImage };
+    };
+
+    const { variants, variantImage } = getFirstVariants();
+    
     addToCart({
       id: product.id,
       name: product.name,
@@ -28,8 +77,12 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
       category: product.category?.name || 'General',
       rating: Number(product.rating) || 4.5,
       reviews: product.reviews_count || 0,
-    });
-    toast.success(`${product.name} added to cart!`);
+    }, variants, variantImage);
+    
+    const variantText = Object.keys(variants).length > 0 
+      ? ` (${Object.values(variants).join(', ')})`
+      : '';
+    toast.success(`${product.name}${variantText} added to cart!`);
   };
 
   return (
@@ -95,6 +148,8 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
           </div>
         </div>
       </div>
+      
+      <SignInDialog open={showSignInDialog} onOpenChange={setShowSignInDialog} />
     </div>
   );
 };

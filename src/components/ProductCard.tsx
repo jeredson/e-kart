@@ -41,6 +41,46 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
       setShowSignInDialog(true);
       return;
     }
+
+    // Extract first variants from specifications
+    const getFirstVariants = () => {
+      const variants: Record<string, string> = {};
+      let variantImage = product.image;
+
+      if (product.specifications && typeof product.specifications === 'object') {
+        const specs = product.specifications as Record<string, any>;
+        
+        // Handle ordered specifications format
+        let orderedSpecs = specs;
+        if (specs._ordered && Array.isArray(specs._ordered)) {
+          orderedSpecs = {};
+          specs._ordered.forEach((spec: any) => {
+            orderedSpecs[spec.key] = spec.values;
+          });
+        }
+
+        Object.entries(orderedSpecs).forEach(([key, value]) => {
+          if (key === '_ordered') return;
+          
+          if (Array.isArray(value) && value.length > 0) {
+            const firstOption = value[0];
+            if (firstOption && typeof firstOption === 'object' && firstOption.value) {
+              variants[key] = firstOption.value;
+              
+              // Use first color variant image if available
+              if (key.toLowerCase().includes('color') && firstOption.image) {
+                variantImage = firstOption.image;
+              }
+            }
+          }
+        });
+      }
+
+      return { variants, variantImage };
+    };
+
+    const { variants, variantImage } = getFirstVariants();
+    
     addToCart({
       id: product.id,
       name: product.name,
@@ -50,8 +90,12 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
       category: product.category?.name || 'General',
       rating: Number(product.rating) || 4.5,
       reviews: product.reviews_count || 0,
-    });
-    toast.success(`${product.name} added to cart!`);
+    }, variants, variantImage);
+    
+    const variantText = Object.keys(variants).length > 0 
+      ? ` (${Object.values(variants).join(', ')})`
+      : '';
+    toast.success(`${product.name}${variantText} added to cart!`);
   };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {

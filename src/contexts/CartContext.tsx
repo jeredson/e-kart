@@ -140,6 +140,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const variantsJson = Object.keys(variants).length > 0 ? JSON.stringify(variants) : null;
     console.log('Removing from cart:', { productId, variants, variantsJson });
 
+    // First, let's see what's actually in the database
+    const { data: existingItems } = await supabase
+      .from('cart_items')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('product_id', productId);
+    
+    console.log('Existing cart items for product:', existingItems);
+
     let query = supabase
       .from('cart_items')
       .delete()
@@ -152,17 +161,24 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       query = query.eq('variants', variantsJson);
     }
 
-    const { error } = await query;
+    const { error, count } = await query;
+
+    console.log('Delete result:', { error, count });
 
     if (error) {
       console.error('Remove from cart error:', error);
       toast.error('Failed to remove item from cart');
     } else {
+      console.log('Successfully deleted from database, updating UI');
       const variantKey = JSON.stringify(variants);
-      setItems(items.filter(item => {
+      const newItems = items.filter(item => {
         const itemVariantKey = JSON.stringify(item.variants || {});
-        return !(item.id === productId && itemVariantKey === variantKey);
-      }));
+        const shouldRemove = item.id === productId && itemVariantKey === variantKey;
+        console.log('Item check:', { itemId: item.id, productId, itemVariantKey, variantKey, shouldRemove });
+        return !shouldRemove;
+      });
+      console.log('Updated items:', newItems.length, 'vs original:', items.length);
+      setItems(newItems);
       toast.success('Removed from cart');
     }
   };
@@ -218,7 +234,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       toast.error('Failed to clear cart');
     } else {
       setItems([]);
+      toast.success('Cart cleared');
     }
+  };
+
+  // Add a function to force reload cart from database
+  const reloadCart = async () => {
+    await loadCart();
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -232,6 +254,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         removeFromCart,
         updateQuantity,
         clearCart,
+        reloadCart,
         totalItems,
         totalPrice,
         isLoading
