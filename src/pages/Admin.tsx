@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import SpecificationsInput from '@/components/SpecificationsInput';
 import { ImageUpload } from '@/components/ImageUpload';
 import { VariantPricingInput } from '@/components/VariantPricingInput';
+import VariantStockInput from '@/components/VariantStockInput';
 
 interface SpecificationValue {
   value: string;
@@ -50,8 +51,7 @@ const Admin = () => {
     model: '',
     name: '',
     description: '',
-    original_price: '',
-    discounted_price: '',
+    price: '',
     image: '',
     category_id: '',
     badge: '',
@@ -60,6 +60,7 @@ const Admin = () => {
   const [specifications, setSpecifications] = useState<SpecificationRow[]>([]);
   const [variantPricing, setVariantPricing] = useState<Record<string, Record<string, number>>>({});
   const [variantExceptions, setVariantExceptions] = useState<string[]>([]);
+  const [variantStock, setVariantStock] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -74,8 +75,7 @@ const Admin = () => {
       model: '',
       name: '',
       description: '',
-      original_price: '',
-      discounted_price: '',
+      price: '',
       image: '',
       category_id: '',
       badge: '',
@@ -84,6 +84,7 @@ const Admin = () => {
     setSpecifications([]);
     setVariantPricing({});
     setVariantExceptions([]);
+    setVariantStock({});
     setEditingProduct(null);
   };
 
@@ -94,8 +95,7 @@ const Admin = () => {
       model: product.model || '',
       name: product.name,
       description: product.description || '',
-      original_price: String(product.original_price || ''),
-      discounted_price: String(product.discounted_price || product.price),
+      price: String(product.price),
       image: product.image || '',
       category_id: product.category_id || '',
       badge: product.badge || '',
@@ -117,6 +117,7 @@ const Admin = () => {
     }
     setVariantPricing((product.variant_pricing as Record<string, Record<string, number>>) || {});
     setVariantExceptions((product.variant_exceptions as string[]) || []);
+    setVariantStock((product.variant_stock as Record<string, number>) || {});
     setIsProductDialogOpen(true);
   };
 
@@ -128,11 +129,10 @@ const Admin = () => {
       return;
     }
 
-    const originalPrice = parseFloat(formData.original_price);
-    const discountedPrice = parseFloat(formData.discounted_price);
+    const price = parseFloat(formData.price);
 
-    if (!discountedPrice) {
-      toast.error('Discounted price is required');
+    if (!price) {
+      toast.error('Price is required');
       return;
     }
 
@@ -157,9 +157,7 @@ const Admin = () => {
       model: formData.model,
       name: productName,
       description: formData.description || undefined,
-      price: discountedPrice,
-      original_price: originalPrice || undefined,
-      discounted_price: discountedPrice,
+      price: price,
       image: formData.image || undefined,
       category_id: formData.category_id || undefined,
       badge: formData.badge || undefined,
@@ -167,6 +165,7 @@ const Admin = () => {
       specifications: specsObject,
       variant_pricing: Object.keys(variantPricing).length > 0 ? variantPricing : undefined,
       variant_exceptions: variantExceptions.length > 0 ? variantExceptions : undefined,
+      variant_stock: Object.keys(variantStock).length > 0 ? variantStock : undefined,
     };
 
     if (editingProduct) {
@@ -278,29 +277,16 @@ const Admin = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="original_price">Original Price</Label>
-                    <Input
-                      id="original_price"
-                      type="number"
-                      step="0.01"
-                      value={formData.original_price}
-                      onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="discounted_price">Discounted Price *</Label>
-                    <Input
-                      id="discounted_price"
-                      type="number"
-                      step="0.01"
-                      value={formData.discounted_price}
-                      onChange={(e) => setFormData({ ...formData, discounted_price: e.target.value })}
-                      placeholder="0.00"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="0.00"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -357,6 +343,12 @@ const Admin = () => {
                   onChange={setVariantPricing}
                   exceptions={variantExceptions}
                   onExceptionsChange={setVariantExceptions}
+                />
+
+                <VariantStockInput
+                  specifications={specifications}
+                  value={variantStock}
+                  onChange={setVariantStock}
                 />
 
                 <Button type="submit" className="w-full" disabled={createProduct.isPending || updateProduct.isPending}>

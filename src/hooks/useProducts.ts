@@ -22,6 +22,7 @@ export interface DbProduct {
   specifications: Json | null;
   variant_pricing: Json | null;
   variant_exceptions: Json | null;
+  variant_stock: Json | null;
   created_at: string;
   updated_at: string;
   category?: { id: string; name: string } | null;
@@ -124,6 +125,7 @@ export const useCreateProduct = () => {
       specifications?: Record<string, any>;
       variant_pricing?: Record<string, any>;
       variant_exceptions?: string[];
+      variant_stock?: Record<string, number>;
     }) => {
       const { data, error } = await supabase
         .from('products')
@@ -164,6 +166,7 @@ export const useUpdateProduct = () => {
       specifications?: Record<string, any>;
       variant_pricing?: Record<string, any>;
       variant_exceptions?: string[];
+      variant_stock?: Record<string, number>;
     }) => {
       const { data, error } = await supabase
         .from('products')

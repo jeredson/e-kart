@@ -132,21 +132,7 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         {/* Price */}
         <div className="flex items-center justify-between pt-2">
           <div className="flex flex-col gap-1">
-            {product.original_price && product.original_price > displayPrice ? (
-              <>
-                <div className="flex items-center gap-2">
-                  <span className="font-display font-bold text-xl">₹{Number(displayPrice).toLocaleString('en-IN')}</span>
-                  {discountPercent > 0 && (
-                    <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded">
-                      {discountPercent}% OFF
-                    </span>
-                  )}
-                </div>
-                <span className="text-sm text-muted-foreground line-through">₹{Number(product.original_price).toLocaleString('en-IN')}</span>
-              </>
-            ) : (
-              <span className="font-display font-bold text-xl">₹{Number(displayPrice).toLocaleString('en-IN')}</span>
-            )}
+            <span className="font-display font-bold text-xl">₹{Number(product.price).toLocaleString('en-IN')}</span>
             {!product.in_stock && (
               <span className="text-sm font-medium text-red-600">Out of Stock</span>
             )}
