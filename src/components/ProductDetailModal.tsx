@@ -148,17 +148,18 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       keyParts.forEach(part => {
         const [variantType, variantValue] = part.split(': ');
         if (variantType && variantValue) {
-          keyVariants[variantType] = variantValue;
+          // Normalize keys to handle case differences
+          keyVariants[variantType.toLowerCase()] = variantValue;
         }
       });
       
-      // Check if all selected variants match this key
+      // Check if all selected variants match this key (case-insensitive)
       const allSelectedMatch = Object.entries(selectedVariants).every(([type, value]) => 
-        keyVariants[type] === value
+        keyVariants[type.toLowerCase()] === value
       );
       
-      // Only return stock if ALL required variants are selected (Ram, Color, Storage)
-      const hasAllRequiredVariants = selectedVariants.Ram && selectedVariants.Color && selectedVariants.Storage;
+      // Only return stock if ALL required variants are selected
+      const hasAllRequiredVariants = Object.keys(selectedVariants).length >= 3; // Ram, Color, Storage
       
       if (allSelectedMatch && hasAllRequiredVariants && Object.keys(selectedVariants).length === Object.keys(keyVariants).length) {
         return variantStock[key];
