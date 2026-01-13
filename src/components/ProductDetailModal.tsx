@@ -125,11 +125,6 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const variantStock = getVariantStock();
   const isVariantAvailable = !isVariantCombinationException();
 
-  // Re-calculate price and stock when variants change
-  useEffect(() => {
-    // This will trigger re-render when selectedVariants changes
-  }, [selectedVariants]);
-
   const handleAddToCart = () => {
     if (!user) {
       setShowSignInDialog(true);
