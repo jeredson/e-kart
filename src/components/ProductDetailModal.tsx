@@ -24,6 +24,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [productId, setProductId] = useState<string | null>(null);
 
   if (!product) return null;
 
@@ -52,12 +53,45 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
   };
 
+  // Auto-select variants when product changes
+  if (product && product.id !== productId) {
+    const autoSelectedVariants: Record<string, string> = {};
+    let autoSelectedImage = product.image || '/placeholder.svg';
+    
+    if (orderedSpecs && typeof orderedSpecs === 'object') {
+      Object.entries(orderedSpecs).forEach(([key, value]) => {
+        if (key === '_ordered') return;
+        
+        if (Array.isArray(value) && value.length > 0) {
+          const validOptions = value.filter((item: any) => {
+            const isException = (product.variant_exceptions as string[])?.includes(item.value);
+            return !isException;
+          });
+          
+          if (validOptions.length > 0) {
+            const selectedOption = validOptions[0];
+            autoSelectedVariants[key] = selectedOption.value;
+            
+            if (isColorSpec(key) && selectedOption.image) {
+              autoSelectedImage = selectedOption.image;
+            }
+          }
+        } else if (typeof value === 'string') {
+          autoSelectedVariants[key] = value;
+        }
+      });
+    }
+    
+    setSelectedVariants(autoSelectedVariants);
+    setSelectedImage(autoSelectedImage);
+    setProductId(product.id);
+  }
+
   const variantExceptions = product.variant_exceptions as string[] | null;
 
   const isVariantCombinationException = () => {
     if (!variantExceptions || variantExceptions.length === 0) return false;
     
-    // Create variant key for checking exceptions
     const pricingVariants: string[] = [];
     Object.entries(selectedVariants).forEach(([key, value]) => {
       if (!isColorSpec(key)) {
@@ -89,7 +123,6 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       return Number(product.price);
     }
 
-    // Create key in format: RAM_Storage (e.g., "12GB_256GB")
     const ramValue = pricingVariants['Ram'] || pricingVariants['RAM'];
     const storageValue = pricingVariants['Storage'] || pricingVariants['STORAGE'];
     
@@ -112,34 +145,28 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       return null;
     }
 
-    // If no variants selected, return null
     if (Object.keys(selectedVariants).length === 0) {
       return null;
     }
 
-    // Try to find a matching key in any order
     const availableKeys = Object.keys(variantStock);
     
     for (const key of availableKeys) {
-      // Parse the key to extract variant parts
       const keyParts = key.split(' | ');
       const keyVariants: Record<string, string> = {};
       
       keyParts.forEach(part => {
         const [variantType, variantValue] = part.split(': ');
         if (variantType && variantValue) {
-          // Normalize keys to handle case differences
           keyVariants[variantType.toLowerCase()] = variantValue;
         }
       });
       
-      // Check if all selected variants match this key (case-insensitive)
       const allSelectedMatch = Object.entries(selectedVariants).every(([type, value]) => 
         keyVariants[type.toLowerCase()] === value
       );
       
-      // Only return stock if ALL required variants are selected
-      const hasAllRequiredVariants = Object.keys(selectedVariants).length >= 3; // Ram, Color, Storage
+      const hasAllRequiredVariants = Object.keys(selectedVariants).length >= 3;
       
       if (allSelectedMatch && hasAllRequiredVariants && Object.keys(selectedVariants).length === Object.keys(keyVariants).length) {
         return variantStock[key];
