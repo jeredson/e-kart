@@ -24,7 +24,6 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [showSignInDialog, setShowSignInDialog] = useState(false);
-  const [initialized, setInitialized] = useState(false);
 
   if (!product) return null;
 
@@ -52,48 +51,6 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const isColorSpec = (key: string) => {
     return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
   };
-
-  // Auto-select variants only once when product changes
-  if (product && !initialized) {
-    const autoSelectedVariants: Record<string, string> = {};
-    let autoSelectedImage = product.image || '/placeholder.svg';
-    
-    if (orderedSpecs && typeof orderedSpecs === 'object') {
-      Object.entries(orderedSpecs).forEach(([key, value]) => {
-        if (key === '_ordered') return;
-        
-        if (Array.isArray(value) && value.length > 0) {
-          const validOptions = value.filter((item: any) => {
-            const isException = (product.variant_exceptions as string[])?.includes(item.value);
-            return !isException;
-          });
-          
-          if (validOptions.length > 0) {
-            const selectedOption = validOptions[0];
-            autoSelectedVariants[key] = selectedOption.value;
-            
-            if (isColorSpec(key) && selectedOption.image) {
-              autoSelectedImage = selectedOption.image;
-            }
-          }
-        } else if (typeof value === 'string') {
-          autoSelectedVariants[key] = value;
-        }
-      });
-    }
-    
-    // Set state synchronously during render
-    if (!initialized) {
-      setSelectedVariants(autoSelectedVariants);
-      setSelectedImage(autoSelectedImage);
-      setInitialized(true);
-    }
-  }
-
-  // Reset when product changes
-  useEffect(() => {
-    setInitialized(false);
-  }, [product?.id]);
 
   const variantExceptions = product.variant_exceptions as string[] | null;
 
@@ -233,6 +190,8 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     setSelectedVariants(prev => ({ ...prev, [specKey]: value.value }));
     if (value.image) {
       setSelectedImage(value.image);
+    } else if (!selectedImage && product) {
+      setSelectedImage(product.image || '/placeholder.svg');
     }
   };
 
@@ -265,7 +224,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
               </Button>
               <img
-                src={selectedImage}
+                src={selectedImage || product.image || '/placeholder.svg'}
                 alt={product.name}
                 className="w-full h-full object-contain"
               />
