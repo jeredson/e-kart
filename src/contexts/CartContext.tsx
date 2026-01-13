@@ -129,20 +129,27 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const removeFromCart = async (productId: string, variants: Record<string, string> = {}) => {
     if (!user) return;
 
+    const variantsToMatch = Object.keys(variants).length > 0 ? variants : null;
+    console.log('Removing from cart:', { productId, variants, variantsToMatch });
+
     const { error } = await supabase
       .from('cart_items')
       .delete()
       .eq('user_id', user.id)
       .eq('product_id', productId)
-      .eq('variants', Object.keys(variants).length > 0 ? variants : null);
+      .is('variants', variantsToMatch === null ? null : undefined)
+      .eq('variants', variantsToMatch === null ? undefined : variantsToMatch);
 
     if (error) {
+      console.error('Remove from cart error:', error);
       toast.error('Failed to remove item from cart');
     } else {
       const variantKey = JSON.stringify(variants);
-      setItems(items.filter(item => 
-        !(item.id === productId && JSON.stringify(item.variants || {}) === variantKey)
-      ));
+      setItems(items.filter(item => {
+        const itemVariantKey = JSON.stringify(item.variants || {});
+        return !(item.id === productId && itemVariantKey === variantKey);
+      }));
+      toast.success('Removed from cart');
     }
   };
 
@@ -154,22 +161,28 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    const variantsToMatch = Object.keys(variants).length > 0 ? variants : null;
+    console.log('Updating quantity:', { productId, quantity, variants, variantsToMatch });
+
     const { error } = await supabase
       .from('cart_items')
       .update({ quantity })
       .eq('user_id', user.id)
       .eq('product_id', productId)
-      .eq('variants', Object.keys(variants).length > 0 ? variants : null);
+      .is('variants', variantsToMatch === null ? null : undefined)
+      .eq('variants', variantsToMatch === null ? undefined : variantsToMatch);
 
     if (error) {
+      console.error('Update quantity error:', error);
       toast.error('Failed to update quantity');
     } else {
       const variantKey = JSON.stringify(variants);
-      setItems(items.map(item =>
-        item.id === productId && JSON.stringify(item.variants || {}) === variantKey
+      setItems(items.map(item => {
+        const itemVariantKey = JSON.stringify(item.variants || {});
+        return item.id === productId && itemVariantKey === variantKey
           ? { ...item, quantity } 
-          : item
-      ));
+          : item;
+      }));
     }
   };
 
