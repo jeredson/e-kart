@@ -1,9 +1,12 @@
 -- Add variant columns to cart_items table
 DO $$ 
 BEGIN
-    -- Add variants column if it doesn't exist
+    -- Add variants column if it doesn't exist (as TEXT to store JSON string)
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'cart_items' AND column_name = 'variants') THEN
-        ALTER TABLE cart_items ADD COLUMN variants JSONB;
+        ALTER TABLE cart_items ADD COLUMN variants TEXT;
+    ELSE
+        -- If it exists as JSONB, convert it to TEXT
+        ALTER TABLE cart_items ALTER COLUMN variants TYPE TEXT USING variants::TEXT;
     END IF;
     
     -- Add variant_image column if it doesn't exist

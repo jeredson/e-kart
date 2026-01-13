@@ -50,6 +50,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     } else {
       console.log('Raw cart data:', data);
       const cartItems: CartItem[] = data?.map(item => {
+        let variants = {};
+        try {
+          variants = item.variants ? (typeof item.variants === 'string' ? JSON.parse(item.variants) : item.variants) : {};
+        } catch (e) {
+          console.error('Error parsing variants:', e, item.variants);
+          variants = {};
+        }
+        
         const cartItem = {
           id: item.product_id,
           name: item.product_name,
@@ -60,7 +68,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           rating: item.product_rating || 4.5,
           reviews: item.product_reviews || 0,
           quantity: item.quantity,
-          variants: item.variants || {},
+          variants,
           variantImage: item.variant_image
         };
         console.log('Processed cart item:', cartItem);
@@ -98,7 +106,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         product_rating: product.rating,
         product_reviews: product.reviews,
         quantity: 1,
-        variants: Object.keys(variants).length > 0 ? variants : null,
+        variants: Object.keys(variants).length > 0 ? JSON.stringify(variants) : null,
         variant_image: variantImage
       };
 
@@ -129,8 +137,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const removeFromCart = async (productId: string, variants: Record<string, string> = {}) => {
     if (!user) return;
 
-    const variantsToMatch = Object.keys(variants).length > 0 ? variants : null;
-    console.log('Removing from cart:', { productId, variants, variantsToMatch });
+    const variantsJson = Object.keys(variants).length > 0 ? JSON.stringify(variants) : null;
+    console.log('Removing from cart:', { productId, variants, variantsJson });
 
     let query = supabase
       .from('cart_items')
@@ -138,10 +146,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       .eq('user_id', user.id)
       .eq('product_id', productId);
 
-    if (variantsToMatch === null) {
+    if (variantsJson === null) {
       query = query.is('variants', null);
     } else {
-      query = query.eq('variants', variantsToMatch);
+      query = query.eq('variants', variantsJson);
     }
 
     const { error } = await query;
@@ -167,8 +175,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const variantsToMatch = Object.keys(variants).length > 0 ? variants : null;
-    console.log('Updating quantity:', { productId, quantity, variants, variantsToMatch });
+    const variantsJson = Object.keys(variants).length > 0 ? JSON.stringify(variants) : null;
+    console.log('Updating quantity:', { productId, quantity, variants, variantsJson });
 
     let query = supabase
       .from('cart_items')
@@ -176,10 +184,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       .eq('user_id', user.id)
       .eq('product_id', productId);
 
-    if (variantsToMatch === null) {
+    if (variantsJson === null) {
       query = query.is('variants', null);
     } else {
-      query = query.eq('variants', variantsToMatch);
+      query = query.eq('variants', variantsJson);
     }
 
     const { error } = await query;
