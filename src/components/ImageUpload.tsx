@@ -86,7 +86,7 @@ export const ImageUpload = ({ value, onChange, label = 'Product Image' }: ImageU
               <img
                 src={preview}
                 alt="Preview"
-                className="w-full h-48 object-cover rounded-lg border"
+                className="w-full h-48 object-contain rounded-lg border bg-secondary"
               />
               <Button
                 type="button"
@@ -107,7 +107,7 @@ export const ImageUpload = ({ value, onChange, label = 'Product Image' }: ImageU
               <img
                 src={preview}
                 alt="Preview"
-                className="w-full h-48 object-cover rounded-lg border"
+                className="w-full h-48 object-contain rounded-lg border bg-secondary"
               />
               <Button
                 type="button"
