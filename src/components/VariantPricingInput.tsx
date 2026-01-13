@@ -76,7 +76,22 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
     const newEntries = [...pricingEntries];
     newEntries[index] = { ...newEntries[index], [field]: val };
     setPricingEntries(newEntries);
-    updateParent(newEntries);
+    
+    // Don't update parent immediately for dropdown changes to prevent vanishing
+    if (field === 'price') {
+      updateParent(newEntries);
+    }
+  };
+
+  const handleDropdownChange = (index: number, field: 'ram' | 'storage', val: string) => {
+    const newEntries = [...pricingEntries];
+    newEntries[index] = { ...newEntries[index], [field]: val };
+    setPricingEntries(newEntries);
+    
+    // Update parent after both RAM and Storage are selected
+    if (newEntries[index].ram && newEntries[index].storage) {
+      updateParent(newEntries);
+    }
   };
 
   const updateParent = (entries: Array<{ ram: string; storage: string; price: number }>) => {
@@ -115,12 +130,12 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
       </CardHeader>
       <CardContent className="space-y-4">
         {pricingEntries.map((entry, index) => (
-          <div key={index} className="flex items-center gap-2">
+          <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
             <Select
               value={entry.ram}
-              onValueChange={(value) => handleEntryChange(index, 'ram', value)}
+              onValueChange={(value) => handleDropdownChange(index, 'ram', value)}
             >
-              <SelectTrigger className="w-24">
+              <SelectTrigger className="w-full sm:w-24">
                 <SelectValue placeholder="RAM" />
               </SelectTrigger>
               <SelectContent>
@@ -132,9 +147,9 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
             
             <Select
               value={entry.storage}
-              onValueChange={(value) => handleEntryChange(index, 'storage', value)}
+              onValueChange={(value) => handleDropdownChange(index, 'storage', value)}
             >
-              <SelectTrigger className="w-28">
+              <SelectTrigger className="w-full sm:w-28">
                 <SelectValue placeholder="Storage" />
               </SelectTrigger>
               <SelectContent>
@@ -150,7 +165,7 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
               step="0.01"
               value={entry.price}
               onChange={(e) => handleEntryChange(index, 'price', parseFloat(e.target.value) || 0)}
-              className="w-24"
+              className="w-full sm:w-24"
               placeholder="Price"
             />
             
@@ -159,7 +174,7 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
               variant="ghost"
               size="icon"
               onClick={() => handleRemoveEntry(index)}
-              className="h-8 w-8"
+              className="h-8 w-8 flex-shrink-0"
             >
               <Trash2 className="w-3 h-3" />
             </Button>
