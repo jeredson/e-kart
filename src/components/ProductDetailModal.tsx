@@ -92,7 +92,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       
       setSelectedVariants(autoSelectedVariants);
     }
-  }, [product, orderedSpecs]);
+  }, [product]);
 
   const variantExceptions = product.variant_exceptions as string[] | null;
 
