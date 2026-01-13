@@ -64,7 +64,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     const variantPricing = product.variant_pricing as Record<string, Record<string, any>> | null;
     
     if (!variantPricing) {
-      return Number(product.discounted_price || product.price);
+      return Number(product.price);
     }
 
     const pricingVariants: Record<string, string> = {};
@@ -75,7 +75,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     });
 
     if (Object.keys(pricingVariants).length === 0) {
-      return Number(product.discounted_price || product.price);
+      return Number(product.price);
     }
 
     const variantKey = Object.values(pricingVariants).join('_');
@@ -83,7 +83,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     for (const pricingGroup of Object.values(variantPricing)) {
       const priceData = pricingGroup[variantKey];
       if (priceData) {
-        return typeof priceData === 'object' ? priceData.discountedPrice : priceData;
+        return typeof priceData === 'number' ? priceData : Number(product.price);
       }
       
       for (const [key, priceInfo] of Object.entries(pricingGroup)) {
@@ -92,57 +92,38 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
         
         const allMatch = selectedValues.every(val => keyParts.includes(val));
         if (allMatch && keyParts.length === selectedValues.length) {
-          return typeof priceInfo === 'object' ? priceInfo.discountedPrice : priceInfo;
+          return typeof priceInfo === 'number' ? priceInfo : Number(product.price);
         }
       }
     }
 
-    return Number(product.discounted_price || product.price);
+    return Number(product.price);
   };
 
-  const getOriginalPrice = () => {
-    const variantPricing = product.variant_pricing as Record<string, Record<string, any>> | null;
+  const getVariantStock = () => {
+    const variantStock = product.variant_stock as Record<string, number> | null;
     
-    if (!variantPricing) {
-      return product.original_price;
+    if (!variantStock) {
+      return null;
     }
 
-    const pricingVariants: Record<string, string> = {};
+    // Create variant key from selected variants
+    const variantParts: string[] = [];
     Object.entries(selectedVariants).forEach(([key, value]) => {
-      if (!isColorSpec(key)) {
-        pricingVariants[key] = value;
-      }
+      variantParts.push(`${key}: ${value}`);
     });
-
-    if (Object.keys(pricingVariants).length === 0) {
-      return product.original_price;
-    }
-
-    const variantKey = Object.values(pricingVariants).join('_');
     
-    for (const pricingGroup of Object.values(variantPricing)) {
-      const priceData = pricingGroup[variantKey];
-      if (priceData && typeof priceData === 'object') {
-        return priceData.originalPrice;
-      }
+    if (variantParts.length === 0) {
+      return null;
     }
 
-    return product.original_price;
+    const variantKey = variantParts.join(' | ');
+    return variantStock[variantKey] || null;
   };
 
   const currentPrice = getPrice();
-  const originalPrice = getOriginalPrice();
+  const variantStock = getVariantStock();
   const isVariantAvailable = !isVariantCombinationException();
-
-  const getDiscountPercentage = () => {
-    if (originalPrice && currentPrice) {
-      const discount = ((originalPrice - currentPrice) / originalPrice) * 100;
-      return Math.round(discount);
-    }
-    return 0;
-  };
-
-  const discountPercent = getDiscountPercentage();
 
   const handleAddToCart = () => {
     if (!user) {
@@ -251,21 +232,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
               <div className="mb-2">
                 {isVariantAvailable ? (
-                  originalPrice && originalPrice > currentPrice ? (
-                    <>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
-                        {discountPercent > 0 && (
-                          <span className="text-sm font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">
-                            {discountPercent}% OFF
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm text-muted-foreground line-through">₹{Number(originalPrice).toLocaleString('en-IN')}</span>
-                    </>
-                  ) : (
-                    <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
-                  )
+                  <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
                 ) : (
                   <div className="text-lg sm:text-xl md:text-2xl font-bold text-destructive">Not Available</div>
                 )}
@@ -275,7 +242,9 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 {product.in_stock !== false && isVariantAvailable ? (
                   <>
                     <Check className="w-3 h-3 text-green-500" />
-                    <span className="text-green-500 text-xs font-medium">In Stock</span>
+                    <span className="text-green-500 text-xs font-medium">
+                      {variantStock !== null ? `${variantStock} in stock` : 'In Stock'}
+                    </span>
                   </>
                 ) : (
                   <>

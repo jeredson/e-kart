@@ -339,6 +339,7 @@ const Admin = () => {
                 />
 
                 <VariantPricingInput
+                  specifications={specifications}
                   value={variantPricing}
                   onChange={setVariantPricing}
                   exceptions={variantExceptions}
