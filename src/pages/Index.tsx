@@ -5,7 +5,7 @@ import ProductGrid from '@/components/ProductGrid';
 import Footer from '@/components/Footer';
 
 const Index = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const productSectionRef = useRef<HTMLDivElement>(null);
 
@@ -20,9 +20,9 @@ const Index = () => {
         <FeaturedProductsCarousel />
         <div ref={productSectionRef}>
           <ProductGrid
-            selectedCategory={selectedCategory}
+            selectedCategories={selectedCategories}
             searchQuery={searchQuery}
-            onCategoryChange={setSelectedCategory}
+            onCategoryChange={setSelectedCategories}
           />
         </div>
       </main>

@@ -11,12 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 interface ProductGridProps {
-  selectedCategory: string;
+  selectedCategories: string[];
   searchQuery: string;
-  onCategoryChange: (category: string) => void;
+  onCategoryChange: (categories: string[]) => void;
 }
 
-const ProductGrid = ({ selectedCategory, searchQuery, onCategoryChange }: ProductGridProps) => {
+const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: ProductGridProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const { data: products, isLoading } = useProducts();
   const [selectedProduct, setSelectedProduct] = useState<DbProduct | null>(null);
@@ -41,7 +41,7 @@ const ProductGrid = ({ selectedCategory, searchQuery, onCategoryChange }: Produc
   };
 
   const filteredProducts = products?.filter((product) => {
-    const matchesCategory = selectedCategory === 'all' || product.category_id === selectedCategory;
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category_id || '');
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
                           (product.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
@@ -127,7 +127,7 @@ const ProductGrid = ({ selectedCategory, searchQuery, onCategoryChange }: Produc
             )}
           </div>
         </div>
-        <CategoryFilter selected={selectedCategory} onSelect={onCategoryChange} />
+        <CategoryFilter selected={selectedCategories} onSelect={onCategoryChange} />
       </div>
 
       {/* Main Content */}
