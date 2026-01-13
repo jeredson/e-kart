@@ -5,7 +5,7 @@ import ProductGrid from '@/components/ProductGrid';
 import Footer from '@/components/Footer';
 
 const Index = () => {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const productSectionRef = useRef<HTMLDivElement>(null);
 

@@ -11,9 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 interface ProductGridProps {
-  selectedCategories: string[];
+  selectedCategories: string | null;
   searchQuery: string;
-  onCategoryChange: (categories: string[]) => void;
+  onCategoryChange: (category: string | null) => void;
 }
 
 const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: ProductGridProps) => {
@@ -45,7 +45,7 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
   };
 
   const filteredProducts = products?.filter((product) => {
-    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category_id || '');
+    const matchesCategory = selectedCategories === null || selectedCategories === product.category_id;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
                           (product.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||

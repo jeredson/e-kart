@@ -194,7 +194,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       category: product.category?.name || 'General',
       rating: Number(product.rating) || 4.5,
       reviews: product.reviews_count || 0,
-    });
+    }, selectedVariants, selectedImage);
     const variantText = Object.keys(selectedVariants).length > 0 
       ? ` (${Object.values(selectedVariants).join(', ')})`
       : '';

@@ -6,13 +6,15 @@ import { toast } from 'sonner';
 
 interface CartItem extends Product {
   quantity: number;
+  variants?: Record<string, string>;
+  variantImage?: string;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product) => Promise<void>;
-  removeFromCart: (productId: string) => Promise<void>;
-  updateQuantity: (productId: string, quantity: number) => Promise<void>;
+  addToCart: (product: Product, variants?: Record<string, string>, variantImage?: string) => Promise<void>;
+  removeFromCart: (productId: string, variants?: Record<string, string>) => Promise<void>;
+  updateQuantity: (productId: string, quantity: number, variants?: Record<string, string>) => Promise<void>;
   clearCart: () => Promise<void>;
   totalItems: number;
   totalPrice: number;
@@ -51,27 +53,32 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         name: item.product_name,
         description: item.product_description || '',
         price: item.product_price,
-        image: item.product_image || '',
+        image: item.variant_image || item.product_image || '',
         category: item.product_category || 'General',
         rating: item.product_rating || 4.5,
         reviews: item.product_reviews || 0,
-        quantity: item.quantity
+        quantity: item.quantity,
+        variants: item.variants || {},
+        variantImage: item.variant_image
       })) || [];
       setItems(cartItems);
     }
     setIsLoading(false);
   };
 
-  const addToCart = async (product: Product) => {
+  const addToCart = async (product: Product, variants: Record<string, string> = {}, variantImage?: string) => {
     if (!user) {
       toast.error('Please sign in to add items to cart');
       return;
     }
 
-    const existing = items.find(item => item.id === product.id);
+    const variantKey = JSON.stringify(variants);
+    const existing = items.find(item => 
+      item.id === product.id && JSON.stringify(item.variants || {}) === variantKey
+    );
     
     if (existing) {
-      await updateQuantity(product.id, existing.quantity + 1);
+      await updateQuantity(product.id, existing.quantity + 1, variants);
     } else {
       const { error } = await supabase
         .from('cart_items')
@@ -85,38 +92,50 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           product_category: product.category,
           product_rating: product.rating,
           product_reviews: product.reviews,
-          quantity: 1
+          quantity: 1,
+          variants: Object.keys(variants).length > 0 ? variants : null,
+          variant_image: variantImage
         });
 
       if (error) {
         toast.error('Failed to add item to cart');
       } else {
-        setItems([...items, { ...product, quantity: 1 }]);
+        setItems([...items, { 
+          ...product, 
+          quantity: 1, 
+          variants, 
+          variantImage,
+          image: variantImage || product.image
+        }]);
       }
     }
   };
 
-  const removeFromCart = async (productId: string) => {
+  const removeFromCart = async (productId: string, variants: Record<string, string> = {}) => {
     if (!user) return;
 
     const { error } = await supabase
       .from('cart_items')
       .delete()
       .eq('user_id', user.id)
-      .eq('product_id', productId);
+      .eq('product_id', productId)
+      .eq('variants', Object.keys(variants).length > 0 ? variants : null);
 
     if (error) {
       toast.error('Failed to remove item from cart');
     } else {
-      setItems(items.filter(item => item.id !== productId));
+      const variantKey = JSON.stringify(variants);
+      setItems(items.filter(item => 
+        !(item.id === productId && JSON.stringify(item.variants || {}) === variantKey)
+      ));
     }
   };
 
-  const updateQuantity = async (productId: string, quantity: number) => {
+  const updateQuantity = async (productId: string, quantity: number, variants: Record<string, string> = {}) => {
     if (!user) return;
     
     if (quantity <= 0) {
-      await removeFromCart(productId);
+      await removeFromCart(productId, variants);
       return;
     }
 
@@ -124,13 +143,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       .from('cart_items')
       .update({ quantity })
       .eq('user_id', user.id)
-      .eq('product_id', productId);
+      .eq('product_id', productId)
+      .eq('variants', Object.keys(variants).length > 0 ? variants : null);
 
     if (error) {
       toast.error('Failed to update quantity');
     } else {
+      const variantKey = JSON.stringify(variants);
       setItems(items.map(item =>
-        item.id === productId ? { ...item, quantity } : item
+        item.id === productId && JSON.stringify(item.variants || {}) === variantKey
+          ? { ...item, quantity } 
+          : item
       ));
     }
   };

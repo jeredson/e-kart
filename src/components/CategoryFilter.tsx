@@ -5,77 +5,49 @@ import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 
 interface CategoryFilterProps {
-  selected: string[];
-  onSelect: (categories: string[]) => void;
+  selected: string | null;
+  onSelect: (category: string | null) => void;
 }
 
 const CategoryFilter = ({ selected, onSelect }: CategoryFilterProps) => {
   const { data: categories } = useCategories();
 
-  const handleCategoryToggle = (categoryId: string) => {
+  const handleCategorySelect = (categoryId: string) => {
     if (categoryId === 'all') {
-      onSelect([]);
+      onSelect(null);
     } else {
-      const newSelected = selected.includes(categoryId)
-        ? selected.filter(id => id !== categoryId)
-        : [...selected, categoryId];
-      onSelect(newSelected);
+      onSelect(selected === categoryId ? null : categoryId);
     }
   };
 
-  const clearCategory = (categoryId: string) => {
-    onSelect(selected.filter(id => id !== categoryId));
-  };
-
   return (
-    <div className="space-y-3">
-      {/* Category Buttons */}
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2">
+      <Button
+        variant={selected === null ? 'default' : 'secondary'}
+        size="sm"
+        onClick={() => handleCategorySelect('all')}
+        className={cn(
+          'rounded-full transition-all',
+          selected === null && 'shadow-glow'
+        )}
+      >
+        <span className="mr-2">🛍️</span>
+        All Categories
+      </Button>
+      {categories?.map((category) => (
         <Button
-          variant={selected.length === 0 ? 'default' : 'secondary'}
+          key={category.id}
+          variant={selected === category.id ? 'default' : 'secondary'}
           size="sm"
-          onClick={() => handleCategoryToggle('all')}
+          onClick={() => handleCategorySelect(category.id)}
           className={cn(
             'rounded-full transition-all',
-            selected.length === 0 && 'shadow-glow'
+            selected === category.id && 'shadow-glow'
           )}
         >
-          <span className="mr-2">🛍️</span>
-          All Categories
+          {category.name}
         </Button>
-        {categories?.map((category) => (
-          <Button
-            key={category.id}
-            variant={selected.includes(category.id) ? 'default' : 'secondary'}
-            size="sm"
-            onClick={() => handleCategoryToggle(category.id)}
-            className={cn(
-              'rounded-full transition-all',
-              selected.includes(category.id) && 'shadow-glow'
-            )}
-          >
-            {category.name}
-          </Button>
-        ))}
-      </div>
-      
-      {/* Selected Categories Badges */}
-      {selected.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selected.map((categoryId) => {
-            const category = categories?.find(c => c.id === categoryId);
-            return (
-              <Badge key={categoryId} variant="outline" className="flex items-center gap-1">
-                {category?.name}
-                <X 
-                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                  onClick={() => clearCategory(categoryId)}
-                />
-              </Badge>
-            );
-          })}
-        </div>
-      )}
+      ))}
     </div>
   );
 };
