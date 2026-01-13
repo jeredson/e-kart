@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
 import ProductReviews from './ProductReviews';
 import SignInDialog from './SignInDialog';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ProductDetailModalProps {
   product: DbProduct | null;
@@ -27,25 +27,26 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
   if (!product) return null;
 
-  const orderedSpecs = useMemo(() => {
-    const specs = product.specifications && typeof product.specifications === 'object' && !Array.isArray(product.specifications)
-      ? product.specifications as Record<string, unknown>
-      : null;
+  const specs = product.specifications && typeof product.specifications === 'object' && !Array.isArray(product.specifications)
+    ? product.specifications as Record<string, unknown>
+    : null;
 
+  // Handle ordered specifications format
+  const orderedSpecs = (() => {
     if (!specs) return null;
     
     // Check if specifications are in new ordered format
     if (specs._ordered && Array.isArray(specs._ordered)) {
-      const orderedSpecs: Record<string, unknown> = {};
+      const result: Record<string, unknown> = {};
       specs._ordered.forEach((spec: any) => {
-        orderedSpecs[spec.key] = spec.values;
+        result[spec.key] = spec.values;
       });
-      return orderedSpecs;
+      return result;
     }
     
     // Return old format as-is
     return specs;
-  }, [product.specifications]);
+  })();
 
   const isColorSpec = (key: string) => {
     return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
