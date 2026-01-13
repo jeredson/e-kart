@@ -108,14 +108,32 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       return null;
     }
 
-    // Create variant key from selected variants
-    const variantParts: string[] = [];
-    Object.entries(selectedVariants).forEach(([key, value]) => {
-      variantParts.push(`${key}: ${value}`);
-    });
+    // Try to find a matching key in any order
+    const availableKeys = Object.keys(variantStock);
     
-    const variantKey = variantParts.join(' | ');
-    return variantStock[variantKey] || null;
+    for (const key of availableKeys) {
+      // Parse the key to extract variant parts
+      const keyParts = key.split(' | ');
+      const keyVariants: Record<string, string> = {};
+      
+      keyParts.forEach(part => {
+        const [variantType, variantValue] = part.split(': ');
+        if (variantType && variantValue) {
+          keyVariants[variantType] = variantValue;
+        }
+      });
+      
+      // Check if all selected variants match this key
+      const allMatch = Object.entries(selectedVariants).every(([type, value]) => 
+        keyVariants[type] === value
+      );
+      
+      if (allMatch && Object.keys(selectedVariants).length === Object.keys(keyVariants).length) {
+        return variantStock[key];
+      }
+    }
+    
+    return null;
   };
 
   const currentPrice = getPrice();
