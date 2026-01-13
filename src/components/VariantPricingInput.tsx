@@ -27,6 +27,7 @@ interface VariantPricingInputProps {
 
 export const VariantPricingInput = ({ specifications, value = {}, onChange, exceptions = [], onExceptionsChange }: VariantPricingInputProps) => {
   const [pricingEntries, setPricingEntries] = useState<Array<{ ram: string; storage: string; price: number }>>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Get RAM and Storage specifications
   const getRamOptions = () => {
@@ -44,18 +45,21 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
   };
 
   useEffect(() => {
-    // Initialize entries from existing value
-    const entries: Array<{ ram: string; storage: string; price: number }> = [];
-    Object.values(value).forEach(group => {
-      Object.entries(group).forEach(([combo, price]) => {
-        const [ram, storage] = combo.split('_');
-        if (ram && storage) {
-          entries.push({ ram, storage, price: typeof price === 'number' ? price : 0 });
-        }
+    // Only initialize once when component mounts or when value changes from empty to populated
+    if (!isInitialized || (Object.keys(value).length > 0 && pricingEntries.length === 0)) {
+      const entries: Array<{ ram: string; storage: string; price: number }> = [];
+      Object.values(value).forEach(group => {
+        Object.entries(group).forEach(([combo, price]) => {
+          const [ram, storage] = combo.split('_');
+          if (ram && storage) {
+            entries.push({ ram, storage, price: typeof price === 'number' ? price : 0 });
+          }
+        });
       });
-    });
-    setPricingEntries(entries);
-  }, [value]);
+      setPricingEntries(entries);
+      setIsInitialized(true);
+    }
+  }, [value, isInitialized, pricingEntries.length]);
 
   const handleAddEntry = () => {
     const ramOptions = getRamOptions();
@@ -77,10 +81,8 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
     newEntries[index] = { ...newEntries[index], [field]: val };
     setPricingEntries(newEntries);
     
-    // Don't update parent immediately for dropdown changes to prevent vanishing
-    if (field === 'price') {
-      updateParent(newEntries);
-    }
+    // Always update parent to keep data in sync
+    updateParent(newEntries);
   };
 
   const handleDropdownChange = (index: number, field: 'ram' | 'storage', val: string) => {
@@ -88,10 +90,8 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
     newEntries[index] = { ...newEntries[index], [field]: val };
     setPricingEntries(newEntries);
     
-    // Update parent after both RAM and Storage are selected
-    if (newEntries[index].ram && newEntries[index].storage) {
-      updateParent(newEntries);
-    }
+    // Update parent immediately to keep data in sync
+    updateParent(newEntries);
   };
 
   const updateParent = (entries: Array<{ ram: string; storage: string; price: number }>) => {
