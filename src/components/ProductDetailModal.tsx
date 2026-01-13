@@ -33,17 +33,19 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       // Auto-select variants
       const autoSelectedVariants: Record<string, string> = {};
       
-      if (specs && typeof specs === 'object') {
-        Object.entries(specs).forEach(([key, value]) => {
+      if (orderedSpecs && typeof orderedSpecs === 'object') {
+        Object.entries(orderedSpecs).forEach(([key, value]) => {
+          // Skip the _ordered key if it exists
+          if (key === '_ordered') return;
+          
           if (Array.isArray(value) && value.length > 0) {
-            // Auto-select if only one option OR select first valid option for multiple
+            // Auto-select first valid option for arrays
             const validOptions = value.filter((item: any) => {
               const isException = (product.variant_exceptions as string[])?.includes(item.value);
               return !isException;
             });
             
             if (validOptions.length > 0) {
-              // Always select the first valid option (single or multiple)
               const selectedOption = validOptions[0];
               autoSelectedVariants[key] = selectedOption.value;
               
@@ -53,7 +55,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               }
             }
           } else if (typeof value === 'string') {
-            // Auto-select single string values (like RAM: "12GB")
+            // Auto-select single string values
             autoSelectedVariants[key] = value;
           }
         });
@@ -61,7 +63,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       
       setSelectedVariants(autoSelectedVariants);
     }
-  }, [product]);
+  }, [product, orderedSpecs]);
 
   if (!product) return null;
 
@@ -97,6 +99,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const isVariantCombinationException = () => {
     if (!variantExceptions || variantExceptions.length === 0) return false;
     
+    // Create variant key for checking exceptions
     const pricingVariants: string[] = [];
     Object.entries(selectedVariants).forEach(([key, value]) => {
       if (!isColorSpec(key)) {
@@ -339,7 +342,17 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                             <div className="text-xs font-medium mb-1">{key}</div>
                             <div className="flex flex-wrap gap-2">
                               {value.map((item: any, idx: number) => {
-                                const isException = variantExceptions?.includes(item.value);
+                                // Check if this specific variant combination is an exception
+                                const testVariants = { ...selectedVariants, [key]: item.value };
+                                const pricingVariants: string[] = [];
+                                Object.entries(testVariants).forEach(([k, v]) => {
+                                  if (!isColorSpec(k)) {
+                                    pricingVariants.push(v);
+                                  }
+                                });
+                                const variantKey = pricingVariants.join('_');
+                                const isException = variantExceptions?.includes(variantKey) || variantExceptions?.includes(item.value);
+                                
                                 return (
                                   <button
                                     key={idx}
@@ -360,6 +373,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                                     } : {}}
                                   >
                                     {item.value}
+                                    {isException && <span className="ml-1 text-xs">(N/A)</span>}
                                   </button>
                                 );
                               })}
