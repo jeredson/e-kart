@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
 import ProductReviews from './ProductReviews';
 import SignInDialog from './SignInDialog';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 interface ProductDetailModalProps {
   product: DbProduct | null;
@@ -24,16 +24,14 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [showSignInDialog, setShowSignInDialog] = useState(false);
-  const [, forceUpdate] = useState({});
 
   if (!product) return null;
 
-  const specs = product.specifications && typeof product.specifications === 'object' && !Array.isArray(product.specifications)
-    ? product.specifications as Record<string, unknown>
-    : null;
+  const orderedSpecs = useMemo(() => {
+    const specs = product.specifications && typeof product.specifications === 'object' && !Array.isArray(product.specifications)
+      ? product.specifications as Record<string, unknown>
+      : null;
 
-  // Handle ordered specifications format
-  const getOrderedSpecs = () => {
     if (!specs) return null;
     
     // Check if specifications are in new ordered format
@@ -47,9 +45,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     
     // Return old format as-is
     return specs;
-  };
-
-  const orderedSpecs = getOrderedSpecs();
+  }, [product.specifications]);
 
   const isColorSpec = (key: string) => {
     return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
@@ -229,19 +225,10 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   };
 
   const handleVariantSelect = (specKey: string, value: any) => {
-    setSelectedVariants(prev => {
-      const newVariants = { ...prev, [specKey]: value.value };
-      console.log('Updated selectedVariants:', newVariants);
-      console.log('Product variant_pricing:', product.variant_pricing);
-      console.log('Product variant_pricing.variants:', product.variant_pricing?.variants);
-      console.log('Product variant_stock:', product.variant_stock);
-      return newVariants;
-    });
+    setSelectedVariants(prev => ({ ...prev, [specKey]: value.value }));
     if (value.image) {
       setSelectedImage(value.image);
     }
-    // Force re-render
-    forceUpdate({});
   };
 
   return (
