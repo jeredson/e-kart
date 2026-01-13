@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Plus, Trash2, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 export interface SpecificationValue {
@@ -35,6 +35,15 @@ const SpecificationsInput = ({ specifications, onChange }: SpecificationsInputPr
 
   const removeRow = (index: number) => {
     onChange(specifications.filter((_, i) => i !== index));
+  };
+
+  const moveRow = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= specifications.length) return;
+    
+    const updated = [...specifications];
+    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+    onChange(updated);
   };
 
   const updateRowKey = (index: number, newKey: string) => {
@@ -95,15 +104,35 @@ const SpecificationsInput = ({ specifications, onChange }: SpecificationsInputPr
                   onChange={(e) => updateRowKey(rowIndex, e.target.value)}
                   className="flex-1"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive"
-                  onClick={() => removeRow(rowIndex)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => moveRow(rowIndex, 'up')}
+                    disabled={rowIndex === 0}
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => moveRow(rowIndex, 'down')}
+                    disabled={rowIndex === specifications.length - 1}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive"
+                    onClick={() => removeRow(rowIndex)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               
               <div className="space-y-2">

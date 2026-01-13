@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2, Plus } from 'lucide-react';
 
 interface SpecificationValue {
@@ -26,7 +27,7 @@ interface VariantPricingInputProps {
 }
 
 export const VariantPricingInput = ({ specifications, value = {}, onChange, exceptions = [], onExceptionsChange }: VariantPricingInputProps) => {
-  const [pricingEntries, setPricingEntries] = useState<Array<{ ram: string; storage: string; price: number }>>([]);
+  const [pricingEntries, setPricingEntries] = useState<Array<{ ram: string; storage: string; price: number; notAvailable?: boolean }>>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Get RAM and Storage specifications
@@ -47,26 +48,27 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
   useEffect(() => {
     // Only initialize once when component mounts or when value changes from empty to populated
     if (!isInitialized || (Object.keys(value).length > 0 && pricingEntries.length === 0)) {
-      const entries: Array<{ ram: string; storage: string; price: number }> = [];
+      const entries: Array<{ ram: string; storage: string; price: number; notAvailable?: boolean }> = [];
       Object.values(value).forEach(group => {
         Object.entries(group).forEach(([combo, price]) => {
           const [ram, storage] = combo.split('_');
           if (ram && storage) {
-            entries.push({ ram, storage, price: typeof price === 'number' ? price : 0 });
+            const isException = exceptions.includes(combo);
+            entries.push({ ram, storage, price: typeof price === 'number' ? price : 0, notAvailable: isException });
           }
         });
       });
       setPricingEntries(entries);
       setIsInitialized(true);
     }
-  }, [value, isInitialized, pricingEntries.length]);
+  }, [value, isInitialized, pricingEntries.length, exceptions]);
 
   const handleAddEntry = () => {
     const ramOptions = getRamOptions();
     const storageOptions = getStorageOptions();
     
     if (ramOptions.length > 0 && storageOptions.length > 0) {
-      setPricingEntries([...pricingEntries, { ram: '', storage: '', price: 0 }]);
+      setPricingEntries([...pricingEntries, { ram: '', storage: '', price: 0, notAvailable: false }]);
     }
   };
 
@@ -76,7 +78,7 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
     updateParent(newEntries);
   };
 
-  const handleEntryChange = (index: number, field: 'ram' | 'storage' | 'price', val: string | number) => {
+  const handleEntryChange = (index: number, field: 'ram' | 'storage' | 'price' | 'notAvailable', val: string | number | boolean) => {
     const newEntries = [...pricingEntries];
     newEntries[index] = { ...newEntries[index], [field]: val };
     setPricingEntries(newEntries);
@@ -94,15 +96,25 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
     updateParent(newEntries);
   };
 
-  const updateParent = (entries: Array<{ ram: string; storage: string; price: number }>) => {
+  const updateParent = (entries: Array<{ ram: string; storage: string; price: number; notAvailable?: boolean }>) => {
     const pricing: Record<string, Record<string, number>> = { variants: {} };
+    const newExceptions: string[] = [];
+    
     entries.forEach(entry => {
-      if (entry.ram && entry.storage && entry.price > 0) {
+      if (entry.ram && entry.storage) {
         const key = `${entry.ram}_${entry.storage}`;
-        pricing.variants[key] = entry.price;
+        if (entry.notAvailable) {
+          newExceptions.push(key);
+        } else if (entry.price > 0) {
+          pricing.variants[key] = entry.price;
+        }
       }
     });
+    
     onChange(Object.keys(pricing.variants).length > 0 ? pricing : {});
+    if (onExceptionsChange) {
+      onExceptionsChange(newExceptions);
+    }
   };
 
   const ramOptions = getRamOptions();
@@ -130,7 +142,7 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
       </CardHeader>
       <CardContent className="space-y-4">
         {pricingEntries.map((entry, index) => (
-          <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 border rounded">
             <Select
               value={entry.ram}
               onValueChange={(value) => handleDropdownChange(index, 'ram', value)}
@@ -167,7 +179,19 @@ export const VariantPricingInput = ({ specifications, value = {}, onChange, exce
               onChange={(e) => handleEntryChange(index, 'price', parseFloat(e.target.value) || 0)}
               className="w-full sm:w-24"
               placeholder="Price"
+              disabled={entry.notAvailable}
             />
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={`not-available-${index}`}
+                checked={entry.notAvailable || false}
+                onCheckedChange={(checked) => handleEntryChange(index, 'notAvailable', checked)}
+              />
+              <Label htmlFor={`not-available-${index}`} className="text-xs">
+                Not Available
+              </Label>
+            </div>
             
             <Button
               type="button"

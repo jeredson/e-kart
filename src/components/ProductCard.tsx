@@ -137,11 +137,6 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
               <span className="text-sm font-medium text-red-600">Out of Stock</span>
             )}
           </div>
-          {product.in_stock && (
-            <Button size="sm" variant="secondary" onClick={handleAddToCart}>
-              Add to Cart
-            </Button>
-          )}
         </div>
       </div>
 
