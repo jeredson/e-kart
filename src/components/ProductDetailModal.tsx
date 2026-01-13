@@ -63,7 +63,11 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const getPrice = () => {
     const variantPricing = product.variant_pricing as Record<string, Record<string, any>> | null;
     
+    console.log('getPrice - variantPricing:', variantPricing);
+    console.log('getPrice - selectedVariants:', selectedVariants);
+    
     if (!variantPricing) {
+      console.log('No variant pricing, returning base price:', Number(product.price));
       return Number(product.price);
     }
 
@@ -74,15 +78,21 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       }
     });
 
+    console.log('pricingVariants (non-color):', pricingVariants);
+
     if (Object.keys(pricingVariants).length === 0) {
+      console.log('No pricing variants selected, returning base price:', Number(product.price));
       return Number(product.price);
     }
 
     const variantKey = Object.values(pricingVariants).join('_');
+    console.log('variantKey:', variantKey);
     
     for (const pricingGroup of Object.values(variantPricing)) {
+      console.log('Checking pricingGroup:', pricingGroup);
       const priceData = pricingGroup[variantKey];
       if (priceData) {
+        console.log('Found exact match price:', priceData);
         return typeof priceData === 'number' ? priceData : Number(product.price);
       }
       
@@ -92,18 +102,24 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
         
         const allMatch = selectedValues.every(val => keyParts.includes(val));
         if (allMatch && keyParts.length === selectedValues.length) {
+          console.log('Found partial match price:', priceInfo);
           return typeof priceInfo === 'number' ? priceInfo : Number(product.price);
         }
       }
     }
 
+    console.log('No price match found, returning base price:', Number(product.price));
     return Number(product.price);
   };
 
   const getVariantStock = () => {
     const variantStock = product.variant_stock as Record<string, number> | null;
     
+    console.log('getVariantStock - variantStock:', variantStock);
+    console.log('getVariantStock - selectedVariants:', selectedVariants);
+    
     if (!variantStock) {
+      console.log('No variant stock data');
       return null;
     }
 
@@ -113,12 +129,21 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       variantParts.push(`${key}: ${value}`);
     });
     
+    console.log('variantParts:', variantParts);
+    
     if (variantParts.length === 0) {
+      console.log('No variants selected');
       return null;
     }
 
     const variantKey = variantParts.join(' | ');
-    return variantStock[variantKey] || null;
+    console.log('variantKey for stock:', variantKey);
+    console.log('Available stock keys:', Object.keys(variantStock));
+    
+    const stockValue = variantStock[variantKey] || null;
+    console.log('Stock value found:', stockValue);
+    
+    return stockValue;
   };
 
   const currentPrice = getPrice();
