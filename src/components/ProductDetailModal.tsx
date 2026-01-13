@@ -36,18 +36,20 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       if (specs && typeof specs === 'object') {
         Object.entries(specs).forEach(([key, value]) => {
           if (Array.isArray(value) && value.length > 0) {
-            // Auto-select first valid option for arrays
-            const firstValidOption = value.find((item: any) => {
+            // Auto-select if only one option OR select first valid option for multiple
+            const validOptions = value.filter((item: any) => {
               const isException = (product.variant_exceptions as string[])?.includes(item.value);
               return !isException;
             });
             
-            if (firstValidOption) {
-              autoSelectedVariants[key] = firstValidOption.value;
+            if (validOptions.length > 0) {
+              // Always select the first valid option (single or multiple)
+              const selectedOption = validOptions[0];
+              autoSelectedVariants[key] = selectedOption.value;
               
               // Set image if it's the first color option with an image
-              if (isColorSpec(key) && firstValidOption.image) {
-                setSelectedImage(firstValidOption.image);
+              if (isColorSpec(key) && selectedOption.image) {
+                setSelectedImage(selectedOption.image);
               }
             }
           } else if (typeof value === 'string') {
