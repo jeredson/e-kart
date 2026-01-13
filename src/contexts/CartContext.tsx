@@ -48,19 +48,24 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (error) {
       console.error('Error loading cart:', error);
     } else {
-      const cartItems: CartItem[] = data?.map(item => ({
-        id: item.product_id,
-        name: item.product_name,
-        description: item.product_description || '',
-        price: item.product_price,
-        image: item.variant_image || item.product_image || '',
-        category: item.product_category || 'General',
-        rating: item.product_rating || 4.5,
-        reviews: item.product_reviews || 0,
-        quantity: item.quantity,
-        variants: item.variants || {},
-        variantImage: item.variant_image
-      })) || [];
+      console.log('Raw cart data:', data);
+      const cartItems: CartItem[] = data?.map(item => {
+        const cartItem = {
+          id: item.product_id,
+          name: item.product_name,
+          description: item.product_description || '',
+          price: item.product_price,
+          image: item.variant_image || item.product_image || '',
+          category: item.product_category || 'General',
+          rating: item.product_rating || 4.5,
+          reviews: item.product_reviews || 0,
+          quantity: item.quantity,
+          variants: item.variants || {},
+          variantImage: item.variant_image
+        };
+        console.log('Processed cart item:', cartItem);
+        return cartItem;
+      }) || [];
       setItems(cartItems);
     }
     setIsLoading(false);
@@ -72,6 +77,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    console.log('Adding to cart:', { product, variants, variantImage });
+
     const variantKey = JSON.stringify(variants);
     const existing = items.find(item => 
       item.id === product.id && JSON.stringify(item.variants || {}) === variantKey
@@ -80,33 +87,41 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (existing) {
       await updateQuantity(product.id, existing.quantity + 1, variants);
     } else {
+      const cartItem = {
+        user_id: user.id,
+        product_id: product.id,
+        product_name: product.name,
+        product_description: product.description,
+        product_price: product.price,
+        product_image: product.image,
+        product_category: product.category,
+        product_rating: product.rating,
+        product_reviews: product.reviews,
+        quantity: 1,
+        variants: Object.keys(variants).length > 0 ? variants : null,
+        variant_image: variantImage
+      };
+
+      console.log('Inserting cart item:', cartItem);
+
       const { error } = await supabase
         .from('cart_items')
-        .insert({
-          user_id: user.id,
-          product_id: product.id,
-          product_name: product.name,
-          product_description: product.description,
-          product_price: product.price,
-          product_image: product.image,
-          product_category: product.category,
-          product_rating: product.rating,
-          product_reviews: product.reviews,
-          quantity: 1,
-          variants: Object.keys(variants).length > 0 ? variants : null,
-          variant_image: variantImage
-        });
+        .insert(cartItem);
 
       if (error) {
+        console.error('Cart insert error:', error);
         toast.error('Failed to add item to cart');
       } else {
-        setItems([...items, { 
+        const newItem = { 
           ...product, 
           quantity: 1, 
           variants, 
           variantImage,
           image: variantImage || product.image
-        }]);
+        };
+        console.log('Added to cart successfully:', newItem);
+        setItems([...items, newItem]);
+        toast.success('Added to cart!');
       }
     }
   };

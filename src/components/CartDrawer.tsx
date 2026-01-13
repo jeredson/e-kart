@@ -44,21 +44,33 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
           <>
             <div className="flex-1 overflow-y-auto py-4 space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-4 p-3 rounded-lg bg-secondary/50">
+                <div key={`${item.id}-${JSON.stringify(item.variants || {})}`} className="flex gap-4 p-3 rounded-lg bg-secondary/50">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-20 h-20 object-cover rounded-lg"
+                    className="w-20 h-20 object-contain rounded-lg bg-background"
                   />
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">{item.name}</h4>
-                    <p className="text-primary font-semibold mt-1">₹{item.price}</p>
+                    
+                    {/* Variant Information */}
+                    {item.variants && Object.keys(item.variants).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1 mb-1">
+                        {Object.entries(item.variants).map(([key, value]) => (
+                          <span key={key} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                            {key}: {value}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <p className="text-primary font-semibold mt-1">₹{item.price.toLocaleString('en-IN')}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <Button
                         variant="outline"
                         size="icon"
                         className="h-7 w-7"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity - 1, item.variants)}
                       >
                         <Minus className="w-3 h-3" />
                       </Button>
@@ -69,7 +81,7 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
                         variant="outline"
                         size="icon"
                         className="h-7 w-7"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity + 1, item.variants)}
                       >
                         <Plus className="w-3 h-3" />
                       </Button>
@@ -77,7 +89,7 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 ml-auto text-destructive hover:text-destructive"
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item.id, item.variants)}
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
