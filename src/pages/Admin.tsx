@@ -104,13 +104,26 @@ const Admin = () => {
     const specs = product.specifications as Record<string, any> | null;
     if (specs && typeof specs === 'object') {
       const convertedSpecs: SpecificationRow[] = [];
-      Object.entries(specs).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          convertedSpecs.push({ key, values: value });
-        } else {
-          convertedSpecs.push({ key, values: [{ value: String(value) }] });
-        }
-      });
+      
+      // Check if specifications are stored in ordered format
+      if (specs._ordered && Array.isArray(specs._ordered)) {
+        specs._ordered.forEach((spec: any) => {
+          if (typeof spec.values === 'string') {
+            convertedSpecs.push({ key: spec.key, values: [{ value: spec.values }] });
+          } else if (Array.isArray(spec.values)) {
+            convertedSpecs.push({ key: spec.key, values: spec.values });
+          }
+        });
+      } else {
+        // Fallback for old format
+        Object.entries(specs).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            convertedSpecs.push({ key, values: value });
+          } else {
+            convertedSpecs.push({ key, values: [{ value: String(value) }] });
+          }
+        });
+      }
       setSpecifications(convertedSpecs);
     } else {
       setSpecifications([]);
@@ -142,14 +155,17 @@ const Admin = () => {
     const validSpecs = specifications.filter(row => row.key.trim() && row.values.some(v => v.value.trim()));
     if (validSpecs.length > 0) {
       specsObject = {};
+      // Store as ordered array to maintain specification order
+      const orderedSpecs: Array<{key: string, values: any}> = [];
       validSpecs.forEach(row => {
         const cleanValues = row.values.filter(v => v.value.trim());
         if (cleanValues.length === 1 && !cleanValues[0].color && !cleanValues[0].image) {
-          specsObject![row.key.trim()] = cleanValues[0].value.trim();
+          orderedSpecs.push({ key: row.key.trim(), values: cleanValues[0].value.trim() });
         } else {
-          specsObject![row.key.trim()] = cleanValues;
+          orderedSpecs.push({ key: row.key.trim(), values: cleanValues });
         }
       });
+      specsObject = { _ordered: orderedSpecs };
     }
 
     const productData = {

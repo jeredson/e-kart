@@ -69,6 +69,25 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     ? product.specifications as Record<string, unknown>
     : null;
 
+  // Handle ordered specifications format
+  const getOrderedSpecs = () => {
+    if (!specs) return null;
+    
+    // Check if specifications are in new ordered format
+    if (specs._ordered && Array.isArray(specs._ordered)) {
+      const orderedSpecs: Record<string, unknown> = {};
+      specs._ordered.forEach((spec: any) => {
+        orderedSpecs[spec.key] = spec.values;
+      });
+      return orderedSpecs;
+    }
+    
+    // Return old format as-is
+    return specs;
+  };
+
+  const orderedSpecs = getOrderedSpecs();
+
   const variantExceptions = product.variant_exceptions as string[] | null;
 
   const isColorSpec = (key: string) => {
@@ -309,11 +328,11 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
               <p className="text-muted-foreground text-xs sm:text-sm mb-3 line-clamp-3">{product.description}</p>
 
-              {specs && Object.keys(specs).length > 0 && (
+              {orderedSpecs && Object.keys(orderedSpecs).length > 0 && (
                 <div className="mb-3">
                   <h3 className="font-semibold text-sm mb-2">Specifications</h3>
                   <div className="space-y-3">
-                    {Object.entries(specs).map(([key, value]) => {
+                    {Object.entries(orderedSpecs).map(([key, value]) => {
                       if (Array.isArray(value)) {
                         return (
                           <div key={key}>

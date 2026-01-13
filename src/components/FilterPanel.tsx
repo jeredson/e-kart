@@ -4,8 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 
 export interface FilterState {
   priceRange: [number, number];
@@ -117,23 +120,40 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
         {brands.length > 0 && (
           <div className="space-y-3">
             <Label className="text-sm font-semibold">Brand</Label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {brands.map((brand) => (
-                <div key={brand} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`brand-${brand}`}
-                    checked={filters.brands.includes(brand)}
-                    onCheckedChange={() => handleBrandToggle(brand)}
-                  />
-                  <label
-                    htmlFor={`brand-${brand}`}
-                    className="text-sm cursor-pointer flex-1"
-                  >
-                    {brand}
-                  </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {filters.brands.length === 0 ? 'Select brands' : `${filters.brands.length} selected`}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0" align="start">
+                <div className="p-2 max-h-48 overflow-y-auto">
+                  {brands.map((brand) => (
+                    <div key={brand} className="flex items-center space-x-2 p-2 hover:bg-secondary rounded">
+                      <Checkbox
+                        id={`brand-${brand}`}
+                        checked={filters.brands.includes(brand)}
+                        onCheckedChange={() => handleBrandToggle(brand)}
+                      />
+                      <label htmlFor={`brand-${brand}`} className="text-sm cursor-pointer flex-1">
+                        {brand}
+                      </label>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </PopoverContent>
+            </Popover>
+            {filters.brands.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {filters.brands.map((brand) => (
+                  <Badge key={brand} variant="secondary" className="flex items-center gap-1 text-xs">
+                    {brand}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => handleBrandToggle(brand)} />
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -141,23 +161,40 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
         {ramSizes.length > 0 && (
           <div className="space-y-3">
             <Label className="text-sm font-semibold">RAM</Label>
-            <div className="space-y-2">
-              {ramSizes.map((ram) => (
-                <div key={ram} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`ram-${ram}`}
-                    checked={filters.ramSizes.includes(ram)}
-                    onCheckedChange={() => handleRamToggle(ram)}
-                  />
-                  <label
-                    htmlFor={`ram-${ram}`}
-                    className="text-sm cursor-pointer flex-1"
-                  >
-                    {ram}
-                  </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {filters.ramSizes.length === 0 ? 'Select RAM' : `${filters.ramSizes.length} selected`}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0" align="start">
+                <div className="p-2">
+                  {ramSizes.map((ram) => (
+                    <div key={ram} className="flex items-center space-x-2 p-2 hover:bg-secondary rounded">
+                      <Checkbox
+                        id={`ram-${ram}`}
+                        checked={filters.ramSizes.includes(ram)}
+                        onCheckedChange={() => handleRamToggle(ram)}
+                      />
+                      <label htmlFor={`ram-${ram}`} className="text-sm cursor-pointer flex-1">
+                        {ram}
+                      </label>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </PopoverContent>
+            </Popover>
+            {filters.ramSizes.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {filters.ramSizes.map((ram) => (
+                  <Badge key={ram} variant="secondary" className="flex items-center gap-1 text-xs">
+                    {ram}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => handleRamToggle(ram)} />
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -165,23 +202,40 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
         {storageSizes.length > 0 && (
           <div className="space-y-3">
             <Label className="text-sm font-semibold">Storage</Label>
-            <div className="space-y-2">
-              {storageSizes.map((storage) => (
-                <div key={storage} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`storage-${storage}`}
-                    checked={filters.storageSizes.includes(storage)}
-                    onCheckedChange={() => handleStorageToggle(storage)}
-                  />
-                  <label
-                    htmlFor={`storage-${storage}`}
-                    className="text-sm cursor-pointer flex-1"
-                  >
-                    {storage}
-                  </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {filters.storageSizes.length === 0 ? 'Select storage' : `${filters.storageSizes.length} selected`}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0" align="start">
+                <div className="p-2">
+                  {storageSizes.map((storage) => (
+                    <div key={storage} className="flex items-center space-x-2 p-2 hover:bg-secondary rounded">
+                      <Checkbox
+                        id={`storage-${storage}`}
+                        checked={filters.storageSizes.includes(storage)}
+                        onCheckedChange={() => handleStorageToggle(storage)}
+                      />
+                      <label htmlFor={`storage-${storage}`} className="text-sm cursor-pointer flex-1">
+                        {storage}
+                      </label>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </PopoverContent>
+            </Popover>
+            {filters.storageSizes.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {filters.storageSizes.map((storage) => (
+                  <Badge key={storage} variant="secondary" className="flex items-center gap-1 text-xs">
+                    {storage}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => handleStorageToggle(storage)} />
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </CardContent>

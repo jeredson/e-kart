@@ -6,7 +6,7 @@ import ProductDetailModal from './ProductDetailModal';
 import CategoryFilter from './CategoryFilter';
 import FilterPanel, { FilterState } from './FilterPanel';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Loader2, SlidersHorizontal } from 'lucide-react';
+import { Loader2, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
@@ -21,7 +21,10 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
   const { data: products, isLoading } = useProducts();
   const [selectedProduct, setSelectedProduct] = useState<DbProduct | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const isMobile = useIsMobile();
+  
+  const PRODUCTS_PER_PAGE = 10;
 
   const maxPrice = Math.max(...(products?.map(p => Number(p.price)) || [100000]));
   const [filters, setFilters] = useState<FilterState>({
@@ -38,6 +41,7 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
       ramSizes: [],
       storageSizes: [],
     });
+    setCurrentPage(1);
   };
 
   const filteredProducts = products?.filter((product) => {
@@ -78,6 +82,17 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
 
     return matchesCategory && matchesSearch && matchesPrice && matchesBrand && matchesRam && matchesStorage;
   }) || [];
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const endIndex = startIndex + PRODUCTS_PER_PAGE;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    gridRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const handleProductClick = (product: DbProduct) => {
     setSelectedProduct(product);
@@ -141,25 +156,62 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
 
         {/* Products Grid */}
         <div className="flex-1">
-          {filteredProducts.length > 0 ? (
-            <div className={isMobile 
-              ? "flex flex-col gap-3" 
-              : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            }>
-              {filteredProducts.map((product, index) => (
-                <div
-                  key={product.id}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  className="animate-slide-up"
-                >
-                  {isMobile ? (
-                    <ProductCardMobile product={product} onClick={() => handleProductClick(product)} />
-                  ) : (
-                    <ProductCard product={product} onClick={() => handleProductClick(product)} />
-                  )}
+          {paginatedProducts.length > 0 ? (
+            <>
+              <div className={isMobile 
+                ? "flex flex-col gap-3" 
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              }>
+                {paginatedProducts.map((product, index) => (
+                  <div
+                    key={product.id}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="animate-slide-up"
+                  >
+                    {isMobile ? (
+                      <ProductCardMobile product={product} onClick={() => handleProductClick(product)} />
+                    ) : (
+                      <ProductCard product={product} onClick={() => handleProductClick(product)} />
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(page)}
+                      className="min-w-[40px]"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-20">
               <div className="w-24 h-24 rounded-full bg-secondary mx-auto flex items-center justify-center mb-4">
