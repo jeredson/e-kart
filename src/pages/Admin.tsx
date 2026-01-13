@@ -241,124 +241,126 @@ const Admin = () => {
                 Add Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-hidden">
               <DialogHeader>
                 <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 p-1">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="max-h-[calc(90vh-120px)] overflow-y-auto">
+                <form onSubmit={handleSubmit} className="space-y-4 p-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="brand">Brand *</Label>
+                      <Input
+                        id="brand"
+                        value={formData.brand}
+                        onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                        placeholder="e.g., Samsung"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="model">Model *</Label>
+                      <Input
+                        id="model"
+                        value={formData.model}
+                        onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                        placeholder="e.g., Galaxy S24"
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="brand">Brand *</Label>
-                    <Input
-                      id="brand"
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      placeholder="e.g., Samsung"
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Product description"
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="model">Model *</Label>
+                    <Label htmlFor="price">Price *</Label>
                     <Input
-                      id="model"
-                      value={formData.model}
-                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                      placeholder="e.g., Galaxy S24"
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      placeholder="0.00"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Product description"
+                  <div className="space-y-2">
+                    <Label htmlFor="badge">Badge</Label>
+                    <Input
+                      id="badge"
+                      value={formData.badge}
+                      onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                      placeholder="New, Sale, etc."
+                    />
+                  </div>
+
+                  <ImageUpload
+                    value={formData.image}
+                    onChange={(url) => setFormData({ ...formData, image: url })}
+                    label="Product Image"
                   />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="0.00"
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select
+                      value={formData.category_id}
+                      onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories?.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="in_stock"
+                      checked={formData.in_stock}
+                      onCheckedChange={(checked) => setFormData({ ...formData, in_stock: checked })}
+                    />
+                    <Label htmlFor="in_stock">In Stock</Label>
+                  </div>
+
+                  <SpecificationsInput
+                    specifications={specifications}
+                    onChange={setSpecifications}
                   />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="badge">Badge</Label>
-                  <Input
-                    id="badge"
-                    value={formData.badge}
-                    onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                    placeholder="New, Sale, etc."
+                  <VariantPricingInput
+                    specifications={specifications}
+                    value={variantPricing}
+                    onChange={setVariantPricing}
+                    exceptions={variantExceptions}
+                    onExceptionsChange={setVariantExceptions}
                   />
-                </div>
 
-                <ImageUpload
-                  value={formData.image}
-                  onChange={(url) => setFormData({ ...formData, image: url })}
-                  label="Product Image"
-                />
-
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category_id}
-                    onValueChange={(value) => setFormData({ ...formData, category_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="in_stock"
-                    checked={formData.in_stock}
-                    onCheckedChange={(checked) => setFormData({ ...formData, in_stock: checked })}
+                  <VariantStockInput
+                    specifications={specifications}
+                    value={variantStock}
+                    onChange={setVariantStock}
                   />
-                  <Label htmlFor="in_stock">In Stock</Label>
-                </div>
 
-                <SpecificationsInput
-                  specifications={specifications}
-                  onChange={setSpecifications}
-                />
-
-                <VariantPricingInput
-                  specifications={specifications}
-                  value={variantPricing}
-                  onChange={setVariantPricing}
-                  exceptions={variantExceptions}
-                  onExceptionsChange={setVariantExceptions}
-                />
-
-                <VariantStockInput
-                  specifications={specifications}
-                  value={variantStock}
-                  onChange={setVariantStock}
-                />
-
-                <Button type="submit" className="w-full" disabled={createProduct.isPending || updateProduct.isPending}>
-                  {createProduct.isPending || updateProduct.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : null}
-                  {editingProduct ? 'Update Product' : 'Create Product'}
-                </Button>
-              </form>
+                  <Button type="submit" className="w-full" disabled={createProduct.isPending || updateProduct.isPending}>
+                    {createProduct.isPending || updateProduct.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : null}
+                    {editingProduct ? 'Update Product' : 'Create Product'}
+                  </Button>
+                </form>
+              </div>
             </DialogContent>
           </Dialog>
 
