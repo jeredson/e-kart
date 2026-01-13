@@ -36,7 +36,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       if (specs && typeof specs === 'object') {
         Object.entries(specs).forEach(([key, value]) => {
           if (Array.isArray(value) && value.length > 0) {
-            // Auto-select if only one option or select first option by default
+            // Auto-select first valid option for arrays
             const firstValidOption = value.find((item: any) => {
               const isException = (product.variant_exceptions as string[])?.includes(item.value);
               return !isException;
@@ -50,6 +50,9 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 setSelectedImage(firstValidOption.image);
               }
             }
+          } else if (typeof value === 'string') {
+            // Auto-select single string values (like RAM: "12GB")
+            autoSelectedVariants[key] = value;
           }
         });
       }
@@ -104,22 +107,16 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       return Number(product.price);
     }
 
-    const variantKey = Object.values(pricingVariants).join('_');
-    const variants = variantPricing.variants;
+    // Create key in format: RAM_Storage (e.g., "12GB_256GB")
+    const ramValue = pricingVariants['Ram'] || pricingVariants['RAM'];
+    const storageValue = pricingVariants['Storage'] || pricingVariants['STORAGE'];
     
-    // Try exact match first
-    if (variants[variantKey] && typeof variants[variantKey] === 'number') {
-      return variants[variantKey];
-    }
-    
-    // Try partial matches
-    for (const [key, priceInfo] of Object.entries(variants)) {
-      const keyParts = key.split('_');
-      const selectedValues = Object.values(pricingVariants);
+    if (ramValue && storageValue) {
+      const variantKey = `${ramValue}_${storageValue}`;
+      const variants = variantPricing.variants;
       
-      const allMatch = selectedValues.every(val => keyParts.includes(val));
-      if (allMatch && keyParts.length === selectedValues.length) {
-        return typeof priceInfo === 'number' ? priceInfo : Number(product.price);
+      if (variants[variantKey] && typeof variants[variantKey] === 'number') {
+        return variants[variantKey];
       }
     }
 
