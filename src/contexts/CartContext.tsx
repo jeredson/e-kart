@@ -132,13 +132,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const variantsToMatch = Object.keys(variants).length > 0 ? variants : null;
     console.log('Removing from cart:', { productId, variants, variantsToMatch });
 
-    const { error } = await supabase
+    let query = supabase
       .from('cart_items')
       .delete()
       .eq('user_id', user.id)
-      .eq('product_id', productId)
-      .is('variants', variantsToMatch === null ? null : undefined)
-      .eq('variants', variantsToMatch === null ? undefined : variantsToMatch);
+      .eq('product_id', productId);
+
+    if (variantsToMatch === null) {
+      query = query.is('variants', null);
+    } else {
+      query = query.eq('variants', variantsToMatch);
+    }
+
+    const { error } = await query;
 
     if (error) {
       console.error('Remove from cart error:', error);
@@ -164,13 +170,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const variantsToMatch = Object.keys(variants).length > 0 ? variants : null;
     console.log('Updating quantity:', { productId, quantity, variants, variantsToMatch });
 
-    const { error } = await supabase
+    let query = supabase
       .from('cart_items')
       .update({ quantity })
       .eq('user_id', user.id)
-      .eq('product_id', productId)
-      .is('variants', variantsToMatch === null ? null : undefined)
-      .eq('variants', variantsToMatch === null ? undefined : variantsToMatch);
+      .eq('product_id', productId);
+
+    if (variantsToMatch === null) {
+      query = query.is('variants', null);
+    } else {
+      query = query.eq('variants', variantsToMatch);
+    }
+
+    const { error } = await query;
 
     if (error) {
       console.error('Update quantity error:', error);
