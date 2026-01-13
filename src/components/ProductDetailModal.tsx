@@ -305,11 +305,6 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                   </span>
                 )}
               </div>
-              
-              {/* Debug info */}
-              <div className="text-xs text-muted-foreground mb-2">
-                Debug: Price={currentPrice}, Stock={variantStock}, Variants={JSON.stringify(selectedVariants)}
-              </div>
 
               <p className="text-muted-foreground text-xs sm:text-sm mb-3 line-clamp-3">{product.description}</p>
 
