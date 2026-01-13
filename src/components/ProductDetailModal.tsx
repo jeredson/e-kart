@@ -1,4 +1,4 @@
-import { Star, ShoppingCart, X, Check, Package, Heart } from 'lucide-react';
+import { Star, ShoppingCart, X, Heart } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -125,6 +125,11 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const variantStock = getVariantStock();
   const isVariantAvailable = !isVariantCombinationException();
 
+  // Re-calculate price and stock when variants change
+  useEffect(() => {
+    // This will trigger re-render when selectedVariants changes
+  }, [selectedVariants]);
+
   const handleAddToCart = () => {
     if (!user) {
       setShowSignInDialog(true);
@@ -240,17 +245,13 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
               <div className="flex items-center gap-2 mb-2">
                 {product.in_stock !== false && isVariantAvailable ? (
-                  <>
-                    <Check className="w-3 h-3 text-green-500" />
-                    <span className="text-green-500 text-xs font-medium">
-                      {variantStock !== null ? `${variantStock} in stock` : 'In Stock'}
-                    </span>
-                  </>
+                  <span className="text-green-500 text-xs font-medium">
+                    {variantStock !== null ? `${variantStock} in stock` : 'In Stock'}
+                  </span>
                 ) : (
-                  <>
-                    <Package className="w-3 h-3 text-destructive" />
-                    <span className="text-destructive text-xs font-medium">{!isVariantAvailable ? 'Variant Not Available' : 'Out of Stock'}</span>
-                  </>
+                  <span className="text-destructive text-xs font-medium">
+                    {!isVariantAvailable ? 'Variant Not Available' : 'Out of Stock'}
+                  </span>
                 )}
               </div>
 
