@@ -26,6 +26,35 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const [showSignInDialog, setShowSignInDialog] = useState(false);
   const [, forceUpdate] = useState({});
 
+  if (!product) return null;
+
+  const specs = product.specifications && typeof product.specifications === 'object' && !Array.isArray(product.specifications)
+    ? product.specifications as Record<string, unknown>
+    : null;
+
+  // Handle ordered specifications format
+  const getOrderedSpecs = () => {
+    if (!specs) return null;
+    
+    // Check if specifications are in new ordered format
+    if (specs._ordered && Array.isArray(specs._ordered)) {
+      const orderedSpecs: Record<string, unknown> = {};
+      specs._ordered.forEach((spec: any) => {
+        orderedSpecs[spec.key] = spec.values;
+      });
+      return orderedSpecs;
+    }
+    
+    // Return old format as-is
+    return specs;
+  };
+
+  const orderedSpecs = getOrderedSpecs();
+
+  const isColorSpec = (key: string) => {
+    return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
+  };
+
   useEffect(() => {
     if (product) {
       setSelectedImage(product.image || '/placeholder.svg');
@@ -65,36 +94,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     }
   }, [product, orderedSpecs]);
 
-  if (!product) return null;
-
-  const specs = product.specifications && typeof product.specifications === 'object' && !Array.isArray(product.specifications)
-    ? product.specifications as Record<string, unknown>
-    : null;
-
-  // Handle ordered specifications format
-  const getOrderedSpecs = () => {
-    if (!specs) return null;
-    
-    // Check if specifications are in new ordered format
-    if (specs._ordered && Array.isArray(specs._ordered)) {
-      const orderedSpecs: Record<string, unknown> = {};
-      specs._ordered.forEach((spec: any) => {
-        orderedSpecs[spec.key] = spec.values;
-      });
-      return orderedSpecs;
-    }
-    
-    // Return old format as-is
-    return specs;
-  };
-
-  const orderedSpecs = getOrderedSpecs();
-
   const variantExceptions = product.variant_exceptions as string[] | null;
-
-  const isColorSpec = (key: string) => {
-    return key.toLowerCase().includes('color') || key.toLowerCase().includes('colour');
-  };
 
   const isVariantCombinationException = () => {
     if (!variantExceptions || variantExceptions.length === 0) return false;
