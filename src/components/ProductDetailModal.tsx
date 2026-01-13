@@ -29,7 +29,32 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   useEffect(() => {
     if (product) {
       setSelectedImage(product.image || '/placeholder.svg');
-      setSelectedVariants({});
+      
+      // Auto-select variants
+      const autoSelectedVariants: Record<string, string> = {};
+      
+      if (specs && typeof specs === 'object') {
+        Object.entries(specs).forEach(([key, value]) => {
+          if (Array.isArray(value) && value.length > 0) {
+            // Auto-select if only one option or select first option by default
+            const firstValidOption = value.find((item: any) => {
+              const isException = (product.variant_exceptions as string[])?.includes(item.value);
+              return !isException;
+            });
+            
+            if (firstValidOption) {
+              autoSelectedVariants[key] = firstValidOption.value;
+              
+              // Set image if it's the first color option with an image
+              if (isColorSpec(key) && firstValidOption.image) {
+                setSelectedImage(firstValidOption.image);
+              }
+            }
+          }
+        });
+      }
+      
+      setSelectedVariants(autoSelectedVariants);
     }
   }, [product]);
 
@@ -62,9 +87,9 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   };
 
   const getPrice = () => {
-    const variantPricing = product.variant_pricing as Record<string, Record<string, any>> | null;
+    const variantPricing = product.variant_pricing as Record<string, any> | null;
     
-    if (!variantPricing) {
+    if (!variantPricing || !variantPricing.variants) {
       return Number(product.price);
     }
 
@@ -80,21 +105,21 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     }
 
     const variantKey = Object.values(pricingVariants).join('_');
+    const variants = variantPricing.variants;
     
-    for (const pricingGroup of Object.values(variantPricing)) {
-      const priceData = pricingGroup[variantKey];
-      if (priceData) {
-        return typeof priceData === 'number' ? priceData : Number(product.price);
-      }
+    // Try exact match first
+    if (variants[variantKey] && typeof variants[variantKey] === 'number') {
+      return variants[variantKey];
+    }
+    
+    // Try partial matches
+    for (const [key, priceInfo] of Object.entries(variants)) {
+      const keyParts = key.split('_');
+      const selectedValues = Object.values(pricingVariants);
       
-      for (const [key, priceInfo] of Object.entries(pricingGroup)) {
-        const keyParts = key.split('_');
-        const selectedValues = Object.values(pricingVariants);
-        
-        const allMatch = selectedValues.every(val => keyParts.includes(val));
-        if (allMatch && keyParts.length === selectedValues.length) {
-          return typeof priceInfo === 'number' ? priceInfo : Number(product.price);
-        }
+      const allMatch = selectedValues.every(val => keyParts.includes(val));
+      if (allMatch && keyParts.length === selectedValues.length) {
+        return typeof priceInfo === 'number' ? priceInfo : Number(product.price);
       }
     }
 
@@ -104,7 +129,12 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const getVariantStock = () => {
     const variantStock = product.variant_stock as Record<string, number> | null;
     
-    if (!variantStock || Object.keys(selectedVariants).length === 0) {
+    if (!variantStock) {
+      return null;
+    }
+
+    // If no variants selected, return null
+    if (Object.keys(selectedVariants).length === 0) {
       return null;
     }
 
@@ -124,11 +154,14 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       });
       
       // Check if all selected variants match this key
-      const allMatch = Object.entries(selectedVariants).every(([type, value]) => 
+      const allSelectedMatch = Object.entries(selectedVariants).every(([type, value]) => 
         keyVariants[type] === value
       );
       
-      if (allMatch && Object.keys(selectedVariants).length === Object.keys(keyVariants).length) {
+      // Only return stock if ALL required variants are selected (Ram, Color, Storage)
+      const hasAllRequiredVariants = selectedVariants.Ram && selectedVariants.Color && selectedVariants.Storage;
+      
+      if (allSelectedMatch && hasAllRequiredVariants && Object.keys(selectedVariants).length === Object.keys(keyVariants).length) {
         return variantStock[key];
       }
     }
@@ -178,6 +211,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       const newVariants = { ...prev, [specKey]: value.value };
       console.log('Updated selectedVariants:', newVariants);
       console.log('Product variant_pricing:', product.variant_pricing);
+      console.log('Product variant_pricing.variants:', product.variant_pricing?.variants);
       console.log('Product variant_stock:', product.variant_stock);
       return newVariants;
     });
