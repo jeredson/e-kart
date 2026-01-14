@@ -134,66 +134,64 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const removeFromCart = async (productId: string, variants: Record<string, string> = {}) => {
+  const removeFromCart = (productId: string, variants: Record<string, string> = {}) => {
     if (!user) return;
 
     const variantsJson = JSON.stringify(variants);
+    
+    // Update local state immediately
+    setItems(items.filter(item => 
+      !(item.id === productId && JSON.stringify(item.variants || {}) === variantsJson)
+    ));
 
-    const { error } = await supabase
+    // Delete from database in background
+    supabase
       .from('cart_items')
       .delete()
       .eq('user_id', user.id)
       .eq('product_id', productId)
-      .eq('variants', variantsJson);
-
-    if (error) {
-      console.error('Remove from cart error:', error);
-      toast.error('Failed to remove item from cart');
-    } else {
-      setItems(items.filter(item => 
-        !(item.id === productId && JSON.stringify(item.variants || {}) === variantsJson)
-      ));
-      toast.success('Removed from cart');
-    }
+      .eq('variants', variantsJson)
+      .then(({ error }) => {
+        if (error) {
+          console.error('Remove from cart error:', error);
+          toast.error('Failed to remove item from cart');
+        } else {
+          toast.success('Removed from cart');
+        }
+      });
   };
 
-  const updateQuantity = async (productId: string, quantity: number, variants: Record<string, string> = {}) => {
+  const updateQuantity = (productId: string, quantity: number, variants: Record<string, string> = {}) => {
     if (!user) return;
     
     if (quantity <= 0) {
-      await removeFromCart(productId, variants);
+      removeFromCart(productId, variants);
       return;
     }
 
-    const variantsJson = Object.keys(variants).length > 0 ? JSON.stringify(variants) : null;
-    console.log('Updating quantity:', { productId, quantity, variants, variantsJson });
+    const variantsJson = JSON.stringify(variants);
+    
+    // Update local state immediately
+    setItems(items.map(item => {
+      const itemVariantKey = JSON.stringify(item.variants || {});
+      return item.id === productId && itemVariantKey === variantsJson
+        ? { ...item, quantity } 
+        : item;
+    }));
 
-    let query = supabase
+    // Update database in background
+    supabase
       .from('cart_items')
       .update({ quantity })
       .eq('user_id', user.id)
-      .eq('product_id', productId);
-
-    if (variantsJson === null) {
-      query = query.is('variants', null);
-    } else {
-      query = query.eq('variants', variantsJson);
-    }
-
-    const { error } = await query;
-
-    if (error) {
-      console.error('Update quantity error:', error);
-      toast.error('Failed to update quantity');
-    } else {
-      const variantKey = JSON.stringify(variants);
-      setItems(items.map(item => {
-        const itemVariantKey = JSON.stringify(item.variants || {});
-        return item.id === productId && itemVariantKey === variantKey
-          ? { ...item, quantity } 
-          : item;
-      }));
-    }
+      .eq('product_id', productId)
+      .eq('variants', variantsJson)
+      .then(({ error }) => {
+        if (error) {
+          console.error('Update quantity error:', error);
+          toast.error('Failed to update quantity');
+        }
+      });
   };
 
   const clearCart = async () => {
