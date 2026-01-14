@@ -31,19 +31,24 @@ const Checkout = () => {
     return products?.find(p => p.id === productId);
   };
 
-  const getProductSpecs = (productId: string) => {
-    const product = getProductDetails(productId);
-    if (!product?.specifications) return null;
+  const getAllSpecifications = (productId: string) => {
+    const specs = getProductSpecs(productId);
+    const allSpecs: Record<string, string> = {};
     
-    const specs = product.specifications as Record<string, unknown>;
-    if (specs._ordered && Array.isArray(specs._ordered)) {
-      const result: Record<string, unknown> = {};
-      specs._ordered.forEach((spec: any) => {
-        result[spec.key] = spec.values;
+    if (specs) {
+      Object.entries(specs).forEach(([key, value]) => {
+        if (key === '_ordered') return;
+        if (Array.isArray(value) && value.length > 0) {
+          // For array specs, use the variant value if available
+          allSpecs[key] = value[0].value;
+        } else if (typeof value === 'string') {
+          // For single value specs, use directly
+          allSpecs[key] = value;
+        }
       });
-      return result;
     }
-    return specs;
+    
+    return allSpecs;
   };
 
   const getVariantStock = (productId: string, variants: Record<string, string>) => {
@@ -202,6 +207,8 @@ const Checkout = () => {
             const variantStock = getVariantStock(item.id, item.variants || {});
             const variantPrice = getVariantPrice(item.id, item.variants || {});
             const specs = getProductSpecs(item.id);
+            const allSpecs = getAllSpecifications(item.id);
+            const displaySpecs = { ...allSpecs, ...item.variants };
 
             return (
               <Card key={`${item.id}-${JSON.stringify(item.variants)}`}>
@@ -226,10 +233,10 @@ const Checkout = () => {
                         </Button>
                       </div>
                       
-                      {/* Variant Information */}
-                      {item.variants && Object.keys(item.variants).length > 0 && (
+                      {/* All Specifications Display */}
+                      {displaySpecs && Object.keys(displaySpecs).length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2 mb-3">
-                          {Object.entries(item.variants).map(([key, value]) => (
+                          {Object.entries(displaySpecs).map(([key, value]) => (
                             <Badge key={key} variant="secondary">
                               {key}: {value}
                             </Badge>
