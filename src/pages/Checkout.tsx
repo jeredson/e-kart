@@ -138,6 +138,7 @@ const Checkout = () => {
 
     const variantPrice = getVariantPrice(selectedProductForVariant, newVariantSelections);
     
+    // Add to cart with quantity in one call
     await addToCart({
       id: product.id,
       name: product.name,
@@ -149,9 +150,16 @@ const Checkout = () => {
       reviews: product.reviews_count || 0,
     }, newVariantSelections);
 
-    // Update quantity if needed
+    // Only update quantity if more than 1
     if (newVariantQuantity > 1) {
-      await updateQuantity(selectedProductForVariant, newVariantQuantity, newVariantSelections);
+      // Update directly in database without waiting
+      const variantsJson = JSON.stringify(newVariantSelections);
+      supabase
+        .from('cart_items')
+        .update({ quantity: newVariantQuantity })
+        .eq('user_id', user?.id)
+        .eq('product_id', product.id)
+        .eq('variants', variantsJson);
     }
 
     toast.success('Variant added to cart!');
