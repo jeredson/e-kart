@@ -153,7 +153,7 @@ const Checkout = () => {
       });
     }
     
-    // Add to cart with quantity and variant image
+    // Add to cart with variant image
     await addToCart({
       id: product.id,
       name: product.name,
@@ -165,15 +165,9 @@ const Checkout = () => {
       reviews: product.reviews_count || 0,
     }, newVariantSelections, variantImage);
 
-    // Only update quantity if more than 1
+    // Update quantity if more than 1
     if (newVariantQuantity > 1) {
-      const variantsJson = JSON.stringify(newVariantSelections);
-      supabase
-        .from('cart_items')
-        .update({ quantity: newVariantQuantity })
-        .eq('user_id', user?.id)
-        .eq('product_id', product.id)
-        .eq('variants', variantsJson);
+      await updateQuantity(selectedProductForVariant, newVariantQuantity, newVariantSelections);
     }
 
     toast.success('Variant added to cart!');
@@ -484,14 +478,6 @@ const Checkout = () => {
                     </div>
                   );
                 })}
-
-                {maxStock !== null && (
-                  <div className="bg-secondary/50 p-3 rounded-lg">
-                    <p className="text-sm font-medium">
-                      Stock Available: <span className="text-primary font-bold">{maxStock} units</span>
-                    </p>
-                  </div>
-                )}
 
                 <div>
                   <Label>Quantity</Label>
