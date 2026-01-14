@@ -61,17 +61,19 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         Object.entries(orderedSpecs).forEach(([key, value]) => {
           if (key === '_ordered') return;
           
-          if (Array.isArray(value) && value.length > 0) {
-            const firstOption = value[0];
-            if (firstOption && typeof firstOption === 'object' && firstOption.value) {
-              variants[key] = firstOption.value;
-              
-              if (key.toLowerCase().includes('color') && firstOption.image) {
-                variantImage = firstOption.image;
+          if (Array.isArray(value)) {
+            if (value.length > 0) {
+              const firstOption = value[0];
+              if (firstOption && typeof firstOption === 'object' && firstOption.value) {
+                variants[key] = firstOption.value;
+                if (key.toLowerCase().includes('color') && firstOption.image) {
+                  variantImage = firstOption.image;
+                }
+              } else if (typeof firstOption === 'string') {
+                variants[key] = firstOption;
               }
             }
           } else if (typeof value === 'string') {
-            // Include single-value specs
             variants[key] = value;
           }
         });
@@ -81,11 +83,6 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
     };
 
     const { variants, variantImage } = getFirstVariants();
-    
-    console.log('Product:', product.name);
-    console.log('Specifications:', product.specifications);
-    console.log('Extracted variants:', variants);
-    console.log('Variant image:', variantImage);
     
     addToCart({
       id: product.id,
