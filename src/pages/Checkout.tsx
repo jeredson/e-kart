@@ -207,7 +207,7 @@ const Checkout = () => {
                                 <Label className="text-xs mb-1">{key}</Label>
                                 <Select
                                   value={item.variants?.[key] || ''}
-                                  onValueChange={async (newValue) => {
+                                  onValueChange={(newValue) => {
                                     const newVariants = { ...item.variants, [key]: newValue };
                                     const oldVariantsJson = JSON.stringify(item.variants || {});
                                     const newVariantsJson = JSON.stringify(newVariants);
@@ -223,9 +223,16 @@ const Checkout = () => {
                                     
                                     const variantPrice = getVariantPrice(item.id, newVariants);
                                     
-                                    // Update the cart item in database
+                                    // Update local state immediately
+                                    setCheckoutItems(prev => prev.map(cartItem => 
+                                      cartItem.id === item.id && JSON.stringify(cartItem.variants) === oldVariantsJson
+                                        ? { ...cartItem, variants: newVariants, image: newVariantImage, price: variantPrice }
+                                        : cartItem
+                                    ));
+                                    
+                                    // Update database in background
                                     if (user) {
-                                      const { error } = await supabase
+                                      supabase
                                         .from('cart_items')
                                         .update({ 
                                           variants: newVariantsJson,
@@ -234,17 +241,12 @@ const Checkout = () => {
                                         })
                                         .eq('user_id', user.id)
                                         .eq('product_id', item.id)
-                                        .eq('variants', oldVariantsJson);
-                                      
-                                      if (!error) {
-                                        // Update local state
-                                        setCheckoutItems(prev => prev.map(cartItem => 
-                                          cartItem.id === item.id && JSON.stringify(cartItem.variants) === oldVariantsJson
-                                            ? { ...cartItem, variants: newVariants, image: newVariantImage, price: variantPrice }
-                                            : cartItem
-                                        ));
-                                        toast.success('Variant updated');
-                                      }
+                                        .eq('variants', oldVariantsJson)
+                                        .then(({ error }) => {
+                                          if (error) {
+                                            toast.error('Failed to update variant');
+                                          }
+                                        });
                                     }
                                   }}
                                 >
