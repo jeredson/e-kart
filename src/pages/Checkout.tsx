@@ -270,7 +270,8 @@ const Checkout = () => {
                                   value={item.variants?.[key] || ''}
                                   onValueChange={async (newValue) => {
                                     const newVariants = { ...item.variants, [key]: newValue };
-                                    const oldQuantity = item.quantity;
+                                    const oldVariantsJson = JSON.stringify(item.variants || {});
+                                    const newVariantsJson = JSON.stringify(newVariants);
                                     
                                     // Find the new variant image if color is changed
                                     let newVariantImage = item.image;
@@ -283,24 +284,24 @@ const Checkout = () => {
                                     
                                     const variantPrice = getVariantPrice(item.id, newVariants);
                                     
-                                    // Update the cart item with new variants
-                                    await updateQuantity(item.id, oldQuantity, newVariants);
-                                    
-                                    // Update the image in the database
+                                    // Update the cart item in database
                                     if (user) {
-                                      const variantsJson = Object.keys(newVariants).length > 0 ? JSON.stringify(newVariants) : null;
-                                      await supabase
+                                      const { error } = await supabase
                                         .from('cart_items')
                                         .update({ 
+                                          variants: newVariantsJson,
                                           variant_image: newVariantImage,
                                           product_price: variantPrice
                                         })
                                         .eq('user_id', user.id)
                                         .eq('product_id', item.id)
-                                        .eq('variants', variantsJson);
+                                        .eq('variants', oldVariantsJson);
+                                      
+                                      if (!error) {
+                                        // Force reload cart to reflect changes
+                                        window.location.reload();
+                                      }
                                     }
-                                    
-                                    toast.success('Variant updated');
                                   }}
                                 >
                                   <SelectTrigger className="h-8 text-xs">
