@@ -421,11 +421,16 @@ const Checkout = () => {
                     alt={product?.name}
                     className="w-16 h-16 object-contain rounded bg-secondary"
                   />
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold">{product?.name}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm font-bold text-primary">
                       ₹{getVariantPrice(selectedProductForVariant, newVariantSelections).toLocaleString('en-IN')}
                     </p>
+                    {maxStock !== null && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Stock: {maxStock} available
+                      </p>
+                    )}
                   </div>
                 </div>
 
