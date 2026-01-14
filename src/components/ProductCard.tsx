@@ -50,7 +50,6 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
       if (product.specifications && typeof product.specifications === 'object') {
         const specs = product.specifications as Record<string, any>;
         
-        // Handle ordered specifications format
         let orderedSpecs = specs;
         if (specs._ordered && Array.isArray(specs._ordered)) {
           orderedSpecs = {};
@@ -67,12 +66,9 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
             if (firstOption && typeof firstOption === 'object' && firstOption.value) {
               variants[key] = firstOption.value;
               
-              // Use first color variant image if available
               if (key.toLowerCase().includes('color') && firstOption.image) {
                 variantImage = firstOption.image;
               }
-            } else if (typeof firstOption === 'string') {
-              variants[key] = firstOption;
             }
           } else if (typeof value === 'string') {
             // Include single-value specs
@@ -86,7 +82,8 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
     const { variants, variantImage } = getFirstVariants();
     
-    console.log('Product specifications:', product.specifications);
+    console.log('Product:', product.name);
+    console.log('Specifications:', product.specifications);
     console.log('Extracted variants:', variants);
     console.log('Variant image:', variantImage);
     
