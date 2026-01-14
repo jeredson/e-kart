@@ -119,13 +119,41 @@ const Checkout = () => {
     return sum + variantPrice * item.quantity;
   }, 0);
 
-  const handleQuantityChange = async (productId: string, variants: Record<string, string>, newQuantity: number) => {
+  const handleQuantityChange = (productId: string, variants: Record<string, string>, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      removeFromCart(productId, variants);
+      return;
+    }
+
     const maxStock = getVariantStock(productId, variants);
     if (maxStock && newQuantity > maxStock) {
       toast.error(`Only ${maxStock} items available in stock`);
       return;
     }
-    await updateQuantity(productId, newQuantity, variants);
+
+    const variantsJson = JSON.stringify(variants);
+    
+    // Update local state immediately
+    setCheckoutItems(prev => prev.map(item => 
+      item.id === productId && JSON.stringify(item.variants || {}) === variantsJson
+        ? { ...item, quantity: newQuantity }
+        : item
+    ));
+
+    // Update database in background
+    if (user) {
+      supabase
+        .from('cart_items')
+        .update({ quantity: newQuantity })
+        .eq('user_id', user.id)
+        .eq('product_id', productId)
+        .eq('variants', variantsJson)
+        .then(({ error }) => {
+          if (error) {
+            toast.error('Failed to update quantity');
+          }
+        });
+    }
   };
 
   if (!user) {
