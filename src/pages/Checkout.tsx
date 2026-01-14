@@ -335,7 +335,6 @@ const Checkout = () => {
               </Card>
             );
           })}
-          })}
         </div>
 
         {/* Order Summary */}
