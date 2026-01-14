@@ -153,24 +153,31 @@ const Checkout = () => {
       });
     }
     
-    // Add to cart with variant image
-    await addToCart({
-      id: product.id,
-      name: product.name,
-      description: product.description || '',
-      price: variantPrice,
-      image: product.image || '',
-      category: product.category?.name || 'General',
-      rating: Number(product.rating) || 4.5,
-      reviews: product.reviews_count || 0,
-    }, newVariantSelections, variantImage);
-
-    // Update quantity if more than 1
-    if (newVariantQuantity > 1) {
-      await updateQuantity(selectedProductForVariant, newVariantQuantity, newVariantSelections);
+    // Add to cart with variant image and quantity directly in database
+    if (user) {
+      const variantsJson = JSON.stringify(newVariantSelections);
+      const { error } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: user.id,
+          product_id: product.id,
+          product_name: product.name,
+          product_description: product.description,
+          product_price: variantPrice,
+          product_image: product.image,
+          product_category: product.category?.name || 'General',
+          product_rating: Number(product.rating) || 4.5,
+          product_reviews: product.reviews_count || 0,
+          quantity: newVariantQuantity,
+          variants: variantsJson,
+          variant_image: variantImage
+        });
+      
+      if (!error) {
+        toast.success('Variant added to cart!');
+      }
     }
 
-    toast.success('Variant added to cart!');
     setAddVariantDialogOpen(false);
     setSelectedProductForVariant(null);
     setNewVariantSelections({});
@@ -445,11 +452,6 @@ const Checkout = () => {
                     <p className="text-sm font-bold text-primary">
                       ₹{getVariantPrice(selectedProductForVariant, newVariantSelections).toLocaleString('en-IN')}
                     </p>
-                    {maxStock !== null && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Stock: {maxStock} available
-                      </p>
-                    )}
                   </div>
                 </div>
 
