@@ -75,6 +75,9 @@ const FeaturedProductsCarousel = () => {
                 variantImage = firstOption.image;
               }
             }
+          } else if (typeof value === 'string') {
+            // Include single-value specs
+            variants[key] = value;
           }
         });
       }

@@ -198,7 +198,50 @@ const Navbar = ({ onSearch }: NavbarProps) => {
               </SheetContent>
             </Sheet>
 
-            {/* User Menu */}
+            {/* User Menu - Mobile */}
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="sm:hidden flex items-center gap-2 h-auto py-2 px-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={userProfile?.avatar_url} />
+                      <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                    {user.email}
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center">
+                          <Shield className="w-4 h-4 mr-2" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* User Menu - Desktop */}
+            {/* User Menu - Desktop */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -249,6 +292,14 @@ const Navbar = ({ onSearch }: NavbarProps) => {
               </Button>
             )}
 
+            {!user && (
+              <Button variant="ghost" size="icon" className="sm:hidden" asChild>
+                <Link to="/auth">
+                  <User className="w-5 h-5" />
+                </Link>
+              </Button>
+            )}
+
             {/* Favorites */}
             <FavoritesDrawer>
               <Button variant="ghost" size="icon" className="relative">
@@ -285,40 +336,16 @@ const Navbar = ({ onSearch }: NavbarProps) => {
           </div>
         </div>
 
-        {/* Mobile Menu Content */}
-        {isMenuOpen && (
+        {/* Mobile Menu Content - Only show for non-authenticated or as fallback */}
+        {isMenuOpen && !user && (
           <div className="md:hidden py-4 border-t border-border animate-slide-up">
             <div className="flex flex-col gap-2">
-              {user ? (
-                <>
-                  <div className="px-4 py-2 text-sm text-muted-foreground">{user.email}</div>
-                  <Button variant="ghost" className="justify-start" asChild>
-                    <Link to="/settings">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </Link>
-                  </Button>
-                  {isAdmin && (
-                    <Button variant="ghost" className="justify-start" asChild>
-                      <Link to="/admin">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Admin Panel
-                      </Link>
-                    </Button>
-                  )}
-                  <Button variant="ghost" className="justify-start" onClick={handleSignOut}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <Button variant="ghost" className="justify-start" asChild>
-                  <Link to="/auth">
-                    <User className="w-4 h-4 mr-2" />
-                    Sign In
-                  </Link>
-                </Button>
-              )}
+              <Button variant="ghost" className="justify-start" asChild>
+                <Link to="/auth">
+                  <User className="w-4 h-4 mr-2" />
+                  Sign In
+                </Link>
+              </Button>
             </div>
           </div>
         )}

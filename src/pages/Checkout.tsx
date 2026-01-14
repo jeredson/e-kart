@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
 
 const Checkout = () => {
   const { items, updateQuantity, removeFromCart, totalPrice, addToCart } = useCart();
@@ -269,25 +270,34 @@ const Checkout = () => {
                                   value={item.variants?.[key] || ''}
                                   onValueChange={async (newValue) => {
                                     const newVariants = { ...item.variants, [key]: newValue };
-                                    const oldVariants = item.variants || {};
                                     const oldQuantity = item.quantity;
                                     
-                                    await removeFromCart(item.id, oldVariants);
+                                    // Find the new variant image if color is changed
+                                    let newVariantImage = item.image;
+                                    if (key.toLowerCase().includes('color')) {
+                                      const selectedOption = value.find((opt: any) => opt.value === newValue);
+                                      if (selectedOption?.image) {
+                                        newVariantImage = selectedOption.image;
+                                      }
+                                    }
                                     
                                     const variantPrice = getVariantPrice(item.id, newVariants);
-                                    await addToCart({
-                                      id: product!.id,
-                                      name: product!.name,
-                                      description: product!.description || '',
-                                      price: variantPrice,
-                                      image: product!.image || '',
-                                      category: product!.category?.name || 'General',
-                                      rating: Number(product!.rating) || 4.5,
-                                      reviews: product!.reviews_count || 0,
-                                    }, newVariants);
                                     
-                                    if (oldQuantity > 1) {
-                                      await updateQuantity(item.id, oldQuantity, newVariants);
+                                    // Update the cart item with new variants
+                                    await updateQuantity(item.id, oldQuantity, newVariants);
+                                    
+                                    // Update the image in the database
+                                    if (user) {
+                                      const variantsJson = Object.keys(newVariants).length > 0 ? JSON.stringify(newVariants) : null;
+                                      await supabase
+                                        .from('cart_items')
+                                        .update({ 
+                                          variant_image: newVariantImage,
+                                          product_price: variantPrice
+                                        })
+                                        .eq('user_id', user.id)
+                                        .eq('product_id', item.id)
+                                        .eq('variants', variantsJson);
                                     }
                                     
                                     toast.success('Variant updated');
