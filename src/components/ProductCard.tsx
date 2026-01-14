@@ -84,6 +84,12 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
     const { variants, variantImage } = getFirstVariants();
     
+    console.log('=== ADD TO CART DEBUG ===');
+    console.log('Product name:', product.name);
+    console.log('Product specs:', JSON.stringify(product.specifications, null, 2));
+    console.log('Extracted variants:', JSON.stringify(variants, null, 2));
+    console.log('========================');
+    
     addToCart({
       id: product.id,
       name: product.name,
