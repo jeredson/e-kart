@@ -298,8 +298,13 @@ const Checkout = () => {
                                         .eq('variants', oldVariantsJson);
                                       
                                       if (!error) {
-                                        // Force reload cart to reflect changes
-                                        window.location.reload();
+                                        // Update local state
+                                        setCheckoutItems(prev => prev.map(cartItem => 
+                                          cartItem.id === item.id && JSON.stringify(cartItem.variants) === oldVariantsJson
+                                            ? { ...cartItem, variants: newVariants, image: newVariantImage, price: variantPrice }
+                                            : cartItem
+                                        ));
+                                        toast.success('Variant updated');
                                       }
                                     }
                                   }}
