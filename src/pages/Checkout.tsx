@@ -169,23 +169,23 @@ const Checkout = () => {
 
             return (
               <Card key={`${item.id}-${JSON.stringify(item.variants)}`}>
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row gap-4">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-24 h-24 object-contain rounded-lg bg-secondary"
+                      className="w-24 h-24 object-contain rounded-lg bg-secondary mx-auto sm:mx-0"
                     />
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
-                        <h3 className="font-semibold text-lg">{item.name}</h3>
+                        <h3 className="font-semibold text-base sm:text-lg">{item.name}</h3>
                       </div>
                       
                       {/* All Specifications Display */}
                       {displaySpecs && Object.keys(displaySpecs).length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2 mb-3">
                           {Object.entries(displaySpecs).map(([key, value]) => (
-                            <Badge key={key} variant="secondary">
+                            <Badge key={key} variant="secondary" className="text-xs">
                               {key}: {value}
                             </Badge>
                           ))}
@@ -260,30 +260,30 @@ const Checkout = () => {
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
-                          <span className="font-bold text-xl">₹{variantPrice.toLocaleString('en-IN')}</span>
+                          <span className="font-bold text-lg sm:text-xl">₹{variantPrice.toLocaleString('en-IN')}</span>
                           {variantStock !== null && (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                               {variantStock} available
                             </p>
                           )}
                         </div>
                         
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 flex-shrink-0"
                             onClick={() => handleQuantityChange(item.id, item.variants || {}, item.quantity - 1)}
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
-                          <span className="w-12 text-center font-medium">{item.quantity}</span>
+                          <span className="w-8 sm:w-12 text-center font-medium text-sm">{item.quantity}</span>
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 flex-shrink-0"
                             onClick={() => handleQuantityChange(item.id, item.variants || {}, item.quantity + 1)}
                             disabled={variantStock !== null && item.quantity >= variantStock}
                           >
@@ -292,7 +292,7 @@ const Checkout = () => {
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive ml-2"
+                            className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0"
                             onClick={() => removeFromCart(item.id, item.variants)}
                           >
                             <Trash2 className="h-4 w-4" />
