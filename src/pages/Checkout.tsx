@@ -460,6 +460,14 @@ const Checkout = () => {
                   );
                 })}
 
+                {maxStock !== null && (
+                  <div className="bg-secondary/50 p-3 rounded-lg">
+                    <p className="text-sm font-medium">
+                      Stock Available: <span className="text-primary font-bold">{maxStock} units</span>
+                    </p>
+                  </div>
+                )}
+
                 <div>
                   <Label>Quantity</Label>
                   <div className="flex items-center gap-2 mt-2">
