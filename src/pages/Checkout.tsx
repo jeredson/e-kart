@@ -138,7 +138,22 @@ const Checkout = () => {
 
     const variantPrice = getVariantPrice(selectedProductForVariant, newVariantSelections);
     
-    // Add to cart with quantity in one call
+    // Get variant image based on color selection
+    let variantImage = product.image;
+    const specs = getProductSpecs(selectedProductForVariant);
+    if (specs) {
+      Object.entries(specs).forEach(([key, value]) => {
+        if (key.toLowerCase().includes('color') && Array.isArray(value)) {
+          const selectedColor = newVariantSelections[key];
+          const colorOption = value.find((opt: any) => opt.value === selectedColor);
+          if (colorOption?.image) {
+            variantImage = colorOption.image;
+          }
+        }
+      });
+    }
+    
+    // Add to cart with quantity and variant image
     await addToCart({
       id: product.id,
       name: product.name,
@@ -148,11 +163,10 @@ const Checkout = () => {
       category: product.category?.name || 'General',
       rating: Number(product.rating) || 4.5,
       reviews: product.reviews_count || 0,
-    }, newVariantSelections);
+    }, newVariantSelections, variantImage);
 
     // Only update quantity if more than 1
     if (newVariantQuantity > 1) {
-      // Update directly in database without waiting
       const variantsJson = JSON.stringify(newVariantSelections);
       supabase
         .from('cart_items')
