@@ -6,9 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Minus, Plus, Trash2, ArrowLeft, PackagePlus } from 'lucide-react';
+import { Minus, Plus, Trash2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,10 +22,6 @@ const Checkout = () => {
   const { user } = useAuth();
   const { data: products } = useProducts();
   const [checkoutItems, setCheckoutItems] = useState(items);
-  const [addVariantDialogOpen, setAddVariantDialogOpen] = useState(false);
-  const [selectedProductForVariant, setSelectedProductForVariant] = useState<string | null>(null);
-  const [newVariantSelections, setNewVariantSelections] = useState<Record<string, string>>({});
-  const [newVariantQuantity, setNewVariantQuantity] = useState(1);
 
   useEffect(() => {
     setCheckoutItems(items);
@@ -124,88 +123,6 @@ const Checkout = () => {
     await updateQuantity(productId, newQuantity, variants);
   };
 
-  const handleAddVariant = async () => {
-    if (!selectedProductForVariant) return;
-    
-    const product = getProductDetails(selectedProductForVariant);
-    if (!product) return;
-
-    const maxStock = getVariantStock(selectedProductForVariant, newVariantSelections);
-    if (maxStock && newVariantQuantity > maxStock) {
-      toast.error(`Only ${maxStock} items available in stock`);
-      return;
-    }
-
-    const variantPrice = getVariantPrice(selectedProductForVariant, newVariantSelections);
-    
-    // Get variant image based on color selection
-    let variantImage = product.image;
-    const specs = getProductSpecs(selectedProductForVariant);
-    if (specs) {
-      Object.entries(specs).forEach(([key, value]) => {
-        if (key.toLowerCase().includes('color') && Array.isArray(value)) {
-          const selectedColor = newVariantSelections[key];
-          const colorOption = value.find((opt: any) => opt.value === selectedColor);
-          if (colorOption?.image) {
-            variantImage = colorOption.image;
-          }
-        }
-      });
-    }
-    
-    // Add to cart with variant image and quantity directly in database
-    if (user) {
-      const variantsJson = JSON.stringify(newVariantSelections);
-      const { error } = await supabase
-        .from('cart_items')
-        .insert({
-          user_id: user.id,
-          product_id: product.id,
-          product_name: product.name,
-          product_description: product.description,
-          product_price: variantPrice,
-          product_image: product.image,
-          product_category: product.category?.name || 'General',
-          product_rating: Number(product.rating) || 4.5,
-          product_reviews: product.reviews_count || 0,
-          quantity: newVariantQuantity,
-          variants: variantsJson,
-          variant_image: variantImage
-        });
-      
-      if (!error) {
-        toast.success('Variant added to cart!');
-      }
-    }
-
-    setAddVariantDialogOpen(false);
-    setSelectedProductForVariant(null);
-    setNewVariantSelections({});
-    setNewVariantQuantity(1);
-  };
-
-  const openAddVariantDialog = (productId: string) => {
-    const specs = getProductSpecs(productId);
-    const initialSelections: Record<string, string> = {};
-    
-    if (specs) {
-      Object.entries(specs).forEach(([key, value]) => {
-        if (key === '_ordered') return;
-        if (Array.isArray(value) && value.length > 0) {
-          initialSelections[key] = value[0].value;
-        } else if (typeof value === 'string') {
-          // Include single-value specs
-          initialSelections[key] = value;
-        }
-      });
-    }
-    
-    setSelectedProductForVariant(productId);
-    setNewVariantSelections(initialSelections);
-    setNewVariantQuantity(1);
-    setAddVariantDialogOpen(true);
-  };
-
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -262,15 +179,6 @@ const Checkout = () => {
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <h3 className="font-semibold text-lg">{item.name}</h3>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => openAddVariantDialog(item.id)}
-                          title="Add another variant"
-                        >
-                          <PackagePlus className="h-4 w-4" />
-                        </Button>
                       </div>
                       
                       {/* All Specifications Display */}
@@ -427,105 +335,6 @@ const Checkout = () => {
           </Card>
         </div>
       </div>
-
-      {/* Add Variant Dialog */}
-      <Dialog open={addVariantDialogOpen} onOpenChange={setAddVariantDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Product Variant</DialogTitle>
-          </DialogHeader>
-          {selectedProductForVariant && (() => {
-            const product = getProductDetails(selectedProductForVariant);
-            const specs = getProductSpecs(selectedProductForVariant);
-            const maxStock = getVariantStock(selectedProductForVariant, newVariantSelections);
-            
-            return (
-              <div className="space-y-4">
-                <div className="flex gap-3">
-                  <img
-                    src={product?.image || '/placeholder.svg'}
-                    alt={product?.name}
-                    className="w-16 h-16 object-contain rounded bg-secondary"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{product?.name}</h4>
-                    <p className="text-sm font-bold text-primary">
-                      ₹{getVariantPrice(selectedProductForVariant, newVariantSelections).toLocaleString('en-IN')}
-                    </p>
-                  </div>
-                </div>
-
-                {specs && Object.entries(specs).map(([key, value]) => {
-                  if (key === '_ordered' || !Array.isArray(value)) return null;
-                  return (
-                    <div key={key}>
-                      <Label>{key}</Label>
-                      <Select
-                        value={newVariantSelections[key] || ''}
-                        onValueChange={(newValue) => {
-                          setNewVariantSelections(prev => ({ ...prev, [key]: newValue }));
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {value.map((option: any, idx: number) => (
-                            <SelectItem key={idx} value={option.value}>
-                              {option.value}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  );
-                })}
-
-                <div>
-                  <Label>Quantity</Label>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setNewVariantQuantity(Math.max(1, newVariantQuantity - 1))}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <Input
-                      type="number"
-                      value={newVariantQuantity}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value) || 1;
-                        setNewVariantQuantity(maxStock ? Math.min(val, maxStock) : val);
-                      }}
-                      className="w-20 text-center"
-                      min={1}
-                      max={maxStock || undefined}
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setNewVariantQuantity(maxStock ? Math.min(newVariantQuantity + 1, maxStock) : newVariantQuantity + 1)}
-                      disabled={maxStock !== null && newVariantQuantity >= maxStock}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {maxStock !== null && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {maxStock} available in stock
-                    </p>
-                  )}
-                </div>
-
-                <Button onClick={handleAddVariant} className="w-full">
-                  Add to Cart
-                </Button>
-              </div>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
