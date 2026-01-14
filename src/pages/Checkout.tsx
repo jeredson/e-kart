@@ -18,14 +18,43 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 
 const Checkout = () => {
-  const { items, updateQuantity, removeFromCart, addToCart } = useCart();
   const { user } = useAuth();
   const { data: products } = useProducts();
-  const [checkoutItems, setCheckoutItems] = useState(items);
+  const [checkoutItems, setCheckoutItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setCheckoutItems(items);
-  }, [items]);
+    if (user) {
+      loadCheckoutItems();
+    }
+  }, [user]);
+
+  const loadCheckoutItems = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    const { data } = await supabase
+      .from('cart_items')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (data) {
+      const items = data.map(item => ({
+        id: item.product_id,
+        name: item.product_name,
+        description: item.product_description || '',
+        price: item.product_price,
+        image: item.variant_image || item.product_image || '',
+        category: item.product_category || 'General',
+        rating: item.product_rating || 4.5,
+        reviews: item.product_reviews || 0,
+        quantity: item.quantity,
+        variants: item.variants ? (typeof item.variants === 'string' ? JSON.parse(item.variants) : item.variants) : {},
+      }));
+      setCheckoutItems(items);
+    }
+    setIsLoading(false);
+  };
 
   const getProductDetails = (productId: string) => {
     return products?.find(p => p.id === productId);
@@ -187,6 +216,14 @@ const Checkout = () => {
         <Link to="/auth">
           <Button>Sign In</Button>
         </Link>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h2 className="text-2xl font-bold mb-4">Loading...</h2>
       </div>
     );
   }
