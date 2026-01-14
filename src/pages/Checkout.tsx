@@ -121,7 +121,7 @@ const Checkout = () => {
 
   const handleQuantityChange = (productId: string, variants: Record<string, string>, newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeFromCart(productId, variants);
+      handleRemove(productId, variants);
       return;
     }
 
@@ -151,6 +151,30 @@ const Checkout = () => {
         .then(({ error }) => {
           if (error) {
             toast.error('Failed to update quantity');
+          }
+        });
+    }
+  };
+
+  const handleRemove = (productId: string, variants?: Record<string, string>) => {
+    const variantsJson = JSON.stringify(variants || {});
+    
+    // Update local state immediately
+    setCheckoutItems(prev => prev.filter(item => 
+      !(item.id === productId && JSON.stringify(item.variants || {}) === variantsJson)
+    ));
+
+    // Delete from database in background
+    if (user) {
+      supabase
+        .from('cart_items')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('product_id', productId)
+        .eq('variants', variantsJson)
+        .then(({ error }) => {
+          if (error) {
+            toast.error('Failed to remove item');
           }
         });
     }
@@ -328,7 +352,7 @@ const Checkout = () => {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0"
-                            onClick={() => removeFromCart(item.id, item.variants)}
+                            onClick={() => handleRemove(item.id, item.variants)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
