@@ -184,6 +184,18 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
               <span className="text-sm font-medium text-red-600">Out of Stock</span>
             )}
           </div>
+          
+          {/* Mobile Add to Cart Button */}
+          {product.in_stock && (
+            <Button
+              size="sm"
+              className="md:hidden"
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="w-4 h-4 mr-1" />
+              Add
+            </Button>
+          )}
         </div>
       </div>
 
