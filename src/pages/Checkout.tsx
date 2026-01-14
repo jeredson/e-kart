@@ -31,6 +31,21 @@ const Checkout = () => {
     return products?.find(p => p.id === productId);
   };
 
+  const getProductSpecs = (productId: string) => {
+    const product = getProductDetails(productId);
+    if (!product?.specifications) return null;
+    
+    const specs = product.specifications as Record<string, unknown>;
+    if (specs._ordered && Array.isArray(specs._ordered)) {
+      const result: Record<string, unknown> = {};
+      specs._ordered.forEach((spec: any) => {
+        result[spec.key] = spec.values;
+      });
+      return result;
+    }
+    return specs;
+  };
+
   const getAllSpecifications = (productId: string) => {
     const specs = getProductSpecs(productId);
     const allSpecs: Record<string, string> = {};
@@ -39,10 +54,8 @@ const Checkout = () => {
       Object.entries(specs).forEach(([key, value]) => {
         if (key === '_ordered') return;
         if (Array.isArray(value) && value.length > 0) {
-          // For array specs, use the variant value if available
           allSpecs[key] = value[0].value;
         } else if (typeof value === 'string') {
-          // For single value specs, use directly
           allSpecs[key] = value;
         }
       });
