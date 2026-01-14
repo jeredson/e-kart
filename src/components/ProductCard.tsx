@@ -71,6 +71,8 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
               if (key.toLowerCase().includes('color') && firstOption.image) {
                 variantImage = firstOption.image;
               }
+            } else if (typeof firstOption === 'string') {
+              variants[key] = firstOption;
             }
           } else if (typeof value === 'string') {
             // Include single-value specs
