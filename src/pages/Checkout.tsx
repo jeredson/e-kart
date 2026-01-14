@@ -170,6 +170,9 @@ const Checkout = () => {
         if (key === '_ordered') return;
         if (Array.isArray(value) && value.length > 0) {
           initialSelections[key] = value[0].value;
+        } else if (typeof value === 'string') {
+          // Include single-value specs
+          initialSelections[key] = value;
         }
       });
     }
