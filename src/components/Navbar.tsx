@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, X, Zap, LogOut, Shield, Settings, Heart } from 'lucide-react';
+import { Search, ShoppingCart, User, Zap, LogOut, Shield, Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,7 +21,6 @@ interface NavbarProps {
 }
 
 const Navbar = ({ onSearch }: NavbarProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<DbProduct[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -198,60 +197,41 @@ const Navbar = ({ onSearch }: NavbarProps) => {
               </SheetContent>
             </Sheet>
 
-            {/* User Menu - Mobile */}
-            {user && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="sm:hidden flex items-center gap-2 h-auto py-2 px-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={userProfile?.avatar_url} />
-                      <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                    {user.email}
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings" className="flex items-center">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  {isAdmin && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin" className="flex items-center">
-                          <Shield className="w-4 h-4 mr-2" />
-                          Admin Panel
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            {/* Favorites */}
+            <FavoritesDrawer>
+              <Button variant="ghost" size="icon" className="relative">
+                <Heart className="w-5 h-5" />
+                {favorites.length > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                    {favorites.length}
+                  </Badge>
+                )}
+              </Button>
+            </FavoritesDrawer>
 
-            {/* User Menu - Desktop */}
-            {/* User Menu - Desktop */}
+            {/* Cart */}
+            <CartDrawer>
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart className="w-5 h-5" />
+                {totalItems > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                    {totalItems}
+                  </Badge>
+                )}
+              </Button>
+            </CartDrawer>
+
+            {/* User Menu - All Screens */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="hidden sm:flex items-center gap-2 h-auto py-2 px-3">
+                  <Button variant="ghost" className="flex items-center gap-2 h-auto py-2 px-2 sm:px-3">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={userProfile?.avatar_url} />
                       <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                     </Avatar>
                     {userProfile?.first_name && (
-                      <span className="text-sm font-medium">{userProfile.first_name}</span>
+                      <span className="text-sm font-medium hidden sm:inline">{userProfile.first_name}</span>
                     )}
                   </Button>
                 </DropdownMenuTrigger>
@@ -285,70 +265,16 @@ const Navbar = ({ onSearch }: NavbarProps) => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" size="icon" className="hidden sm:flex" asChild>
+              <Button variant="ghost" size="icon" asChild>
                 <Link to="/auth">
                   <User className="w-5 h-5" />
                 </Link>
               </Button>
             )}
-
-            {!user && (
-              <Button variant="ghost" size="icon" className="sm:hidden" asChild>
-                <Link to="/auth">
-                  <User className="w-5 h-5" />
-                </Link>
-              </Button>
-            )}
-
-            {/* Favorites */}
-            <FavoritesDrawer>
-              <Button variant="ghost" size="icon" className="relative">
-                <Heart className="w-5 h-5" />
-                {favorites.length > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {favorites.length}
-                  </Badge>
-                )}
-              </Button>
-            </FavoritesDrawer>
-
-            {/* Cart */}
-            <CartDrawer>
-              <Button variant="ghost" size="icon" className="relative">
-                <ShoppingCart className="w-5 h-5" />
-                {totalItems > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {totalItems}
-                  </Badge>
-                )}
-              </Button>
-            </CartDrawer>
-
-            {/* Mobile Menu */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
           </div>
         </div>
 
-        {/* Mobile Menu Content - Only show for non-authenticated or as fallback */}
-        {isMenuOpen && !user && (
-          <div className="md:hidden py-4 border-t border-border animate-slide-up">
-            <div className="flex flex-col gap-2">
-              <Button variant="ghost" className="justify-start" asChild>
-                <Link to="/auth">
-                  <User className="w-4 h-4 mr-2" />
-                  Sign In
-                </Link>
-              </Button>
-            </div>
-          </div>
-        )}
+
       </div>
 
       <ProductDetailModal
