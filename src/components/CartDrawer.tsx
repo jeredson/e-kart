@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,10 +18,18 @@ interface CartDrawerProps {
 }
 
 const CartDrawer = ({ children }: CartDrawerProps) => {
-  const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
+  const { items, removeFromCart, updateQuantity, totalPrice, clearCart, loadCart, isLoading } = useCart();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open) {
+      loadCart();
+    }
+  };
 
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="flex flex-col w-full sm:max-w-md">
         <SheetHeader>
@@ -31,7 +39,14 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
           </SheetTitle>
         </SheetHeader>
 
-        {items.length === 0 ? (
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <p className="text-sm text-muted-foreground">Loading cart...</p>
+            </div>
+          </div>
+        ) : items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
             <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mb-4">
               <ShoppingBag className="w-10 h-10 text-muted-foreground" />

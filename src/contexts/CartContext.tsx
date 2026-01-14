@@ -13,9 +13,10 @@ interface CartItem extends Product {
 interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product, variants?: Record<string, string>, variantImage?: string) => Promise<void>;
-  removeFromCart: (productId: string, variants?: Record<string, string>) => Promise<void>;
-  updateQuantity: (productId: string, quantity: number, variants?: Record<string, string>) => Promise<void>;
+  removeFromCart: (productId: string, variants?: Record<string, string>) => void;
+  updateQuantity: (productId: string, quantity: number, variants?: Record<string, string>) => void;
   clearCart: () => Promise<void>;
+  loadCart: () => Promise<void>;
   totalItems: number;
   totalPrice: number;
   isLoading: boolean;
@@ -48,7 +49,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (error) {
       console.error('Error loading cart:', error);
     } else {
-      console.log('Raw cart data:', data);
       const cartItems: CartItem[] = data?.map(item => {
         let variants = {};
         try {
@@ -58,7 +58,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           variants = {};
         }
         
-        const cartItem = {
+        return {
           id: item.product_id,
           name: item.product_name,
           description: item.product_description || '',
@@ -71,8 +71,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           variants,
           variantImage: item.variant_image
         };
-        console.log('Processed cart item:', cartItem);
-        return cartItem;
       }) || [];
       setItems(cartItems);
     }
@@ -85,15 +83,32 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    console.log('Adding to cart:', { product, variants, variantImage });
-
     const variantKey = JSON.stringify(variants);
     const existing = items.find(item => 
       item.id === product.id && JSON.stringify(item.variants || {}) === variantKey
     );
     
     if (existing) {
-      await updateQuantity(product.id, existing.quantity + 1, variants);
+      // Update local state immediately
+      setItems(items.map(item => 
+        item.id === product.id && JSON.stringify(item.variants || {}) === variantKey
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ));
+      
+      // Update database in background
+      supabase
+        .from('cart_items')
+        .update({ quantity: existing.quantity + 1 })
+        .eq('user_id', user.id)
+        .eq('product_id', product.id)
+        .eq('variants', variantKey)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Cart update error:', error);
+            toast.error('Failed to update cart');
+          }
+        });
     } else {
       const cartItem = {
         user_id: user.id,
@@ -106,31 +121,32 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         product_rating: product.rating,
         product_reviews: product.reviews,
         quantity: 1,
-        variants: Object.keys(variants).length > 0 ? JSON.stringify(variants) : null,
+        variants: variantKey,
         variant_image: variantImage
       };
 
-      console.log('Inserting cart item:', cartItem);
+      // Add to local state immediately
+      const newItem = { 
+        ...product, 
+        quantity: 1, 
+        variants, 
+        variantImage,
+        image: variantImage || product.image
+      };
+      setItems([...items, newItem]);
 
-      const { error } = await supabase
+      // Insert to database in background
+      supabase
         .from('cart_items')
-        .insert(cartItem);
-
-      if (error) {
-        console.error('Cart insert error:', error);
-        toast.error('Failed to add item to cart');
-      } else {
-        const newItem = { 
-          ...product, 
-          quantity: 1, 
-          variants, 
-          variantImage,
-          image: variantImage || product.image
-        };
-        console.log('Added to cart successfully:', newItem);
-        setItems([...items, newItem]);
-        toast.success('Added to cart!');
-      }
+        .insert(cartItem)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Cart insert error:', error);
+            toast.error('Failed to add item to cart');
+          } else {
+            toast.success('Added to cart!');
+          }
+        });
     }
   };
 
@@ -226,7 +242,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         removeFromCart,
         updateQuantity,
         clearCart,
-        reloadCart,
+        loadCart,
         totalItems,
         totalPrice,
         isLoading
