@@ -18,7 +18,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 
 const Checkout = () => {
-  const { items, updateQuantity, removeFromCart, totalPrice, addToCart } = useCart();
+  const { items, updateQuantity, removeFromCart, addToCart } = useCart();
   const { user } = useAuth();
   const { data: products } = useProducts();
   const [checkoutItems, setCheckoutItems] = useState(items);
@@ -26,6 +26,11 @@ const Checkout = () => {
   useEffect(() => {
     setCheckoutItems(items);
   }, [items]);
+
+  const totalPrice = checkoutItems.reduce((sum, item) => {
+    const variantPrice = getVariantPrice(item.id, item.variants || {});
+    return sum + variantPrice * item.quantity;
+  }, 0);
 
   const getProductDetails = (productId: string) => {
     return products?.find(p => p.id === productId);

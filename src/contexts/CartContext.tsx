@@ -137,48 +137,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const removeFromCart = async (productId: string, variants: Record<string, string> = {}) => {
     if (!user) return;
 
-    const variantsJson = Object.keys(variants).length > 0 ? JSON.stringify(variants) : null;
-    console.log('Removing from cart:', { productId, variants, variantsJson });
+    const variantsJson = JSON.stringify(variants);
 
-    // First, let's see what's actually in the database
-    const { data: existingItems } = await supabase
-      .from('cart_items')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('product_id', productId);
-    
-    console.log('Existing cart items for product:', existingItems);
-
-    let query = supabase
+    const { error } = await supabase
       .from('cart_items')
       .delete()
       .eq('user_id', user.id)
-      .eq('product_id', productId);
-
-    if (variantsJson === null) {
-      query = query.is('variants', null);
-    } else {
-      query = query.eq('variants', variantsJson);
-    }
-
-    const { error, count } = await query;
-
-    console.log('Delete result:', { error, count });
+      .eq('product_id', productId)
+      .eq('variants', variantsJson);
 
     if (error) {
       console.error('Remove from cart error:', error);
       toast.error('Failed to remove item from cart');
     } else {
-      console.log('Successfully deleted from database, updating UI');
-      const variantKey = JSON.stringify(variants);
-      const newItems = items.filter(item => {
-        const itemVariantKey = JSON.stringify(item.variants || {});
-        const shouldRemove = item.id === productId && itemVariantKey === variantKey;
-        console.log('Item check:', { itemId: item.id, productId, itemVariantKey, variantKey, shouldRemove });
-        return !shouldRemove;
-      });
-      console.log('Updated items:', newItems.length, 'vs original:', items.length);
-      setItems(newItems);
+      setItems(items.filter(item => 
+        !(item.id === productId && JSON.stringify(item.variants || {}) === variantsJson)
+      ));
       toast.success('Removed from cart');
     }
   };
@@ -244,7 +218,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalPrice = items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
 
   return (
     <CartContext.Provider
