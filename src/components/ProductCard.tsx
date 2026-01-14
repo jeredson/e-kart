@@ -86,6 +86,10 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
     const { variants, variantImage } = getFirstVariants();
     
+    console.log('Product specifications:', product.specifications);
+    console.log('Extracted variants:', variants);
+    console.log('Variant image:', variantImage);
+    
     addToCart({
       id: product.id,
       name: product.name,

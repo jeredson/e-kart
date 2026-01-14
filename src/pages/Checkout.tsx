@@ -233,9 +233,9 @@ const Checkout = () => {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
-        <Link to="/">
-          <Button>Continue Shopping</Button>
-        </Link>
+        <Button onClick={() => navigate('/', { state: { fromCheckout: true } })}>
+          Continue Shopping
+        </Button>
       </div>
     );
   }
