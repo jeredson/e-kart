@@ -17,6 +17,8 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [shopName, setShopName] = useState('');
+  const [shopAddress, setShopAddress] = useState('');
   const [cropSrc, setCropSrc] = useState('');
   const [avatarPreview, setAvatarPreview] = useState('');
   const [croppedBlob, setCroppedBlob] = useState<Blob | null>(null);
@@ -87,6 +89,8 @@ const Auth = () => {
         first_name: firstName,
         last_name: lastName,
         phone_number: phoneNumber,
+        shop_name: shopName,
+        shop_address: shopAddress,
         avatar_url: avatarUrl,
       });
 
@@ -227,6 +231,26 @@ const Auth = () => {
                         disabled={isLoading}
                       />
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="shopName">Shop Name</Label>
+                    <Input
+                      id="shopName"
+                      placeholder="Your Shop Name"
+                      value={shopName}
+                      onChange={(e) => setShopName(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="shopAddress">Shop Address</Label>
+                    <Input
+                      id="shopAddress"
+                      placeholder="Your Shop Address"
+                      value={shopAddress}
+                      onChange={(e) => setShopAddress(e.target.value)}
+                      disabled={isLoading}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email *</Label>

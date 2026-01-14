@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sheet';
 import { useCart } from '@/contexts/CartContext';
 import { Separator } from '@/components/ui/separator';
+import { Link } from 'react-router-dom';
 
 interface CartDrawerProps {
   children: ReactNode;
@@ -106,8 +107,8 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
                   ₹{totalPrice.toLocaleString()}
                 </span>
               </div>
-              <Button className="w-full shadow-glow" size="lg">
-                Checkout
+              <Button className="w-full shadow-glow" size="lg" asChild>
+                <Link to="/checkout">Checkout</Link>
               </Button>
               <Button
                 variant="ghost"

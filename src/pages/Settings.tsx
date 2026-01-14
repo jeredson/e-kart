@@ -19,6 +19,8 @@ const Settings = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [shopName, setShopName] = useState('');
+  const [shopAddress, setShopAddress] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [cropSrc, setCropSrc] = useState('');
   const { uploadProfileImage, isUploading } = useCloudinaryProfileUpload();
@@ -43,6 +45,8 @@ const Settings = () => {
       setFirstName(data.first_name || '');
       setLastName(data.last_name || '');
       setPhoneNumber(data.phone_number || '');
+      setShopName(data.shop_name || '');
+      setShopAddress(data.shop_address || '');
       setAvatarUrl(data.avatar_url || '');
     }
   };
@@ -80,6 +84,8 @@ const Settings = () => {
         first_name: firstName,
         last_name: lastName,
         phone_number: phoneNumber,
+        shop_name: shopName,
+        shop_address: shopAddress,
         avatar_url: avatarUrl,
         updated_at: new Date().toISOString(),
       });
@@ -157,6 +163,28 @@ const Settings = () => {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="shopName">Shop Name</Label>
+              <Input
+                id="shopName"
+                value={shopName}
+                onChange={(e) => setShopName(e.target.value)}
+                disabled={isLoading}
+                placeholder="Your Shop Name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="shopAddress">Shop Address</Label>
+              <Input
+                id="shopAddress"
+                value={shopAddress}
+                onChange={(e) => setShopAddress(e.target.value)}
+                disabled={isLoading}
+                placeholder="Your Shop Address"
               />
             </div>
 

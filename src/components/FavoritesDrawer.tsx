@@ -108,40 +108,91 @@ const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
                   <p className="text-muted-foreground text-sm">No products found</p>
                 </div>
               ) : (
-                filteredProducts.map((product) => (
-              <div key={product.id} className="flex gap-4 p-3 rounded-lg bg-secondary/50">
-                <img
-                  src={product.image || '/placeholder.svg'}
-                  alt={product.name}
-                  className="w-20 h-20 object-cover rounded-lg"
-                />
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm truncate">{product.name}</h4>
-                  <p className="text-primary font-semibold mt-1">
-                    ₹{Number(product.discounted_price || product.price).toLocaleString('en-IN')}
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => handleAddToCart(product)}
-                    >
-                      <ShoppingCart className="w-3 h-3 mr-1" />
-                      Add
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
-                      onClick={() => removeFavorite(product.id)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-                ))
+                filteredProducts.map((product) => {
+                  const specs = product.specifications && typeof product.specifications === 'object' && !Array.isArray(product.specifications)
+                    ? product.specifications as Record<string, unknown>
+                    : null;
+                  
+                  const orderedSpecs = (() => {
+                    if (!specs) return null;
+                    if (specs._ordered && Array.isArray(specs._ordered)) {
+                      const result: Record<string, unknown> = {};
+                      specs._ordered.forEach((spec: any) => {
+                        result[spec.key] = spec.values;
+                      });
+                      return result;
+                    }
+                    return specs;
+                  })();
+
+                  const getDefaultVariants = () => {
+                    const variants: Array<{ key: string; value: string }> = [];
+                    if (orderedSpecs && typeof orderedSpecs === 'object') {
+                      Object.entries(orderedSpecs).forEach(([key, value]) => {
+                        if (key === '_ordered') return;
+                        if (Array.isArray(value) && value.length > 0) {
+                          const validOptions = value.filter((item: any) => {
+                            const isException = (product.variant_exceptions as string[])?.includes(item.value);
+                            return !isException;
+                          });
+                          if (validOptions.length > 0) {
+                            variants.push({ key, value: validOptions[0].value });
+                          }
+                        }
+                      });
+                    }
+                    return variants;
+                  };
+
+                  const defaultVariants = getDefaultVariants();
+
+                  return (
+                    <div key={product.id} className="flex gap-4 p-3 rounded-lg bg-secondary/50">
+                      <img
+                        src={product.image || '/placeholder.svg'}
+                        alt={product.name}
+                        className="w-20 h-20 object-cover rounded-lg"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm truncate">{product.name}</h4>
+                        
+                        {/* Variant Information */}
+                        {defaultVariants.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1 mb-1">
+                            {defaultVariants.map(({ key, value }) => (
+                              <span key={key} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                {key}: {value}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        
+                        <p className="text-primary font-semibold mt-1">
+                          ₹{Number(product.discounted_price || product.price).toLocaleString('en-IN')}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => handleAddToCart(product)}
+                          >
+                            <ShoppingCart className="w-3 h-3 mr-1" />
+                            Add
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={() => removeFavorite(product.id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </>
