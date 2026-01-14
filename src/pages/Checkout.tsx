@@ -27,11 +27,6 @@ const Checkout = () => {
     setCheckoutItems(items);
   }, [items]);
 
-  const totalPrice = checkoutItems.reduce((sum, item) => {
-    const variantPrice = getVariantPrice(item.id, item.variants || {});
-    return sum + variantPrice * item.quantity;
-  }, 0);
-
   const getProductDetails = (productId: string) => {
     return products?.find(p => p.id === productId);
   };
@@ -118,6 +113,11 @@ const Checkout = () => {
 
     return Number(product.price);
   };
+
+  const totalPrice = checkoutItems.reduce((sum, item) => {
+    const variantPrice = getVariantPrice(item.id, item.variants || {});
+    return sum + variantPrice * item.quantity;
+  }, 0);
 
   const handleQuantityChange = async (productId: string, variants: Record<string, string>, newQuantity: number) => {
     const maxStock = getVariantStock(productId, variants);
