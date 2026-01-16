@@ -27,39 +27,48 @@ const AdminUsers = () => {
 
   const loadUsers = async () => {
     try {
-      // Get all profiles that are not admins
-      const { data: profiles } = await supabase
+      // Get all profiles
+      const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('id, is_approved, created_at')
-        .eq('is_admin', false)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (!profiles) {
+      console.log('Profiles loaded:', profiles, 'Error:', error);
+
+      if (!profiles || profiles.length === 0) {
         setUsers([]);
         setLoading(false);
         return;
       }
 
       // Get user details for each profile
-      const usersWithDetails = await Promise.all(
-        profiles.map(async (profile) => {
-          const { data: userProfile } = await supabase
-            .from('user_profiles')
-            .select('first_name, last_name, email')
-            .eq('id', profile.id)
-            .single();
+      const usersWithDetails = profiles
+        .filter(profile => !profile.is_admin)
+        .map(profile => ({
+          id: profile.id,
+          email: profile.id.substring(0, 8) + '...',
+          first_name: '',
+          last_name: '',
+          is_approved: profile.is_approved || false,
+          created_at: profile.created_at
+        }));
 
-          return {
-            id: profile.id,
-            email: userProfile?.email || 'N/A',
-            first_name: userProfile?.first_name || '',
-            last_name: userProfile?.last_name || '',
-            is_approved: profile.is_approved || false,
-            created_at: profile.created_at
-          };
-        })
-      );
+      // Try to get additional details from user_profiles
+      for (const user of usersWithDetails) {
+        const { data: userProfile } = await supabase
+          .from('user_profiles')
+          .select('first_name, last_name, email')
+          .eq('id', user.id)
+          .single();
 
+        if (userProfile) {
+          user.first_name = userProfile.first_name || '';
+          user.last_name = userProfile.last_name || '';
+          user.email = userProfile.email || user.email;
+        }
+      }
+
+      console.log('Users with details:', usersWithDetails);
       setUsers(usersWithDetails as UserProfile[]);
     } catch (error) {
       console.error('Error loading users:', error);
