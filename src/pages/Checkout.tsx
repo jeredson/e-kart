@@ -22,6 +22,9 @@ const Checkout = () => {
   const { data: products } = useProducts();
   const [checkoutItems, setCheckoutItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [shopName, setShopName] = useState('');
+  const [shopAddress, setShopAddress] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -207,6 +210,37 @@ const Checkout = () => {
             toast.error('Failed to remove item');
           }
         });
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!shopName.trim() || !shopAddress.trim()) {
+      toast.error('Please enter shop name and address');
+      return;
+    }
+
+    try {
+      const orders = checkoutItems.map(item => ({
+        user_id: user!.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        variants: item.variants || {},
+        shop_name: shopName,
+        shop_address: shopAddress,
+        is_delivered: false
+      }));
+
+      const { error } = await supabase.from('orders').insert(orders);
+
+      if (error) throw error;
+
+      await supabase.from('cart_items').delete().eq('user_id', user!.id);
+
+      toast.success('Order placed successfully!');
+      setShowOrderDialog(false);
+      navigate('/orders');
+    } catch (error) {
+      toast.error('Failed to place order');
     }
   };
 
@@ -427,13 +461,42 @@ const Checkout = () => {
                   <span>₹{totalPrice.toLocaleString('en-IN')}</span>
                 </div>
               </div>
-              <Button className="w-full" size="lg">
+              <Button className="w-full" size="lg" onClick={() => setShowOrderDialog(true)}>
                 Place Order
               </Button>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Shop Details</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Shop Name</Label>
+              <Input
+                value={shopName}
+                onChange={(e) => setShopName(e.target.value)}
+                placeholder="Enter shop name"
+              />
+            </div>
+            <div>
+              <Label>Shop Address</Label>
+              <Input
+                value={shopAddress}
+                onChange={(e) => setShopAddress(e.target.value)}
+                placeholder="Enter shop address"
+              />
+            </div>
+            <Button onClick={handlePlaceOrder} className="w-full">
+              Confirm Order
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

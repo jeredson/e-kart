@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, User, Zap, LogOut, Shield, Settings, Heart } from 'lucide-react';
+import { Search, ShoppingCart, User, Zap, LogOut, Shield, Settings, Heart, Users, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -220,6 +220,31 @@ const Navbar = ({ onSearch }: NavbarProps) => {
                 )}
               </Button>
             </CartDrawer>
+
+            {/* Admin Buttons */}
+            {isAdmin && (
+              <>
+                <Button variant="ghost" size="icon" asChild>
+                  <Link to="/admin/users">
+                    <Users className="w-5 h-5" />
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="icon" asChild>
+                  <Link to="/admin/orders">
+                    <Package className="w-5 h-5" />
+                  </Link>
+                </Button>
+              </>
+            )}
+
+            {/* User Orders Button */}
+            {user && !isAdmin && (
+              <Button variant="ghost" size="icon" asChild>
+                <Link to="/orders">
+                  <Package className="w-5 h-5" />
+                </Link>
+              </Button>
+            )}
 
             {/* User Menu - All Screens */}
             {user ? (
