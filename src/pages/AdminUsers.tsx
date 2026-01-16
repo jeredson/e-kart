@@ -14,6 +14,7 @@ interface UserProfile {
   last_name?: string;
   phone_number?: string;
   shop_name?: string;
+  shop_address?: string;
   is_approved: boolean;
   created_at: string;
 }
@@ -22,6 +23,7 @@ const AdminUsers = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -74,7 +76,7 @@ const AdminUsers = () => {
       for (const user of usersWithDetails) {
         const { data: userProfile } = await supabase
           .from('user_profiles')
-          .select('first_name, last_name, email, phone_number, shop_name')
+          .select('first_name, last_name, email, phone_number, shop_name, shop_address')
           .eq('id', user.id)
           .single();
 
@@ -84,6 +86,7 @@ const AdminUsers = () => {
           user.email = userProfile.email || user.email;
           user.phone_number = userProfile.phone_number || '';
           user.shop_name = userProfile.shop_name || '';
+          user.shop_address = userProfile.shop_address || '';
         }
         
         // If still no email, try to get from profiles table
@@ -120,17 +123,18 @@ const AdminUsers = () => {
   const deleteUser = async () => {
     if (!deleteUserId) return;
 
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', deleteUserId);
+    try {
+      // Call the database function to delete from auth.users
+      const { error } = await supabase.rpc('delete_user', { user_id: deleteUserId });
 
-    if (error) {
-      toast.error('Failed to delete user');
-    } else {
+      if (error) throw error;
+
       toast.success('User deleted successfully');
       setDeleteUserId(null);
       loadUsers();
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete user');
     }
   };
 
@@ -148,7 +152,7 @@ const AdminUsers = () => {
       
       <div className="grid gap-4">
         {users.map((user) => (
-          <Card key={user.id} className="p-4">
+          <Card key={user.id} className="p-4 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setSelectedUser(user)}>
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
@@ -207,6 +211,58 @@ const AdminUsers = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={deleteUser}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* User Details Dialog */}
+      <AlertDialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>User Details</AlertDialogTitle>
+          </AlertDialogHeader>
+          {selectedUser && (
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold">Name</p>
+                <p className="text-sm">{selectedUser.first_name} {selectedUser.last_name}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Email</p>
+                <p className="text-sm">{selectedUser.email}</p>
+              </div>
+              {selectedUser.phone_number && (
+                <div>
+                  <p className="text-sm font-semibold">Phone</p>
+                  <p className="text-sm">{selectedUser.phone_number}</p>
+                </div>
+              )}
+              {selectedUser.shop_name && (
+                <div>
+                  <p className="text-sm font-semibold">Shop Name</p>
+                  <p className="text-sm">{selectedUser.shop_name}</p>
+                </div>
+              )}
+              {selectedUser.shop_address && (
+                <div>
+                  <p className="text-sm font-semibold">Shop Address</p>
+                  <p className="text-sm">{selectedUser.shop_address}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-semibold">Status</p>
+                <Badge variant={selectedUser.is_approved ? 'default' : 'secondary'}>
+                  {selectedUser.is_approved ? 'Approved' : 'Pending'}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Joined</p>
+                <p className="text-sm">{new Date(selectedUser.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
