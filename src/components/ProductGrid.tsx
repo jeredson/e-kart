@@ -77,20 +77,25 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
       // Check _ordered array first
       if (specs._ordered && Array.isArray(specs._ordered)) {
         for (const item of specs._ordered) {
-          if (item && typeof item === 'object') {
+          if (item && typeof item === 'object' && item.key && item.values) {
+            const itemKey = item.key;
+            const lowerItemKey = itemKey.toLowerCase();
+            
             // For RAM filter
-            if (filterKey === 'RAM') {
-              specValue = item['RAM'] || item['ram'] || item['Memory'] || item['memory'];
+            if (filterKey === 'RAM' && (lowerItemKey === 'ram' || lowerItemKey === 'memory')) {
+              specValue = item.values;
+              break;
             }
             // For Storage filter
-            else if (filterKey === 'Storage') {
-              specValue = item['Storage'] || item['storage'] || item['ROM'] || item['rom'];
+            else if (filterKey === 'Storage' && (lowerItemKey === 'storage' || lowerItemKey === 'rom')) {
+              specValue = item.values;
+              break;
             }
-            // For other specs
-            else {
-              specValue = item[filterKey];
+            // For other specs (case-insensitive match)
+            else if (itemKey === filterKey || lowerItemKey === filterKey.toLowerCase()) {
+              specValue = item.values;
+              break;
             }
-            if (specValue) break;
           }
         }
       }

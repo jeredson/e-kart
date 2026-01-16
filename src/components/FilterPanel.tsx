@@ -57,39 +57,39 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
     if (specs._ordered && Array.isArray(specs._ordered)) {
       console.log(`  Processing _ordered array:`, specs._ordered);
       specs._ordered.forEach((item: any) => {
-        if (item && typeof item === 'object') {
-          Object.entries(item).forEach(([key, value]) => {
-            const lowerKey = key.toLowerCase();
-            if (lowerKey === 'color' || lowerKey === 'colour') return;
-            
-            const normalizedKey = normalizeKey(key);
-            console.log(`    Key: ${key} -> Normalized: ${normalizedKey}, Value:`, value);
-            
-            if (!allSpecs.has(normalizedKey)) {
-              allSpecs.set(normalizedKey, new Set());
-            }
-            
-            // Extract values
-            if (value === null || value === undefined) return;
-            
-            if (typeof value === 'string' && value.trim()) {
-              allSpecs.get(normalizedKey)!.add(value.trim());
-            } else if (Array.isArray(value)) {
-              value.forEach((v: any) => {
-                if (v === null || v === undefined) return;
-                if (typeof v === 'string' && v.trim()) {
-                  allSpecs.get(normalizedKey)!.add(v.trim());
-                } else if (typeof v === 'number') {
-                  allSpecs.get(normalizedKey)!.add(String(v));
-                } else if (typeof v === 'object' && v.value) {
-                  const val = String(v.value).trim();
-                  if (val) allSpecs.get(normalizedKey)!.add(val);
-                }
-              });
-            } else if (typeof value === 'number') {
-              allSpecs.get(normalizedKey)!.add(String(value));
-            }
-          });
+        if (item && typeof item === 'object' && item.key && item.values) {
+          const key = item.key;
+          const values = item.values;
+          const lowerKey = key.toLowerCase();
+          
+          // Skip color
+          if (lowerKey === 'color' || lowerKey === 'colour') return;
+          
+          const normalizedKey = normalizeKey(key);
+          console.log(`    Spec: ${key} -> Normalized: ${normalizedKey}, Values:`, values);
+          
+          if (!allSpecs.has(normalizedKey)) {
+            allSpecs.set(normalizedKey, new Set());
+          }
+          
+          // Extract values
+          if (typeof values === 'string' && values.trim()) {
+            allSpecs.get(normalizedKey)!.add(values.trim());
+          } else if (Array.isArray(values)) {
+            values.forEach((v: any) => {
+              if (v === null || v === undefined) return;
+              if (typeof v === 'string' && v.trim()) {
+                allSpecs.get(normalizedKey)!.add(v.trim());
+              } else if (typeof v === 'number') {
+                allSpecs.get(normalizedKey)!.add(String(v));
+              } else if (typeof v === 'object' && v.value) {
+                const val = String(v.value).trim();
+                if (val) allSpecs.get(normalizedKey)!.add(val);
+              }
+            });
+          } else if (typeof values === 'number') {
+            allSpecs.get(normalizedKey)!.add(String(values));
+          }
         }
       });
     }
