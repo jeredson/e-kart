@@ -85,11 +85,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (data.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_approved')
+        .select('is_approved, is_admin')
         .eq('id', data.user.id)
         .single();
       
-      if (profile && !profile.is_approved) {
+      if (profile && !profile.is_admin && !profile.is_approved) {
         await supabase.auth.signOut();
         return { error: new Error('Your account is pending admin approval') };
       }

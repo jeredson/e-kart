@@ -12,9 +12,6 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 
 const Checkout = () => {
@@ -22,9 +19,6 @@ const Checkout = () => {
   const { data: products } = useProducts();
   const [checkoutItems, setCheckoutItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showOrderDialog, setShowOrderDialog] = useState(false);
-  const [shopName, setShopName] = useState('');
-  const [shopAddress, setShopAddress] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -214,19 +208,31 @@ const Checkout = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (!shopName.trim() || !shopAddress.trim()) {
-      toast.error('Please enter shop name and address');
+    if (!user) return;
+
+    // Get shop details from user profile
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('shop_name, shop_address')
+      .eq('id', user.id)
+      .single();
+
+    const userShopName = profile?.shop_name || '';
+    const userShopAddress = profile?.shop_address || '';
+
+    if (!userShopName || !userShopAddress) {
+      toast.error('Please update your shop details in Settings first');
       return;
     }
 
     try {
       const orders = checkoutItems.map(item => ({
-        user_id: user!.id,
+        user_id: user.id,
         product_id: item.id,
         quantity: item.quantity,
         variants: item.variants || {},
-        shop_name: shopName,
-        shop_address: shopAddress,
+        shop_name: userShopName,
+        shop_address: userShopAddress,
         is_delivered: false
       }));
 
@@ -234,10 +240,9 @@ const Checkout = () => {
 
       if (error) throw error;
 
-      await supabase.from('cart_items').delete().eq('user_id', user!.id);
+      await supabase.from('cart_items').delete().eq('user_id', user.id);
 
       toast.success('Order placed successfully!');
-      setShowOrderDialog(false);
       navigate('/orders');
     } catch (error) {
       toast.error('Failed to place order');
@@ -461,42 +466,13 @@ const Checkout = () => {
                   <span>₹{totalPrice.toLocaleString('en-IN')}</span>
                 </div>
               </div>
-              <Button className="w-full" size="lg" onClick={() => setShowOrderDialog(true)}>
+              <Button className="w-full" size="lg" onClick={handlePlaceOrder}>
                 Place Order
               </Button>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Enter Shop Details</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Shop Name</Label>
-              <Input
-                value={shopName}
-                onChange={(e) => setShopName(e.target.value)}
-                placeholder="Enter shop name"
-              />
-            </div>
-            <div>
-              <Label>Shop Address</Label>
-              <Input
-                value={shopAddress}
-                onChange={(e) => setShopAddress(e.target.value)}
-                placeholder="Enter shop address"
-              />
-            </div>
-            <Button onClick={handlePlaceOrder} className="w-full">
-              Confirm Order
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

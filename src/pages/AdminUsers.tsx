@@ -28,21 +28,33 @@ const AdminUsers = () => {
   const loadUsers = async () => {
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, is_admin, is_approved, created_at')
       .eq('is_admin', false)
       .order('created_at', { ascending: false });
 
     if (profiles) {
-      const usersWithEmail = await Promise.all(
+      const usersWithDetails = await Promise.all(
         profiles.map(async (profile) => {
-          const { data: { user } } = await supabase.auth.admin.getUserById(profile.id);
+          const { data: userProfile } = await supabase
+            .from('user_profiles')
+            .select('first_name, last_name')
+            .eq('id', profile.id)
+            .single();
+          
+          const { data: { users } } = await supabase.auth.admin.listUsers();
+          const authUser = users?.find(u => u.id === profile.id);
+          
           return {
-            ...profile,
-            email: user?.email || 'N/A'
+            id: profile.id,
+            email: authUser?.email || 'N/A',
+            first_name: userProfile?.first_name || '',
+            last_name: userProfile?.last_name || '',
+            is_approved: profile.is_approved || false,
+            created_at: profile.created_at
           };
         })
       );
-      setUsers(usersWithEmail as UserProfile[]);
+      setUsers(usersWithDetails as UserProfile[]);
     }
     setLoading(false);
   };

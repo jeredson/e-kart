@@ -5,7 +5,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT false;
 CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL,
   quantity INTEGER NOT NULL DEFAULT 1,
   variants JSONB DEFAULT '{}',
   shop_name TEXT NOT NULL,
@@ -14,12 +14,6 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- Create index for faster queries
-CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
-CREATE INDEX IF NOT EXISTS idx_orders_product_id ON orders(product_id);
-CREATE INDEX IF NOT EXISTS idx_orders_shop_name ON orders(shop_name);
-CREATE INDEX IF NOT EXISTS idx_orders_is_delivered ON orders(is_delivered);
 
 -- Enable RLS
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
