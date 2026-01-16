@@ -95,8 +95,11 @@ const Auth = () => {
         email: email,
       });
 
-      toast.success('Account created successfully!');
-      navigate('/');
+      // Sign out immediately after signup
+      await supabase.auth.signOut();
+
+      toast.success('Account created! Please wait for admin approval.');
+      // Don't navigate, stay on auth page
     }
     setIsLoading(false);
   };
