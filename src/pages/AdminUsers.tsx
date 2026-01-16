@@ -27,7 +27,7 @@ const AdminUsers = () => {
 
   const loadUsers = async () => {
     try {
-      // Get all profiles
+      // Get all profiles with no cache
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
@@ -35,7 +35,15 @@ const AdminUsers = () => {
 
       console.log('Profiles loaded:', profiles, 'Error:', error);
 
+      if (error) {
+        console.error('Error loading profiles:', error);
+        setUsers([]);
+        setLoading(false);
+        return;
+      }
+
       if (!profiles || profiles.length === 0) {
+        console.log('No profiles found');
         setUsers([]);
         setLoading(false);
         return;
@@ -47,7 +55,7 @@ const AdminUsers = () => {
       // Get user details for each profile
       const usersWithDetails = profiles
         .filter(profile => {
-          const isNotAdmin = !profile.is_admin;
+          const isNotAdmin = profile.is_admin === false;
           console.log('Profile', profile.id, 'is_admin:', profile.is_admin, 'passes filter:', isNotAdmin);
           return isNotAdmin;
         })
