@@ -127,22 +127,11 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
             </div>
           </div>
 
-          {/* Price & Action */}
-          <div className="flex items-center justify-between gap-2 mt-3">
-            <div className="flex flex-col">
-              <span className="font-bold text-lg text-primary">₹{Number(product.price).toLocaleString('en-IN')}</span>
-              {!product.in_stock && (
-                <span className="text-xs font-medium text-red-600">Out of Stock</span>
-              )}
-            </div>
-            {product.in_stock && (
-              <Button 
-                size="icon" 
-                className="h-8 w-8 flex-shrink-0"
-                onClick={handleAddToCart}
-              >
-                <ShoppingCart className="w-4 h-4" />
-              </Button>
+          {/* Price */}
+          <div className="flex flex-col mt-3">
+            <span className="font-bold text-lg text-primary">₹{Number(product.price).toLocaleString('en-IN')}</span>
+            {!product.in_stock && (
+              <span className="text-xs font-medium text-red-600">Out of Stock</span>
             )}
           </div>
         </div>
