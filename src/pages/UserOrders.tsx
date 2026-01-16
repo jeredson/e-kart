@@ -32,14 +32,35 @@ const UserOrders = () => {
   }, [user]);
 
   const loadOrders = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('orders')
-      .select('*, product:products(name, image, price)')
+      .select('*')
       .eq('user_id', user?.id)
       .order('created_at', { ascending: false });
 
+    if (error) {
+      console.error('Error loading orders:', error);
+      setLoading(false);
+      return;
+    }
+
     if (data) {
-      setOrders(data as Order[]);
+      // Fetch product details separately
+      const ordersWithProducts = await Promise.all(
+        data.map(async (order) => {
+          const { data: product } = await supabase
+            .from('products')
+            .select('name, image, price')
+            .eq('id', order.product_id)
+            .single();
+
+          return {
+            ...order,
+            product: product || { name: 'Unknown Product', image: '', price: 0 }
+          };
+        })
+      );
+      setOrders(ordersWithProducts as Order[]);
     }
     setLoading(false);
   };

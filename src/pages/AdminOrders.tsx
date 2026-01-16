@@ -47,20 +47,42 @@ const AdminOrders = () => {
   }, [shopFilter, orders]);
 
   const loadOrders = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('orders')
-      .select('*, product:products(name, image, price)')
+      .select('*')
       .order('created_at', { ascending: false });
 
+    if (error) {
+      console.error('Error loading orders:', error);
+      setLoading(false);
+      return;
+    }
+
     if (data) {
-      const ordersWithEmail = await Promise.all(
+      // Fetch product details and user emails separately
+      const ordersWithDetails = await Promise.all(
         data.map(async (order) => {
-          const { data: { user } } = await supabase.auth.admin.getUserById(order.user_id);
-          return { ...order, user_email: user?.email || 'N/A' };
+          const { data: product } = await supabase
+            .from('products')
+            .select('name, image, price')
+            .eq('id', order.product_id)
+            .single();
+
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', order.user_id)
+            .single();
+
+          return {
+            ...order,
+            product: product || { name: 'Unknown Product', image: '', price: 0 },
+            user_email: profile?.email || 'N/A'
+          };
         })
       );
-      setOrders(ordersWithEmail as Order[]);
-      const uniqueShops = [...new Set(ordersWithEmail.map(o => o.shop_name))];
+      setOrders(ordersWithDetails as Order[]);
+      const uniqueShops = [...new Set(ordersWithDetails.map(o => o.shop_name))];
       setShops(uniqueShops);
     }
     setLoading(false);
