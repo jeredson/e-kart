@@ -146,7 +146,7 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         {product.in_stock && (
           <Button
             size="icon"
-            className="hidden md:block absolute bottom-4 right-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-medium"
+            className="hidden md:flex items-center justify-center absolute bottom-4 right-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-medium"
             onClick={handleAddToCart}
           >
             <ShoppingCart className="w-4 h-4" />

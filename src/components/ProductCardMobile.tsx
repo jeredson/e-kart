@@ -137,12 +137,11 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
             </div>
             {product.in_stock && (
               <Button 
-                size="sm" 
-                className="h-8 px-3 text-xs"
+                size="icon" 
+                className="h-8 w-8 flex-shrink-0"
                 onClick={handleAddToCart}
               >
-                <ShoppingCart className="w-3 h-3 mr-1" />
-                Add
+                <ShoppingCart className="w-4 h-4" />
               </Button>
             )}
           </div>
