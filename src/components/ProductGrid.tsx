@@ -62,15 +62,22 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
     // Dynamic specification filters
     const specs = product.specifications as Record<string, any> | null;
     const matchesSpecs = Object.keys(filters).every(filterKey => {
+      // Skip non-specification filters
       if (filterKey === 'priceRange' || filterKey === 'brands' || filterKey === 'ramSizes' || filterKey === 'storageSizes') return true;
       
       const filterValues = filters[filterKey] as string[];
+      // If no filter values selected for this spec, product passes
       if (!filterValues || filterValues.length === 0) return true;
+      
+      // If product has no specs at all, it doesn't match
       if (!specs) return false;
       
+      // Check if product has this specification key
       const specValue = specs[filterKey];
+      // If product doesn't have this spec key, it doesn't match this filter
       if (specValue === null || specValue === undefined) return false;
       
+      // Extract values from the spec and check if any match the filter
       if (typeof specValue === 'string') {
         return filterValues.includes(specValue.trim());
       } else if (typeof specValue === 'number') {

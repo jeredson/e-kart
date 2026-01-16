@@ -32,6 +32,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
   
   // Get all unique specification keys except color and internal fields
   const allSpecs = new Map<string, Set<string>>();
+  
   products?.forEach(p => {
     const specs = p.specifications as Record<string, any> | null;
     if (!specs) return;
