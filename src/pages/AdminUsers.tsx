@@ -70,7 +70,7 @@ const AdminUsers = () => {
           created_at: profile.created_at
         }));
 
-      // Try to get additional details from user_profiles
+      // Try to get additional details from user_profiles and auth.users
       for (const user of usersWithDetails) {
         const { data: userProfile } = await supabase
           .from('user_profiles')
@@ -84,6 +84,14 @@ const AdminUsers = () => {
           user.email = userProfile.email || user.email;
           user.phone_number = userProfile.phone_number || '';
           user.shop_name = userProfile.shop_name || '';
+        }
+        
+        // If still no email, try to get from profiles table
+        if (!user.email || user.email === user.id.substring(0, 8) + '...') {
+          const profile = profiles.find(p => p.id === user.id);
+          if (profile && profile.email) {
+            user.email = profile.email;
+          }
         }
       }
 
