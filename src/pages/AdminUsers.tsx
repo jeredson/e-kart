@@ -12,6 +12,8 @@ interface UserProfile {
   email: string;
   first_name?: string;
   last_name?: string;
+  phone_number?: string;
+  shop_name?: string;
   is_approved: boolean;
   created_at: string;
 }
@@ -72,7 +74,7 @@ const AdminUsers = () => {
       for (const user of usersWithDetails) {
         const { data: userProfile } = await supabase
           .from('user_profiles')
-          .select('first_name, last_name, email')
+          .select('first_name, last_name, email, phone_number, shop_name')
           .eq('id', user.id)
           .single();
 
@@ -80,6 +82,8 @@ const AdminUsers = () => {
           user.first_name = userProfile.first_name || '';
           user.last_name = userProfile.last_name || '';
           user.email = userProfile.email || user.email;
+          user.phone_number = userProfile.phone_number || '';
+          user.shop_name = userProfile.shop_name || '';
         }
       }
 
@@ -148,6 +152,12 @@ const AdminUsers = () => {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
+                {user.shop_name && (
+                  <p className="text-sm text-muted-foreground">Shop: {user.shop_name}</p>
+                )}
+                {user.phone_number && (
+                  <p className="text-sm text-muted-foreground">Phone: {user.phone_number}</p>
+                )}
                 <p className="text-xs text-muted-foreground mt-1">
                   Joined: {new Date(user.created_at).toLocaleDateString()}
                 </p>
