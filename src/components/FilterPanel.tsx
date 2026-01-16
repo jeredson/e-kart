@@ -45,24 +45,43 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
         allSpecs.set(key, new Set());
       }
       
+      // Handle different value structures
+      if (value === null || value === undefined) return;
+      
       if (typeof value === 'string' && value.trim()) {
         allSpecs.get(key)!.add(value.trim());
       } else if (Array.isArray(value)) {
         value.forEach((v: any) => {
+          if (v === null || v === undefined) return;
+          
           if (typeof v === 'string' && v.trim()) {
             allSpecs.get(key)!.add(v.trim());
-          } else if (v && typeof v === 'object' && v.value) {
-            const val = String(v.value).trim();
-            if (val) allSpecs.get(key)!.add(val);
-          } else if (v) {
-            const val = String(v).trim();
-            if (val) allSpecs.get(key)!.add(val);
+          } else if (typeof v === 'number') {
+            allSpecs.get(key)!.add(String(v));
+          } else if (typeof v === 'object') {
+            // Handle {value: "8GB"} or {label: "8GB", value: "8GB"}
+            if (v.value !== undefined && v.value !== null) {
+              const val = String(v.value).trim();
+              if (val) allSpecs.get(key)!.add(val);
+            } else if (v.label !== undefined && v.label !== null) {
+              const val = String(v.label).trim();
+              if (val) allSpecs.get(key)!.add(val);
+            } else {
+              // Try to stringify the object
+              const val = JSON.stringify(v).trim();
+              if (val && val !== '{}') allSpecs.get(key)!.add(val);
+            }
           }
         });
-      } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-        // Handle object with value property
-        if (value.value) {
+      } else if (typeof value === 'number') {
+        allSpecs.get(key)!.add(String(value));
+      } else if (typeof value === 'object' && !Array.isArray(value)) {
+        // Handle single object {value: "8GB"}
+        if (value.value !== undefined && value.value !== null) {
           const val = String(value.value).trim();
+          if (val) allSpecs.get(key)!.add(val);
+        } else if (value.label !== undefined && value.label !== null) {
+          const val = String(value.label).trim();
           if (val) allSpecs.get(key)!.add(val);
         }
       }

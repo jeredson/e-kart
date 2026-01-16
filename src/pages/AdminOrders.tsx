@@ -150,6 +150,26 @@ const AdminOrders = () => {
           <h1 className="text-3xl font-bold">Order Management</h1>
         </div>
         <div className="flex gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon">
+                <CalendarIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  setSelectedDate(date);
+                  if (date) {
+                    setDateFilter('custom');
+                  }
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
           <Select value={dateFilter} onValueChange={(value) => {
             setDateFilter(value);
             if (value !== 'custom') setSelectedDate(undefined);
@@ -162,27 +182,9 @@ const AdminOrders = () => {
               <SelectItem value="today">Today</SelectItem>
               <SelectItem value="week">Last 7 Days</SelectItem>
               <SelectItem value="month">Last 30 Days</SelectItem>
-              <SelectItem value="custom">Custom Date</SelectItem>
+              {selectedDate && <SelectItem value="custom">{format(selectedDate, 'PP')}</SelectItem>}
             </SelectContent>
           </Select>
-          {dateFilter === 'custom' && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-48">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          )}
           <Select value={shopFilter} onValueChange={setShopFilter}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Filter by shop" />

@@ -69,20 +69,30 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
       if (!specs) return false;
       
       const specValue = specs[filterKey];
-      if (!specValue) return false;
+      if (specValue === null || specValue === undefined) return false;
       
       if (typeof specValue === 'string') {
         return filterValues.includes(specValue.trim());
+      } else if (typeof specValue === 'number') {
+        return filterValues.includes(String(specValue));
       } else if (Array.isArray(specValue)) {
         const values = specValue.map((v: any) => {
+          if (v === null || v === undefined) return '';
           if (typeof v === 'string') return v.trim();
-          if (v && typeof v === 'object' && v.value) return String(v.value).trim();
+          if (typeof v === 'number') return String(v);
+          if (typeof v === 'object') {
+            if (v.value !== undefined) return String(v.value).trim();
+            if (v.label !== undefined) return String(v.label).trim();
+          }
           return String(v).trim();
-        });
+        }).filter(v => v);
         return values.some((v: string) => filterValues.includes(v));
-      } else if (specValue && typeof specValue === 'object' && !Array.isArray(specValue)) {
-        if (specValue.value) {
+      } else if (typeof specValue === 'object' && !Array.isArray(specValue)) {
+        if (specValue.value !== undefined) {
           return filterValues.includes(String(specValue.value).trim());
+        }
+        if (specValue.label !== undefined) {
+          return filterValues.includes(String(specValue.label).trim());
         }
       }
       return false;

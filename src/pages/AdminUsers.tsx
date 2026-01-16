@@ -263,10 +263,6 @@ const AdminUsers = () => {
             </div>
           )}
           <AlertDialogFooter>
-            <Button variant="ghost" onClick={() => setSelectedUser(null)}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
             <AlertDialogCancel>Close</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
