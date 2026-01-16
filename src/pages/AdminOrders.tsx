@@ -34,6 +34,7 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [shopFilter, setShopFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all');
   const [shops, setShops] = useState<string[]>([]);
 
   useEffect(() => {
@@ -41,12 +42,29 @@ const AdminOrders = () => {
   }, []);
 
   useEffect(() => {
-    if (shopFilter === 'all') {
-      setFilteredOrders(orders);
-    } else {
-      setFilteredOrders(orders.filter(o => o.shop_name === shopFilter));
+    let filtered = orders;
+    
+    if (shopFilter !== 'all') {
+      filtered = filtered.filter(o => o.shop_name === shopFilter);
     }
-  }, [shopFilter, orders]);
+    
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(o => {
+        const orderDate = new Date(o.created_at);
+        const diffDays = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        switch(dateFilter) {
+          case 'today': return diffDays === 0;
+          case 'week': return diffDays <= 7;
+          case 'month': return diffDays <= 30;
+          default: return true;
+        }
+      });
+    }
+    
+    setFilteredOrders(filtered);
+  }, [shopFilter, dateFilter, orders]);
 
   const loadOrders = async () => {
     const { data, error } = await supabase
@@ -122,17 +140,30 @@ const AdminOrders = () => {
           </Button>
           <h1 className="text-3xl font-bold">Order Management</h1>
         </div>
-        <Select value={shopFilter} onValueChange={setShopFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by shop" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Shops</SelectItem>
-            {shops.map(shop => (
-              <SelectItem key={shop} value={shop}>{shop}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Date" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">Last 7 Days</SelectItem>
+              <SelectItem value="month">Last 30 Days</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={shopFilter} onValueChange={setShopFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by shop" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Shops</SelectItem>
+              {shops.map(shop => (
+                <SelectItem key={shop} value={shop}>{shop}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

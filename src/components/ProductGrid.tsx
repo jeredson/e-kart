@@ -35,12 +35,13 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
   });
 
   const resetFilters = () => {
-    setFilters({
+    const resetState: FilterState = {
       priceRange: [0, maxPrice],
       brands: [],
       ramSizes: [],
       storageSizes: [],
-    });
+    };
+    setFilters(resetState);
     setCurrentPage(1);
   };
 
@@ -58,29 +59,28 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
     // Brand filter
     const matchesBrand = filters.brands.length === 0 || (product.brand && filters.brands.includes(product.brand));
 
-    // RAM filter
-    let matchesRam = filters.ramSizes.length === 0;
-    if (!matchesRam && product.specifications) {
-      const specs = product.specifications as Record<string, any>;
-      const ram = specs['RAM'] || specs['ram'] || specs['Memory'];
-      if (ram) {
-        const ramValues = Array.isArray(ram) ? ram.map((r: any) => r.value || r) : [ram];
-        matchesRam = ramValues.some((r: string) => filters.ramSizes.includes(r));
+    // Dynamic specification filters
+    const specs = product.specifications as Record<string, any> | null;
+    const matchesSpecs = Object.keys(filters).every(filterKey => {
+      if (filterKey === 'priceRange' || filterKey === 'brands' || filterKey === 'ramSizes' || filterKey === 'storageSizes') return true;
+      
+      const filterValues = filters[filterKey] as string[];
+      if (!filterValues || filterValues.length === 0) return true;
+      if (!specs) return false;
+      
+      const specValue = specs[filterKey];
+      if (!specValue) return false;
+      
+      if (typeof specValue === 'string') {
+        return filterValues.includes(specValue);
+      } else if (Array.isArray(specValue)) {
+        const values = specValue.map((v: any) => v.value || v);
+        return values.some((v: string) => filterValues.includes(v));
       }
-    }
+      return false;
+    });
 
-    // Storage filter
-    let matchesStorage = filters.storageSizes.length === 0;
-    if (!matchesStorage && product.specifications) {
-      const specs = product.specifications as Record<string, any>;
-      const storage = specs['Storage'] || specs['storage'] || specs['ROM'];
-      if (storage) {
-        const storageValues = Array.isArray(storage) ? storage.map((s: any) => s.value || s) : [storage];
-        matchesStorage = storageValues.some((s: string) => filters.storageSizes.includes(s));
-      }
-    }
-
-    return matchesCategory && matchesSearch && matchesPrice && matchesBrand && matchesRam && matchesStorage;
+    return matchesCategory && matchesSearch && matchesPrice && matchesBrand && matchesSpecs;
   }) || [];
 
   // Pagination logic

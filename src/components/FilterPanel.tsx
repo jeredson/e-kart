@@ -15,6 +15,7 @@ export interface FilterState {
   brands: string[];
   ramSizes: string[];
   storageSizes: string[];
+  [key: string]: [number, number] | string[];
 }
 
 interface FilterPanelProps {
@@ -29,59 +30,51 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
   // Extract unique values from products
   const brands = Array.from(new Set(products?.map(p => p.brand).filter(Boolean))) as string[];
   
-  const ramSizes = Array.from(
-    new Set(
-      products?.flatMap(p => {
-        const specs = p.specifications as Record<string, any> | null;
-        if (!specs) return [];
-        const ram = specs['RAM'] || specs['ram'] || specs['Memory'];
-        if (typeof ram === 'string') return [ram];
-        if (Array.isArray(ram)) return ram.map((r: any) => r.value || r);
-        return [];
-      }).filter(Boolean)
-    )
-  ).sort() as string[];
-
-  const storageSizes = Array.from(
-    new Set(
-      products?.flatMap(p => {
-        const specs = p.specifications as Record<string, any> | null;
-        if (!specs) return [];
-        const storage = specs['Storage'] || specs['storage'] || specs['ROM'];
-        if (typeof storage === 'string') return [storage];
-        if (Array.isArray(storage)) return storage.map((s: any) => s.value || s);
-        return [];
-      }).filter(Boolean)
-    )
-  ).sort() as string[];
+  // Get all unique specification keys except color
+  const allSpecs = new Map<string, Set<string>>();
+  products?.forEach(p => {
+    const specs = p.specifications as Record<string, any> | null;
+    if (!specs) return;
+    
+    Object.entries(specs).forEach(([key, value]) => {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey === 'color' || lowerKey === 'colour') return;
+      
+      if (!allSpecs.has(key)) {
+        allSpecs.set(key, new Set());
+      }
+      
+      if (typeof value === 'string') {
+        allSpecs.get(key)!.add(value);
+      } else if (Array.isArray(value)) {
+        value.forEach((v: any) => {
+          const val = v.value || v;
+          if (val) allSpecs.get(key)!.add(String(val));
+        });
+      }
+    });
+  });
+  
+  const specFilters = Array.from(allSpecs.entries()).map(([key, values]) => ({
+    key,
+    values: Array.from(values).sort()
+  }));
 
   const maxPrice = Math.max(...(products?.map(p => Number(p.price)) || [100000]));
 
-  const handleBrandToggle = (brand: string) => {
-    const newBrands = filters.brands.includes(brand)
-      ? filters.brands.filter(b => b !== brand)
-      : [...filters.brands, brand];
-    onFilterChange({ ...filters, brands: newBrands });
-  };
-
-  const handleRamToggle = (ram: string) => {
-    const newRam = filters.ramSizes.includes(ram)
-      ? filters.ramSizes.filter(r => r !== ram)
-      : [...filters.ramSizes, ram];
-    onFilterChange({ ...filters, ramSizes: newRam });
-  };
-
-  const handleStorageToggle = (storage: string) => {
-    const newStorage = filters.storageSizes.includes(storage)
-      ? filters.storageSizes.filter(s => s !== storage)
-      : [...filters.storageSizes, storage];
-    onFilterChange({ ...filters, storageSizes: newStorage });
+  const handleSpecToggle = (specKey: string, value: string) => {
+    const currentValues = (filters[specKey] as string[]) || [];
+    const newValues = currentValues.includes(value)
+      ? currentValues.filter(v => v !== value)
+      : [...currentValues, value];
+    onFilterChange({ ...filters, [specKey]: newValues });
   };
 
   const hasActiveFilters = 
     filters.brands.length > 0 || 
-    filters.ramSizes.length > 0 || 
-    filters.storageSizes.length > 0 ||
+    Object.keys(filters).some(key => 
+      key !== 'priceRange' && key !== 'brands' && Array.isArray(filters[key]) && (filters[key] as string[]).length > 0
+    ) ||
     filters.priceRange[0] > 0 ||
     filters.priceRange[1] < maxPrice;
 
@@ -134,7 +127,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                       <Checkbox
                         id={`brand-${brand}`}
                         checked={filters.brands.includes(brand)}
-                        onCheckedChange={() => handleBrandToggle(brand)}
+                        onCheckedChange={() => handleSpecToggle('brands', brand)}
                       />
                       <label htmlFor={`brand-${brand}`} className="text-sm cursor-pointer flex-1">
                         {brand}
@@ -149,7 +142,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                 {filters.brands.map((brand) => (
                   <Badge key={brand} variant="secondary" className="flex items-center gap-1 text-xs">
                     {brand}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => handleBrandToggle(brand)} />
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => handleSpecToggle('brands', brand)} />
                   </Badge>
                 ))}
               </div>
@@ -157,87 +150,46 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
           </div>
         )}
 
-        {/* RAM */}
-        {ramSizes.length > 0 && (
-          <div className="space-y-3">
-            <Label className="text-sm font-semibold">RAM</Label>
+        {/* Dynamic Specification Filters */}
+        {specFilters.map(({ key, values }) => (
+          <div key={key} className="space-y-3">
+            <Label className="text-sm font-semibold">{key}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
-                  {filters.ramSizes.length === 0 ? 'Select RAM' : `${filters.ramSizes.length} selected`}
+                  {((filters[key] as string[]) || []).length === 0 ? `Select ${key}` : `${((filters[key] as string[]) || []).length} selected`}
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-64 p-0" align="start">
-                <div className="p-2">
-                  {ramSizes.map((ram) => (
-                    <div key={ram} className="flex items-center space-x-2 p-2 hover:bg-secondary rounded">
+                <div className="p-2 max-h-48 overflow-y-auto">
+                  {values.map((value) => (
+                    <div key={value} className="flex items-center space-x-2 p-2 hover:bg-secondary rounded">
                       <Checkbox
-                        id={`ram-${ram}`}
-                        checked={filters.ramSizes.includes(ram)}
-                        onCheckedChange={() => handleRamToggle(ram)}
+                        id={`${key}-${value}`}
+                        checked={((filters[key] as string[]) || []).includes(value)}
+                        onCheckedChange={() => handleSpecToggle(key, value)}
                       />
-                      <label htmlFor={`ram-${ram}`} className="text-sm cursor-pointer flex-1">
-                        {ram}
+                      <label htmlFor={`${key}-${value}`} className="text-sm cursor-pointer flex-1">
+                        {value}
                       </label>
                     </div>
                   ))}
                 </div>
               </PopoverContent>
             </Popover>
-            {filters.ramSizes.length > 0 && (
+            {((filters[key] as string[]) || []).length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {filters.ramSizes.map((ram) => (
-                  <Badge key={ram} variant="secondary" className="flex items-center gap-1 text-xs">
-                    {ram}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => handleRamToggle(ram)} />
+                {((filters[key] as string[]) || []).map((value) => (
+                  <Badge key={value} variant="secondary" className="flex items-center gap-1 text-xs">
+                    {value}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => handleSpecToggle(key, value)} />
                   </Badge>
                 ))}
               </div>
             )}
           </div>
-        )}
-
-        {/* Storage */}
-        {storageSizes.length > 0 && (
-          <div className="space-y-3">
-            <Label className="text-sm font-semibold">Storage</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  {filters.storageSizes.length === 0 ? 'Select storage' : `${filters.storageSizes.length} selected`}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-0" align="start">
-                <div className="p-2">
-                  {storageSizes.map((storage) => (
-                    <div key={storage} className="flex items-center space-x-2 p-2 hover:bg-secondary rounded">
-                      <Checkbox
-                        id={`storage-${storage}`}
-                        checked={filters.storageSizes.includes(storage)}
-                        onCheckedChange={() => handleStorageToggle(storage)}
-                      />
-                      <label htmlFor={`storage-${storage}`} className="text-sm cursor-pointer flex-1">
-                        {storage}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-            {filters.storageSizes.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {filters.storageSizes.map((storage) => (
-                  <Badge key={storage} variant="secondary" className="flex items-center gap-1 text-xs">
-                    {storage}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => handleStorageToggle(storage)} />
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        ))}
       </CardContent>
     </Card>
   );
