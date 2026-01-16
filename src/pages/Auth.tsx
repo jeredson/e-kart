@@ -51,21 +51,23 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signIn(email, password);
-    setIsLoading(false);
-
+    const { data, error } = await signIn(email, password);
+    
     if (error) {
+      setIsLoading(false);
       toast.error(error.message);
       return;
     }
 
     // Check if user has completed profile
-    if (user) {
+    if (data && data.user) {
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('first_name, last_name, shop_name, shop_address')
-        .eq('id', user.id)
+        .eq('id', data.user.id)
         .single();
+
+      setIsLoading(false);
 
       // Check if any required field is missing
       if (!profile || !profile.first_name || !profile.last_name || !profile.shop_name || !profile.shop_address) {
@@ -75,6 +77,8 @@ const Auth = () => {
         toast.success('Welcome back!');
         navigate('/');
       }
+    } else {
+      setIsLoading(false);
     }
   };
 

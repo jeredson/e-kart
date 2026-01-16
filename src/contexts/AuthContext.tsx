@@ -8,7 +8,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isLoading: boolean;
   signUp: (email: string, password: string) => Promise<{ data?: any; error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ data?: any; error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password,
     });
     
-    if (error) return { error };
+    if (error) return { data: null, error };
     
     if (data.user) {
       const { data: profile } = await supabase
@@ -91,11 +91,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (profile && !profile.is_admin && !profile.is_approved) {
         await supabase.auth.signOut();
-        return { error: new Error('Your account is pending admin approval. Please wait for approval email.') };
+        return { data: null, error: new Error('Your account is pending admin approval. Please wait for approval email.') };
       }
     }
     
-    return { error: null };
+    return { data, error: null };
   };
 
   const signOut = async () => {
