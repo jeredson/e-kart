@@ -72,20 +72,43 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
       // If product has no specs at all, it doesn't match
       if (!specs) return false;
       
-      // Check for the spec key with case-insensitive matching
       let specValue = null;
       
-      // For RAM filter, check RAM, ram, Memory
-      if (filterKey === 'RAM') {
-        specValue = specs['RAM'] || specs['ram'] || specs['Memory'] || specs['memory'];
+      // Check _ordered array first
+      if (specs._ordered && Array.isArray(specs._ordered)) {
+        for (const item of specs._ordered) {
+          if (item && typeof item === 'object') {
+            // For RAM filter
+            if (filterKey === 'RAM') {
+              specValue = item['RAM'] || item['ram'] || item['Memory'] || item['memory'];
+            }
+            // For Storage filter
+            else if (filterKey === 'Storage') {
+              specValue = item['Storage'] || item['storage'] || item['ROM'] || item['rom'];
+            }
+            // For other specs
+            else {
+              specValue = item[filterKey];
+            }
+            if (specValue) break;
+          }
+        }
       }
-      // For Storage filter, check Storage, storage, ROM
-      else if (filterKey === 'Storage') {
-        specValue = specs['Storage'] || specs['storage'] || specs['ROM'] || specs['rom'];
-      }
-      // For other specs, exact match
-      else {
-        specValue = specs[filterKey];
+      
+      // If not found in _ordered, check direct properties
+      if (!specValue) {
+        // For RAM filter, check RAM, ram, Memory
+        if (filterKey === 'RAM') {
+          specValue = specs['RAM'] || specs['ram'] || specs['Memory'] || specs['memory'];
+        }
+        // For Storage filter, check Storage, storage, ROM
+        else if (filterKey === 'Storage') {
+          specValue = specs['Storage'] || specs['storage'] || specs['ROM'] || specs['rom'];
+        }
+        // For other specs, exact match
+        else {
+          specValue = specs[filterKey];
+        }
       }
       
       // If product doesn't have this spec key, it doesn't match this filter

@@ -53,10 +53,51 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
     
     console.log(`Product ${idx} (${p.name}):`, specs);
     
+    // Handle _ordered array format
+    if (specs._ordered && Array.isArray(specs._ordered)) {
+      console.log(`  Processing _ordered array:`, specs._ordered);
+      specs._ordered.forEach((item: any) => {
+        if (item && typeof item === 'object') {
+          Object.entries(item).forEach(([key, value]) => {
+            const lowerKey = key.toLowerCase();
+            if (lowerKey === 'color' || lowerKey === 'colour') return;
+            
+            const normalizedKey = normalizeKey(key);
+            console.log(`    Key: ${key} -> Normalized: ${normalizedKey}, Value:`, value);
+            
+            if (!allSpecs.has(normalizedKey)) {
+              allSpecs.set(normalizedKey, new Set());
+            }
+            
+            // Extract values
+            if (value === null || value === undefined) return;
+            
+            if (typeof value === 'string' && value.trim()) {
+              allSpecs.get(normalizedKey)!.add(value.trim());
+            } else if (Array.isArray(value)) {
+              value.forEach((v: any) => {
+                if (v === null || v === undefined) return;
+                if (typeof v === 'string' && v.trim()) {
+                  allSpecs.get(normalizedKey)!.add(v.trim());
+                } else if (typeof v === 'number') {
+                  allSpecs.get(normalizedKey)!.add(String(v));
+                } else if (typeof v === 'object' && v.value) {
+                  const val = String(v.value).trim();
+                  if (val) allSpecs.get(normalizedKey)!.add(val);
+                }
+              });
+            } else if (typeof value === 'number') {
+              allSpecs.get(normalizedKey)!.add(String(value));
+            }
+          });
+        }
+      });
+    }
+    
     Object.entries(specs).forEach(([key, value]) => {
       const lowerKey = key.toLowerCase();
-      // Skip color and internal fields that start with underscore
-      if (lowerKey === 'color' || lowerKey === 'colour' || key.startsWith('_')) return;
+      // Skip color and _ordered (already processed)
+      if (lowerKey === 'color' || lowerKey === 'colour' || key === '_ordered') return;
       
       const normalizedKey = normalizeKey(key);
       console.log(`  Key: ${key} -> Normalized: ${normalizedKey}, Value:`, value);
