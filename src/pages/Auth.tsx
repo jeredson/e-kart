@@ -92,6 +92,7 @@ const Auth = () => {
         shop_name: shopName,
         shop_address: shopAddress,
         avatar_url: avatarUrl,
+        email: email,
       });
 
       toast.success('Account created successfully!');

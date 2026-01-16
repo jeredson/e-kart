@@ -8,6 +8,9 @@ Run the following SQL in your Supabase SQL Editor:
 -- Add is_approved column to profiles table (new users need approval, admins auto-approved)
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT false;
 
+-- Add email column to user_profiles for display
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS email TEXT;
+
 -- Update existing users to be approved
 UPDATE profiles SET is_approved = true;
 

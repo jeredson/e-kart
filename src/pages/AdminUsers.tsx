@@ -27,53 +27,40 @@ const AdminUsers = () => {
 
   const loadUsers = async () => {
     try {
-      // Get all auth users
-      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.error('Auth error:', authError);
-        setLoading(false);
-        return;
-      }
+      // Get all profiles that are not admins
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, is_approved, created_at')
+        .eq('is_admin', false)
+        .order('created_at', { ascending: false });
 
-      if (!authUsers) {
+      if (!profiles) {
         setUsers([]);
         setLoading(false);
         return;
       }
 
-      // Get profiles for all users
+      // Get user details for each profile
       const usersWithDetails = await Promise.all(
-        authUsers.map(async (authUser) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('is_admin, is_approved')
-            .eq('id', authUser.id)
-            .single();
-
-          // Skip admin users
-          if (profile?.is_admin) return null;
-
+        profiles.map(async (profile) => {
           const { data: userProfile } = await supabase
             .from('user_profiles')
-            .select('first_name, last_name')
-            .eq('id', authUser.id)
+            .select('first_name, last_name, email')
+            .eq('id', profile.id)
             .single();
 
           return {
-            id: authUser.id,
-            email: authUser.email || 'N/A',
+            id: profile.id,
+            email: userProfile?.email || 'N/A',
             first_name: userProfile?.first_name || '',
             last_name: userProfile?.last_name || '',
-            is_approved: profile?.is_approved || false,
-            created_at: authUser.created_at
+            is_approved: profile.is_approved || false,
+            created_at: profile.created_at
           };
         })
       );
 
-      // Filter out null values (admins)
-      const filteredUsers = usersWithDetails.filter(u => u !== null) as UserProfile[];
-      setUsers(filteredUsers);
+      setUsers(usersWithDetails as UserProfile[]);
     } catch (error) {
       console.error('Error loading users:', error);
     }
@@ -97,7 +84,10 @@ const AdminUsers = () => {
   const deleteUser = async () => {
     if (!deleteUserId) return;
 
-    const { error } = await supabase.auth.admin.deleteUser(deleteUserId);
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', deleteUserId);
 
     if (error) {
       toast.error('Failed to delete user');
