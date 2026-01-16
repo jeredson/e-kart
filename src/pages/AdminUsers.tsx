@@ -15,6 +15,7 @@ interface UserProfile {
   phone_number?: string;
   shop_name?: string;
   shop_address?: string;
+  avatar_url?: string;
   is_approved: boolean;
   created_at: string;
 }
@@ -76,7 +77,7 @@ const AdminUsers = () => {
       for (const user of usersWithDetails) {
         const { data: userProfile } = await supabase
           .from('user_profiles')
-          .select('first_name, last_name, email, phone_number, shop_name, shop_address')
+          .select('first_name, last_name, email, phone_number, shop_name, shop_address, avatar_url')
           .eq('id', user.id)
           .single();
 
@@ -87,6 +88,7 @@ const AdminUsers = () => {
           user.phone_number = userProfile.phone_number || '';
           user.shop_name = userProfile.shop_name || '';
           user.shop_address = userProfile.shop_address || '';
+          user.avatar_url = userProfile.avatar_url || '';
         }
         
         // If still no email, try to get from profiles table
@@ -152,9 +154,9 @@ const AdminUsers = () => {
       
       <div className="grid gap-4">
         {users.map((user) => (
-          <Card key={user.id} className="p-4 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setSelectedUser(user)}>
+          <Card key={user.id} className="p-4">
             <div className="flex items-center justify-between">
-              <div className="flex-1">
+              <div className="flex-1 cursor-pointer" onClick={() => setSelectedUser(user)}>
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold">
                     {user.first_name} {user.last_name}
@@ -164,15 +166,6 @@ const AdminUsers = () => {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
-                {user.shop_name && (
-                  <p className="text-sm text-muted-foreground">Shop: {user.shop_name}</p>
-                )}
-                {user.phone_number && (
-                  <p className="text-sm text-muted-foreground">Phone: {user.phone_number}</p>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  Joined: {new Date(user.created_at).toLocaleDateString()}
-                </p>
               </div>
               
               <div className="flex gap-2">
@@ -217,47 +210,48 @@ const AdminUsers = () => {
 
       {/* User Details Dialog */}
       <AlertDialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>User Details</AlertDialogTitle>
           </AlertDialogHeader>
           {selectedUser && (
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm font-semibold">Name</p>
-                <p className="text-sm">{selectedUser.first_name} {selectedUser.last_name}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Email</p>
-                <p className="text-sm">{selectedUser.email}</p>
-              </div>
-              {selectedUser.phone_number && (
-                <div>
-                  <p className="text-sm font-semibold">Phone</p>
-                  <p className="text-sm">{selectedUser.phone_number}</p>
+            <div className="space-y-4">
+              {selectedUser.avatar_url && (
+                <div className="flex justify-center">
+                  <img
+                    src={selectedUser.avatar_url}
+                    alt="User avatar"
+                    className="w-24 h-24 rounded-full object-cover"
+                  />
                 </div>
               )}
-              {selectedUser.shop_name && (
+              <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-semibold">Shop Name</p>
-                  <p className="text-sm">{selectedUser.shop_name}</p>
+                  <p className="text-xs text-muted-foreground">Name</p>
+                  <p className="font-medium">{selectedUser.first_name} {selectedUser.last_name}</p>
                 </div>
-              )}
-              {selectedUser.shop_address && (
                 <div>
-                  <p className="text-sm font-semibold">Shop Address</p>
-                  <p className="text-sm">{selectedUser.shop_address}</p>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="font-medium">{selectedUser.email}</p>
                 </div>
-              )}
-              <div>
-                <p className="text-sm font-semibold">Status</p>
-                <Badge variant={selectedUser.is_approved ? 'default' : 'secondary'}>
-                  {selectedUser.is_approved ? 'Approved' : 'Pending'}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Joined</p>
-                <p className="text-sm">{new Date(selectedUser.created_at).toLocaleDateString()}</p>
+                {selectedUser.phone_number && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Phone Number</p>
+                    <p className="font-medium">{selectedUser.phone_number}</p>
+                  </div>
+                )}
+                {selectedUser.shop_name && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Shop Name</p>
+                    <p className="font-medium">{selectedUser.shop_name}</p>
+                  </div>
+                )}
+                {selectedUser.shop_address && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Shop Address</p>
+                    <p className="font-medium">{selectedUser.shop_address}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
