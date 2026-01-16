@@ -72,10 +72,18 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
       if (!specValue) return false;
       
       if (typeof specValue === 'string') {
-        return filterValues.includes(specValue);
+        return filterValues.includes(specValue.trim());
       } else if (Array.isArray(specValue)) {
-        const values = specValue.map((v: any) => v.value || v);
+        const values = specValue.map((v: any) => {
+          if (typeof v === 'string') return v.trim();
+          if (v && typeof v === 'object' && v.value) return String(v.value).trim();
+          return String(v).trim();
+        });
         return values.some((v: string) => filterValues.includes(v));
+      } else if (specValue && typeof specValue === 'object' && !Array.isArray(specValue)) {
+        if (specValue.value) {
+          return filterValues.includes(String(specValue.value).trim());
+        }
       }
       return false;
     });

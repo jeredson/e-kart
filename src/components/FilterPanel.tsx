@@ -30,7 +30,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
   // Extract unique values from products
   const brands = Array.from(new Set(products?.map(p => p.brand).filter(Boolean))) as string[];
   
-  // Get all unique specification keys except color
+  // Get all unique specification keys except color and internal fields
   const allSpecs = new Map<string, Set<string>>();
   products?.forEach(p => {
     const specs = p.specifications as Record<string, any> | null;
@@ -38,27 +38,51 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
     
     Object.entries(specs).forEach(([key, value]) => {
       const lowerKey = key.toLowerCase();
-      if (lowerKey === 'color' || lowerKey === 'colour') return;
+      // Skip color and internal fields that start with underscore
+      if (lowerKey === 'color' || lowerKey === 'colour' || key.startsWith('_')) return;
       
       if (!allSpecs.has(key)) {
         allSpecs.set(key, new Set());
       }
       
-      if (typeof value === 'string') {
-        allSpecs.get(key)!.add(value);
+      if (typeof value === 'string' && value.trim()) {
+        allSpecs.get(key)!.add(value.trim());
       } else if (Array.isArray(value)) {
         value.forEach((v: any) => {
-          const val = v.value || v;
-          if (val) allSpecs.get(key)!.add(String(val));
+          if (typeof v === 'string' && v.trim()) {
+            allSpecs.get(key)!.add(v.trim());
+          } else if (v && typeof v === 'object' && v.value) {
+            const val = String(v.value).trim();
+            if (val) allSpecs.get(key)!.add(val);
+          } else if (v) {
+            const val = String(v).trim();
+            if (val) allSpecs.get(key)!.add(val);
+          }
         });
+      } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+        // Handle object with value property
+        if (value.value) {
+          const val = String(value.value).trim();
+          if (val) allSpecs.get(key)!.add(val);
+        }
       }
     });
   });
   
-  const specFilters = Array.from(allSpecs.entries()).map(([key, values]) => ({
-    key,
-    values: Array.from(values).sort()
-  }));
+  const specFilters = Array.from(allSpecs.entries())
+    .filter(([key, values]) => values.size > 0)
+    .map(([key, values]) => ({
+      key,
+      values: Array.from(values).sort((a, b) => {
+        // Try to sort numerically if possible
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+        return a.localeCompare(b);
+      })
+    }));
 
   const maxPrice = Math.max(...(products?.map(p => Number(p.price)) || [100000]));
 

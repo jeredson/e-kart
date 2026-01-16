@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Package, ArrowLeft } from 'lucide-react';
+import { Loader2, Package, ArrowLeft, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 
 interface Order {
   id: string;
@@ -35,6 +38,7 @@ const AdminOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [shopFilter, setShopFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [shops, setShops] = useState<string[]>([]);
 
   useEffect(() => {
@@ -48,7 +52,12 @@ const AdminOrders = () => {
       filtered = filtered.filter(o => o.shop_name === shopFilter);
     }
     
-    if (dateFilter !== 'all') {
+    if (dateFilter === 'custom' && selectedDate) {
+      filtered = filtered.filter(o => {
+        const orderDate = new Date(o.created_at);
+        return orderDate.toDateString() === selectedDate.toDateString();
+      });
+    } else if (dateFilter !== 'all') {
       const now = new Date();
       filtered = filtered.filter(o => {
         const orderDate = new Date(o.created_at);
@@ -64,7 +73,7 @@ const AdminOrders = () => {
     }
     
     setFilteredOrders(filtered);
-  }, [shopFilter, dateFilter, orders]);
+  }, [shopFilter, dateFilter, selectedDate, orders]);
 
   const loadOrders = async () => {
     const { data, error } = await supabase
@@ -141,7 +150,10 @@ const AdminOrders = () => {
           <h1 className="text-3xl font-bold">Order Management</h1>
         </div>
         <div className="flex gap-2">
-          <Select value={dateFilter} onValueChange={setDateFilter}>
+          <Select value={dateFilter} onValueChange={(value) => {
+            setDateFilter(value);
+            if (value !== 'custom') setSelectedDate(undefined);
+          }}>
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Date" />
             </SelectTrigger>
@@ -150,8 +162,27 @@ const AdminOrders = () => {
               <SelectItem value="today">Today</SelectItem>
               <SelectItem value="week">Last 7 Days</SelectItem>
               <SelectItem value="month">Last 30 Days</SelectItem>
+              <SelectItem value="custom">Custom Date</SelectItem>
             </SelectContent>
           </Select>
+          {dateFilter === 'custom' && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-48">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          )}
           <Select value={shopFilter} onValueChange={setShopFilter}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Filter by shop" />
