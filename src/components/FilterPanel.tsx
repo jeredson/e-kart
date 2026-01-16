@@ -41,9 +41,17 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
     return key;
   };
   
-  products?.forEach(p => {
+  console.log('=== FILTER PANEL DEBUG ===');
+  console.log('Total products:', products?.length);
+  
+  products?.forEach((p, idx) => {
     const specs = p.specifications as Record<string, any> | null;
-    if (!specs) return;
+    if (!specs) {
+      console.log(`Product ${idx} (${p.name}): No specs`);
+      return;
+    }
+    
+    console.log(`Product ${idx} (${p.name}):`, specs);
     
     Object.entries(specs).forEach(([key, value]) => {
       const lowerKey = key.toLowerCase();
@@ -51,6 +59,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
       if (lowerKey === 'color' || lowerKey === 'colour' || key.startsWith('_')) return;
       
       const normalizedKey = normalizeKey(key);
+      console.log(`  Key: ${key} -> Normalized: ${normalizedKey}, Value:`, value);
       
       if (!allSpecs.has(normalizedKey)) {
         allSpecs.set(normalizedKey, new Set());
@@ -98,6 +107,9 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
       }
     });
   });
+  
+  console.log('Final allSpecs:', Object.fromEntries(Array.from(allSpecs.entries()).map(([k, v]) => [k, Array.from(v)])));
+  console.log('=== END DEBUG ===');
   
   const specFilters = Array.from(allSpecs.entries())
     .filter(([key, values]) => values.size > 0)
