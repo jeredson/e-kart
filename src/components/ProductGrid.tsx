@@ -72,8 +72,22 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
       // If product has no specs at all, it doesn't match
       if (!specs) return false;
       
-      // Check if product has this specification key
-      const specValue = specs[filterKey];
+      // Check for the spec key with case-insensitive matching
+      let specValue = null;
+      
+      // For RAM filter, check RAM, ram, Memory
+      if (filterKey === 'RAM') {
+        specValue = specs['RAM'] || specs['ram'] || specs['Memory'] || specs['memory'];
+      }
+      // For Storage filter, check Storage, storage, ROM
+      else if (filterKey === 'Storage') {
+        specValue = specs['Storage'] || specs['storage'] || specs['ROM'] || specs['rom'];
+      }
+      // For other specs, exact match
+      else {
+        specValue = specs[filterKey];
+      }
+      
       // If product doesn't have this spec key, it doesn't match this filter
       if (specValue === null || specValue === undefined) return false;
       
