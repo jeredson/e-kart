@@ -26,35 +26,56 @@ const AdminUsers = () => {
   }, []);
 
   const loadUsers = async () => {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, is_admin, is_approved, created_at')
-      .eq('is_admin', false)
-      .order('created_at', { ascending: false });
+    try {
+      // Get all auth users
+      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error('Auth error:', authError);
+        setLoading(false);
+        return;
+      }
 
-    if (profiles) {
+      if (!authUsers) {
+        setUsers([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get profiles for all users
       const usersWithDetails = await Promise.all(
-        profiles.map(async (profile) => {
+        authUsers.map(async (authUser) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_admin, is_approved')
+            .eq('id', authUser.id)
+            .single();
+
+          // Skip admin users
+          if (profile?.is_admin) return null;
+
           const { data: userProfile } = await supabase
             .from('user_profiles')
             .select('first_name, last_name')
-            .eq('id', profile.id)
+            .eq('id', authUser.id)
             .single();
-          
-          const { data: { users } } = await supabase.auth.admin.listUsers();
-          const authUser = users?.find(u => u.id === profile.id);
-          
+
           return {
-            id: profile.id,
-            email: authUser?.email || 'N/A',
+            id: authUser.id,
+            email: authUser.email || 'N/A',
             first_name: userProfile?.first_name || '',
             last_name: userProfile?.last_name || '',
-            is_approved: profile.is_approved || false,
-            created_at: profile.created_at
+            is_approved: profile?.is_approved || false,
+            created_at: authUser.created_at
           };
         })
       );
-      setUsers(usersWithDetails as UserProfile[]);
+
+      // Filter out null values (admins)
+      const filteredUsers = usersWithDetails.filter(u => u !== null) as UserProfile[];
+      setUsers(filteredUsers);
+    } catch (error) {
+      console.error('Error loading users:', error);
     }
     setLoading(false);
   };
