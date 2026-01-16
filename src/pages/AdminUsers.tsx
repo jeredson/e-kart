@@ -41,9 +41,16 @@ const AdminUsers = () => {
         return;
       }
 
+      console.log('Filtering profiles. Total:', profiles.length);
+      profiles.forEach(p => console.log('Profile:', p.id, 'is_admin:', p.is_admin));
+
       // Get user details for each profile
       const usersWithDetails = profiles
-        .filter(profile => !profile.is_admin)
+        .filter(profile => {
+          const isNotAdmin = !profile.is_admin;
+          console.log('Profile', profile.id, 'is_admin:', profile.is_admin, 'passes filter:', isNotAdmin);
+          return isNotAdmin;
+        })
         .map(profile => ({
           id: profile.id,
           email: profile.id.substring(0, 8) + '...',
