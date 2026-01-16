@@ -5,8 +5,9 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Package } from 'lucide-react';
+import { Loader2, Package, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface Order {
   id: string;
@@ -27,6 +28,7 @@ interface Order {
 }
 
 const AdminOrders = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +116,12 @@ const AdminOrders = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Order Management</h1>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-3xl font-bold">Order Management</h1>
+        </div>
         <Select value={shopFilter} onValueChange={setShopFilter}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by shop" />
@@ -144,6 +151,7 @@ const AdminOrders = () => {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm line-clamp-2">{order.product.name}</h3>
                 <p className="text-xs text-muted-foreground mt-1">{order.shop_name}</p>
+                <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
                 <p className="text-sm font-bold mt-1">Qty: {order.quantity}</p>
                 {Object.keys(order.variants).length > 0 && (
                   <p className="text-xs text-muted-foreground">

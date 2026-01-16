@@ -3,8 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Trash2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface UserProfile {
@@ -21,6 +22,7 @@ interface UserProfile {
 }
 
 const AdminUsers = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
@@ -150,7 +152,12 @@ const AdminUsers = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">User Management</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="text-3xl font-bold">User Management</h1>
+      </div>
       
       <div className="grid gap-4">
         {users.map((user) => (
@@ -256,6 +263,10 @@ const AdminUsers = () => {
             </div>
           )}
           <AlertDialogFooter>
+            <Button variant="ghost" onClick={() => setSelectedUser(null)}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
             <AlertDialogCancel>Close</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
