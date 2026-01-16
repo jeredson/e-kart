@@ -63,11 +63,12 @@ const Auth = () => {
     if (user) {
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('first_name')
+        .select('first_name, last_name, shop_name, shop_address')
         .eq('id', user.id)
         .single();
 
-      if (!profile || !profile.first_name) {
+      // Check if any required field is missing
+      if (!profile || !profile.first_name || !profile.last_name || !profile.shop_name || !profile.shop_address) {
         toast.success('Please complete your profile');
         navigate('/settings');
       } else {
