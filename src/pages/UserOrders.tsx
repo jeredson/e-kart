@@ -75,28 +75,28 @@ const UserOrders = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">My Orders</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">My Orders</h1>
 
       {orders.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-muted-foreground">No orders yet</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {orders.map((order) => (
             <Card key={order.id} className="p-4">
               <div className="flex gap-3">
                 <img
                   src={order.product.image}
                   alt={order.product.name}
-                  className="w-20 h-20 object-contain rounded"
+                  className="w-20 h-20 object-contain rounded flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm line-clamp-2">{order.product.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{order.shop_name}</p>
+                  <p className="text-xs text-muted-foreground mt-1 truncate">{order.shop_name}</p>
                   <p className="text-sm font-bold mt-1">Qty: {order.quantity}</p>
                   {Object.keys(order.variants).length > 0 && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground line-clamp-1">
                       {Object.values(order.variants).join(', ')}
                     </p>
                   )}

@@ -142,21 +142,21 @@ const AdminOrders = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-3xl font-bold">Order Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Order Management</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
                 <CalendarIcon className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0" align="end">
               <Calendar
                 mode="single"
                 selected={selectedDate}
@@ -174,7 +174,7 @@ const AdminOrders = () => {
             setDateFilter(value);
             if (value !== 'custom') setSelectedDate(undefined);
           }}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-32 sm:w-36">
               <SelectValue placeholder="Date" />
             </SelectTrigger>
             <SelectContent>
@@ -186,7 +186,7 @@ const AdminOrders = () => {
             </SelectContent>
           </Select>
           <Select value={shopFilter} onValueChange={setShopFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-32 sm:w-48">
               <SelectValue placeholder="Filter by shop" />
             </SelectTrigger>
             <SelectContent>
@@ -232,21 +232,21 @@ const AdminOrders = () => {
       </div>
 
       <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-4">
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <img
                   src={selectedOrder.product.image}
                   alt={selectedOrder.product.name}
-                  className="w-24 h-24 object-contain rounded"
+                  className="w-24 h-24 object-contain rounded mx-auto sm:mx-0"
                 />
-                <div className="flex-1">
+                <div className="flex-1 text-center sm:text-left">
                   <h3 className="font-semibold">{selectedOrder.product.name}</h3>
-                  <p className="text-sm text-muted-foreground">{selectedOrder.user_email}</p>
+                  <p className="text-sm text-muted-foreground break-all">{selectedOrder.user_email}</p>
                   <p className="text-lg font-bold mt-2">
                     ₹{(selectedOrder.product.price * selectedOrder.quantity).toLocaleString('en-IN')}
                   </p>
@@ -261,16 +261,16 @@ const AdminOrders = () => {
                 {Object.keys(selectedOrder.variants).length > 0 && (
                   <div>
                     <p className="text-sm font-semibold">Variants</p>
-                    <p className="text-sm">{Object.entries(selectedOrder.variants).map(([k, v]) => `${k}: ${v}`).join(', ')}</p>
+                    <p className="text-sm break-words">{Object.entries(selectedOrder.variants).map(([k, v]) => `${k}: ${v}`).join(', ')}</p>
                   </div>
                 )}
                 <div>
                   <p className="text-sm font-semibold">Shop Name</p>
-                  <p className="text-sm">{selectedOrder.shop_name}</p>
+                  <p className="text-sm break-words">{selectedOrder.shop_name}</p>
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Shop Address</p>
-                  <p className="text-sm">{selectedOrder.shop_address}</p>
+                  <p className="text-sm break-words">{selectedOrder.shop_address}</p>
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Order Date</p>
