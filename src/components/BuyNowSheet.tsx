@@ -8,7 +8,7 @@ import { DbProduct } from '@/hooks/useProducts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Minus } from 'lucide-react';
 
 interface BuyNowSheetProps {
   product: DbProduct | null;
@@ -143,6 +143,17 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       return;
     }
 
+    // Validate quantity against stock
+    if (maxStock !== null && quantity > maxStock) {
+      toast.error(`Only ${maxStock} items available in stock for this variant`);
+      return;
+    }
+
+    if (quantity < 1) {
+      toast.error('Quantity must be at least 1');
+      return;
+    }
+
     setLoading(true);
     const { error } = await supabase.from('orders').insert({
       user_id: user.id,
@@ -193,8 +204,10 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
 
           {orderedSpecs && Object.keys(orderedSpecs).length > 0 && (
             <div className="space-y-4">
-              <h4 className="font-semibold">Select Specifications</h4>
+              <h4 className="font-semibold">Specifications</h4>
               {Object.entries(orderedSpecs).map(([key, value]) => {
+                if (key === '_ordered') return null;
+                
                 if (Array.isArray(value)) {
                   return (
                     <div key={key}>
@@ -226,23 +239,67 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
                       </Select>
                     </div>
                   );
+                } else {
+                  return (
+                    <div key={key} className="flex justify-between p-2 bg-secondary rounded">
+                      <Label className="text-sm text-muted-foreground">{key}</Label>
+                      <span className="text-sm font-medium">{String(value)}</span>
+                    </div>
+                  );
                 }
-                return null;
               })}
             </div>
           )}
 
           <div>
             <Label htmlFor="quantity">Quantity</Label>
-            <Input
-              id="quantity"
-              type="number"
-              min={1}
-              max={maxStock || 999}
-              value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, Math.min(maxStock || 999, parseInt(e.target.value) || 1)))}
-              className="mt-2"
-            />
+            <div className="flex items-center gap-2 mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                disabled={quantity <= 1}
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <Input
+                id="quantity"
+                type="number"
+                min={1}
+                max={maxStock || 999}
+                value={quantity}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setQuantity(1);
+                  } else {
+                    const num = parseInt(val);
+                    if (!isNaN(num)) {
+                      setQuantity(Math.max(1, Math.min(maxStock || 999, num)));
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                    setQuantity(1);
+                  }
+                }}
+                className="text-center"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setQuantity(prev => Math.min(maxStock || 999, prev + 1))}
+                disabled={maxStock !== null && quantity >= maxStock}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            {maxStock !== null && (
+              <p className="text-xs text-muted-foreground mt-1">Max: {maxStock}</p>
+            )}
           </div>
 
           {loadingProfile ? (
