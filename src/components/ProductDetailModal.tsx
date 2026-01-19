@@ -1,4 +1,4 @@
-import { Star, ShoppingCart, X, Heart } from 'lucide-react';
+import { Star, ShoppingCart, X, Heart, Zap } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
 import ProductReviews from './ProductReviews';
 import SignInDialog from './SignInDialog';
+import BuyNowSheet from './BuyNowSheet';
 import { useState, useEffect } from 'react';
 
 interface ProductDetailModalProps {
@@ -24,6 +25,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [showBuyNowSheet, setShowBuyNowSheet] = useState(false);
   const [productId, setProductId] = useState<string | null>(null);
 
   if (!product) return null;
@@ -213,6 +215,14 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     }
   };
 
+  const handleBuyNow = () => {
+    if (!user) {
+      setShowSignInDialog(true);
+      return;
+    }
+    setShowBuyNowSheet(true);
+  };
+
   const handleVariantSelect = (specKey: string, value: any) => {
     setSelectedVariants(prev => ({ ...prev, [specKey]: value.value }));
     if (value.image) {
@@ -375,21 +385,40 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 <ProductReviews productId={product.id} />
               </div>
 
-              <Button
-                size="sm"
-                className="w-full h-9 sm:h-10"
-                onClick={handleAddToCart}
-                disabled={product.in_stock === false || !isVariantAvailable}
-              >
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                {!isVariantAvailable ? 'Not Available' : 'Add to Cart'}
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 sm:h-10"
+                  onClick={handleAddToCart}
+                  disabled={product.in_stock === false || !isVariantAvailable}
+                >
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Add to Cart
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-9 sm:h-10"
+                  onClick={handleBuyNow}
+                  disabled={product.in_stock === false || !isVariantAvailable}
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Buy Now
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
         <SignInDialog open={showSignInDialog} onOpenChange={setShowSignInDialog} />
       </DialogContent>
+      <BuyNowSheet
+        product={product}
+        isOpen={showBuyNowSheet}
+        onClose={() => setShowBuyNowSheet(false)}
+        initialVariants={selectedVariants}
+        initialImage={selectedImage}
+      />
     </Dialog>
   );
 };
