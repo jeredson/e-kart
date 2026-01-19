@@ -3,7 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Order {
   id: string;
@@ -45,7 +47,6 @@ const UserOrders = () => {
     }
 
     if (data) {
-      // Fetch product details separately
       const ordersWithProducts = await Promise.all(
         data.map(async (order) => {
           const { data: product } = await supabase
@@ -63,6 +64,20 @@ const UserOrders = () => {
       setOrders(ordersWithProducts as Order[]);
     }
     setLoading(false);
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', orderId);
+
+    if (error) {
+      toast.error('Failed to delete order');
+    } else {
+      toast.success('Order deleted successfully');
+      loadOrders();
+    }
   };
 
   if (loading) {
@@ -100,10 +115,18 @@ const UserOrders = () => {
                       {Object.values(order.variants).join(', ')}
                     </p>
                   )}
-                  <div className="mt-2">
+                  <div className="flex items-center gap-2 mt-2">
                     <Badge variant={order.is_delivered ? 'default' : 'secondary'}>
                       {order.is_delivered ? 'Delivered' : 'Processing'}
                     </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => deleteOrder(order.id)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
                     {new Date(order.created_at).toLocaleDateString()}

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Package, ArrowLeft, CalendarIcon } from 'lucide-react';
+import { Loader2, Package, ArrowLeft, CalendarIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -127,6 +127,21 @@ const AdminOrders = () => {
       toast.error('Failed to update order');
     } else {
       toast.success('Order marked as delivered');
+      loadOrders();
+      setSelectedOrder(null);
+    }
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', orderId);
+
+    if (error) {
+      toast.error('Failed to delete order');
+    } else {
+      toast.success('Order deleted successfully');
       loadOrders();
       setSelectedOrder(null);
     }
@@ -290,6 +305,14 @@ const AdminOrders = () => {
                   Mark as Delivered
                 </Button>
               )}
+              <Button 
+                onClick={() => deleteOrder(selectedOrder.id)} 
+                variant="destructive" 
+                className="w-full"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Order
+              </Button>
             </div>
           )}
         </DialogContent>
