@@ -23,6 +23,7 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(initialVariants);
   const [selectedImage, setSelectedImage] = useState(initialImage);
   const [quantity, setQuantity] = useState(1);
+  const [quantityInput, setQuantityInput] = useState('1');
   const [shopName, setShopName] = useState('');
   const [shopAddress, setShopAddress] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,8 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
   useEffect(() => {
     setSelectedVariants(initialVariants);
     setSelectedImage(initialImage);
+    setQuantity(1);
+    setQuantityInput('1');
   }, [initialVariants, initialImage]);
 
   useEffect(() => {
@@ -53,6 +56,31 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       setShopAddress(data.shop_address || '');
     }
     setLoadingProfile(false);
+  };
+
+  const handleQuantityChange = (value: string) => {
+    setQuantityInput(value);
+    
+    if (value === '' || value === '0') {
+      setQuantity(0);
+      return;
+    }
+    
+    const num = parseInt(value);
+    if (!isNaN(num) && num > 0) {
+      const clamped = Math.min(maxStock || 999, num);
+      setQuantity(clamped);
+      if (clamped !== num) {
+        setQuantityInput(clamped.toString());
+      }
+    }
+  };
+
+  const handleQuantityBlur = () => {
+    if (quantityInput === '' || quantity === 0) {
+      setQuantity(1);
+      setQuantityInput('1');
+    }
   };
 
   if (!product) return null;
@@ -258,40 +286,33 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                onClick={() => {
+                  const newQty = Math.max(1, quantity - 1);
+                  setQuantity(newQty);
+                  setQuantityInput(newQty.toString());
+                }}
                 disabled={quantity <= 1}
               >
                 <Minus className="w-4 h-4" />
               </Button>
               <Input
                 id="quantity"
-                type="number"
-                min={1}
-                max={maxStock || 999}
-                value={quantity}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === '') {
-                    setQuantity(1);
-                  } else {
-                    const num = parseInt(val);
-                    if (!isNaN(num)) {
-                      setQuantity(Math.max(1, Math.min(maxStock || 999, num)));
-                    }
-                  }
-                }}
-                onBlur={(e) => {
-                  if (e.target.value === '' || parseInt(e.target.value) < 1) {
-                    setQuantity(1);
-                  }
-                }}
+                type="text"
+                value={quantityInput}
+                onChange={(e) => handleQuantityChange(e.target.value)}
+                onBlur={handleQuantityBlur}
                 className="text-center"
+                placeholder="0"
               />
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => setQuantity(prev => Math.min(maxStock || 999, prev + 1))}
+                onClick={() => {
+                  const newQty = Math.min(maxStock || 999, quantity + 1);
+                  setQuantity(newQty);
+                  setQuantityInput(newQty.toString());
+                }}
                 disabled={maxStock !== null && quantity >= maxStock}
               >
                 <Plus className="w-4 h-4" />
