@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Loader2, Plus, Minus } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface BuyNowSheetProps {
   product: DbProduct | null;
@@ -20,6 +21,7 @@ interface BuyNowSheetProps {
 
 const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }: BuyNowSheetProps) => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(initialVariants);
   const [selectedImage, setSelectedImage] = useState(initialImage);
   const [quantity, setQuantity] = useState(1);
@@ -211,6 +213,7 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
           console.error('Stock update error:', stockError);
         } else {
           console.log('Stock updated successfully');
+          queryClient.invalidateQueries({ queryKey: ['products'] });
         }
       }
     }

@@ -13,10 +13,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Checkout = () => {
   const { user } = useAuth();
   const { data: products } = useProducts();
+  const queryClient = useQueryClient();
   const [checkoutItems, setCheckoutItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -255,6 +257,7 @@ const Checkout = () => {
               console.error('Checkout - Stock update error:', stockError);
             } else {
               console.log('Checkout - Stock updated successfully');
+              queryClient.invalidateQueries({ queryKey: ['products'] });
             }
           }
         }
