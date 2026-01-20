@@ -183,12 +183,13 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
     }
 
     setLoading(true);
+    console.log('Placing order with image:', selectedImage);
     const { error } = await supabase.from('orders').insert({
       user_id: user.id,
       product_id: product.id,
       quantity,
       variants: selectedVariants,
-      variant_image: selectedImage,
+      variant_image: selectedImage || product.image,
       shop_name: shopName.trim(),
       shop_address: shopAddress.trim(),
     });
