@@ -101,11 +101,13 @@ const UserOrders = () => {
           {orders.map((order) => (
             <Card key={order.id} className="p-4">
               <div className="flex gap-3">
-                <img
-                  src={order.product.image}
-                  alt={order.product.name}
-                  className="w-20 h-20 object-contain rounded flex-shrink-0"
-                />
+                <div className="w-20 h-20 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: order.variants.Color || '#f3f4f6' }}>
+                  <img
+                    src={order.product.image}
+                    alt={order.product.name}
+                    className="w-16 h-16 object-contain"
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm line-clamp-2">{order.product.name}</h3>
                   <p className="text-xs text-muted-foreground mt-1 truncate">{order.shop_name}</p>

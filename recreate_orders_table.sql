@@ -2,6 +2,12 @@
 SELECT table_name FROM information_schema.tables WHERE table_name = 'orders';
 
 -- Drop and recreate orders table with correct structure
+DROP POLICY IF EXISTS "Users can view their own orders" ON orders;
+DROP POLICY IF EXISTS "Users can insert their own orders" ON orders;
+DROP POLICY IF EXISTS "Users can delete their own orders" ON orders;
+DROP POLICY IF EXISTS "Admins can view all orders" ON orders;
+DROP POLICY IF EXISTS "Admins can update all orders" ON orders;
+DROP POLICY IF EXISTS "Admins can delete all orders" ON orders;
 DROP TABLE IF EXISTS orders CASCADE;
 
 CREATE TABLE orders (
@@ -29,12 +35,20 @@ CREATE POLICY "Users can insert their own orders"
 ON orders FOR INSERT
 WITH CHECK (auth.uid() = user_id);
 
+CREATE POLICY "Users can delete their own orders"
+ON orders FOR DELETE
+USING (auth.uid() = user_id);
+
 CREATE POLICY "Admins can view all orders"
 ON orders FOR SELECT
 USING (public.is_admin_user() = true);
 
 CREATE POLICY "Admins can update all orders"
 ON orders FOR UPDATE
+USING (public.is_admin_user() = true);
+
+CREATE POLICY "Admins can delete all orders"
+ON orders FOR DELETE
 USING (public.is_admin_user() = true);
 
 -- Verify table structure
