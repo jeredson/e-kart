@@ -226,11 +226,35 @@ const Checkout = () => {
     }
 
     try {
+      // Update stock for each item
+      for (const item of checkoutItems) {
+        const product = getProductDetails(item.id);
+        if (product?.variant_stock) {
+          const variantStockKey = Object.entries(item.variants || {})
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(' | ');
+          
+          const variantStock = product.variant_stock as Record<string, number>;
+          const currentStock = variantStock[variantStockKey];
+          
+          if (currentStock !== undefined) {
+            const newStock = Math.max(0, currentStock - item.quantity);
+            const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
+            
+            await supabase
+              .from('products')
+              .update({ variant_stock: updatedVariantStock })
+              .eq('id', item.id);
+          }
+        }
+      }
+
       const orders = checkoutItems.map(item => ({
         user_id: user.id,
         product_id: item.id,
         quantity: item.quantity,
         variants: item.variants || {},
+        variant_image: item.image,
         shop_name: userShopName,
         shop_address: userShopAddress,
         is_delivered: false

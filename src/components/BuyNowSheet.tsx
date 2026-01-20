@@ -171,7 +171,6 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       return;
     }
 
-    // Validate quantity against stock
     if (maxStock !== null && quantity > maxStock) {
       toast.error(`Only ${maxStock} items available in stock for this variant`);
       return;
@@ -183,7 +182,27 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
     }
 
     setLoading(true);
-    console.log('Placing order with image:', selectedImage);
+    
+    // Get variant stock key
+    const variantStockKey = Object.entries(selectedVariants)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(' | ');
+
+    // Update stock
+    const variantStock = product.variant_stock as Record<string, number> | null;
+    if (variantStock && variantStockKey) {
+      const currentStock = variantStock[variantStockKey];
+      if (currentStock !== undefined) {
+        const newStock = Math.max(0, currentStock - quantity);
+        const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
+        
+        await supabase
+          .from('products')
+          .update({ variant_stock: updatedVariantStock })
+          .eq('id', product.id);
+      }
+    }
+
     const { error } = await supabase.from('orders').insert({
       user_id: user.id,
       product_id: product.id,
