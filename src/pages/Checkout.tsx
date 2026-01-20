@@ -236,7 +236,9 @@ const Checkout = () => {
             .map(([key, value]) => `${key}: ${value}`)
             .join(' | ');
           
+          console.log('Checkout - Item variants:', item.variants);
           console.log('Checkout - Variant stock key:', variantStockKey);
+          console.log('Checkout - Available stock keys:', Object.keys(product.variant_stock));
           
           const variantStock = product.variant_stock as Record<string, number>;
           const currentStock = variantStock[variantStockKey];
@@ -247,7 +249,7 @@ const Checkout = () => {
             const newStock = Math.max(0, currentStock - item.quantity);
             const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
             
-            console.log('Checkout - Updating stock to:', newStock);
+            console.log('Checkout - Updating stock from', currentStock, 'to', newStock);
             const { error: stockError } = await supabase
               .from('products')
               .update({ variant_stock: updatedVariantStock })
@@ -259,6 +261,8 @@ const Checkout = () => {
               console.log('Checkout - Stock updated successfully');
               queryClient.invalidateQueries({ queryKey: ['products'] });
             }
+          } else {
+            console.error('Checkout - Stock key not found! Key:', variantStockKey);
           }
         }
       }
