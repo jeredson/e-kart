@@ -158,14 +158,16 @@ const UserOrders = () => {
                     <Badge variant={order.is_delivered ? 'default' : 'secondary'}>
                       {order.is_delivered ? 'Delivered' : 'Processing'}
                     </Badge>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => deleteOrder(order.id)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
+                    {!order.is_delivered && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deleteOrder(order.id)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
                     {new Date(order.created_at).toLocaleDateString()}

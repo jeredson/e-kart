@@ -347,9 +347,10 @@ const AdminOrders = () => {
                 onClick={() => deleteOrder(selectedOrder.id)} 
                 variant="destructive" 
                 className="w-full"
+                disabled={selectedOrder.is_delivered}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete Order
+                {selectedOrder.is_delivered ? 'Cannot Delete Delivered Order' : 'Delete Order'}
               </Button>
             </div>
           )}

@@ -38,15 +38,23 @@ const VariantStockInput = ({ specifications, value, onChange }: VariantStockInpu
     const relevantSpecs = getRelevantSpecs();
     if (relevantSpecs.length === 0) return [];
 
+    // Sort specs by priority: Ram, Color, Storage
+    const sortedSpecs = [...relevantSpecs].sort((a, b) => {
+      const order = ['ram', 'color', 'storage', 'memory'];
+      const indexA = order.findIndex(k => a.key.toLowerCase().includes(k));
+      const indexB = order.findIndex(k => b.key.toLowerCase().includes(k));
+      return indexA - indexB;
+    });
+
     const combinations: string[] = [];
     
     const generateCombos = (index: number, current: string[]) => {
-      if (index === relevantSpecs.length) {
+      if (index === sortedSpecs.length) {
         combinations.push(current.join(' | '));
         return;
       }
       
-      const spec = relevantSpecs[index];
+      const spec = sortedSpecs[index];
       spec.values.forEach(val => {
         generateCombos(index + 1, [...current, `${spec.key}: ${val.value}`]);
       });
