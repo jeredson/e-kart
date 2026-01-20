@@ -415,7 +415,10 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
       <BuyNowSheet
         product={product}
         isOpen={showBuyNowSheet}
-        onClose={() => setShowBuyNowSheet(false)}
+        onClose={() => {
+          setShowBuyNowSheet(false);
+          onClose();
+        }}
         initialVariants={selectedVariants}
         initialImage={selectedImage}
       />
