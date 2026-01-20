@@ -234,17 +234,28 @@ const Checkout = () => {
             .map(([key, value]) => `${key}: ${value}`)
             .join(' | ');
           
+          console.log('Checkout - Variant stock key:', variantStockKey);
+          
           const variantStock = product.variant_stock as Record<string, number>;
           const currentStock = variantStock[variantStockKey];
+          
+          console.log('Checkout - Current stock:', currentStock);
           
           if (currentStock !== undefined) {
             const newStock = Math.max(0, currentStock - item.quantity);
             const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
             
-            await supabase
+            console.log('Checkout - Updating stock to:', newStock);
+            const { error: stockError } = await supabase
               .from('products')
               .update({ variant_stock: updatedVariantStock })
               .eq('id', item.id);
+            
+            if (stockError) {
+              console.error('Checkout - Stock update error:', stockError);
+            } else {
+              console.log('Checkout - Stock updated successfully');
+            }
           }
         }
       }

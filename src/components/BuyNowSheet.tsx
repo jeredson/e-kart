@@ -188,18 +188,30 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       .map(([key, value]) => `${key}: ${value}`)
       .join(' | ');
 
+    console.log('Variant stock key:', variantStockKey);
+
     // Update stock
     const variantStock = product.variant_stock as Record<string, number> | null;
     if (variantStock && variantStockKey) {
+      console.log('Current variant stock:', variantStock);
       const currentStock = variantStock[variantStockKey];
+      console.log('Current stock for variant:', currentStock);
+      
       if (currentStock !== undefined) {
         const newStock = Math.max(0, currentStock - quantity);
         const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
         
-        await supabase
+        console.log('Updating stock to:', newStock);
+        const { error: stockError } = await supabase
           .from('products')
           .update({ variant_stock: updatedVariantStock })
           .eq('id', product.id);
+        
+        if (stockError) {
+          console.error('Stock update error:', stockError);
+        } else {
+          console.log('Stock updated successfully');
+        }
       }
     }
 
