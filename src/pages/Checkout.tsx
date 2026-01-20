@@ -232,7 +232,15 @@ const Checkout = () => {
       for (const item of checkoutItems) {
         const product = getProductDetails(item.id);
         if (product?.variant_stock) {
-          const variantStockKey = Object.entries(item.variants || {})
+          // Sort keys to match database format (Ram, Color, Storage)
+          const sortedEntries = Object.entries(item.variants || {}).sort(([keyA], [keyB]) => {
+            const order = ['Ram', 'RAM', 'Color', 'COLOR', 'Storage', 'STORAGE'];
+            const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
+            const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
+            return indexA - indexB;
+          });
+          
+          const variantStockKey = sortedEntries
             .map(([key, value]) => `${key}: ${value}`)
             .join(' | ');
           

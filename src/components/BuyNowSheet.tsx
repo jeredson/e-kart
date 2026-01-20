@@ -185,8 +185,15 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
 
     setLoading(true);
     
-    // Get variant stock key
-    const variantStockKey = Object.entries(selectedVariants)
+    // Sort keys to match database format (Ram, Color, Storage)
+    const sortedEntries = Object.entries(selectedVariants).sort(([keyA], [keyB]) => {
+      const order = ['Ram', 'RAM', 'Color', 'COLOR', 'Storage', 'STORAGE'];
+      const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
+      const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
+      return indexA - indexB;
+    });
+    
+    const variantStockKey = sortedEntries
       .map(([key, value]) => `${key}: ${value}`)
       .join(' | ');
 

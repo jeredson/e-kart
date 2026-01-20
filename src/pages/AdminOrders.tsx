@@ -136,6 +136,41 @@ const AdminOrders = () => {
   };
 
   const deleteOrder = async (orderId: string) => {
+    if (!selectedOrder) return;
+
+    // Restock the product variant
+    const { data: product } = await supabase
+      .from('products')
+      .select('variant_stock')
+      .eq('id', selectedOrder.product_id)
+      .single();
+
+    if (product?.variant_stock && !selectedOrder.is_delivered) {
+      const sortedEntries = Object.entries(selectedOrder.variants).sort(([keyA], [keyB]) => {
+        const order = ['Ram', 'RAM', 'Color', 'COLOR', 'Storage', 'STORAGE'];
+        const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
+        const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
+        return indexA - indexB;
+      });
+      
+      const variantStockKey = sortedEntries
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(' | ');
+
+      const variantStock = product.variant_stock as Record<string, number>;
+      const currentStock = variantStock[variantStockKey];
+
+      if (currentStock !== undefined) {
+        const newStock = currentStock + selectedOrder.quantity;
+        const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
+
+        await supabase
+          .from('products')
+          .update({ variant_stock: updatedVariantStock })
+          .eq('id', selectedOrder.product_id);
+      }
+    }
+
     const { error } = await supabase
       .from('orders')
       .delete()

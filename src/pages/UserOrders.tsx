@@ -68,6 +68,44 @@ const UserOrders = () => {
   };
 
   const deleteOrder = async (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Restock the product variant if not delivered
+    if (!order.is_delivered) {
+      const { data: product } = await supabase
+        .from('products')
+        .select('variant_stock')
+        .eq('id', order.product_id)
+        .single();
+
+      if (product?.variant_stock) {
+        const sortedEntries = Object.entries(order.variants).sort(([keyA], [keyB]) => {
+          const order = ['Ram', 'RAM', 'Color', 'COLOR', 'Storage', 'STORAGE'];
+          const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
+          const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
+          return indexA - indexB;
+        });
+        
+        const variantStockKey = sortedEntries
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(' | ');
+
+        const variantStock = product.variant_stock as Record<string, number>;
+        const currentStock = variantStock[variantStockKey];
+
+        if (currentStock !== undefined) {
+          const newStock = currentStock + order.quantity;
+          const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
+
+          await supabase
+            .from('products')
+            .update({ variant_stock: updatedVariantStock })
+            .eq('id', order.product_id);
+        }
+      }
+    }
+
     const { error } = await supabase
       .from('orders')
       .delete()
