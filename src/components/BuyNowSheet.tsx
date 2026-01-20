@@ -185,9 +185,9 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
 
     setLoading(true);
     
-    // Sort keys to match database format (Ram, Color, Storage)
+    // Sort keys to match database format (Color, Ram, Storage)
     const sortedEntries = Object.entries(selectedVariants).sort(([keyA], [keyB]) => {
-      const order = ['Ram', 'RAM', 'Color', 'COLOR', 'Storage', 'STORAGE'];
+      const order = ['Color', 'COLOR', 'Ram', 'RAM', 'Storage', 'STORAGE'];
       const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
       const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
       return indexA - indexB;

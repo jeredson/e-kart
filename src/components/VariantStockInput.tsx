@@ -38,9 +38,9 @@ const VariantStockInput = ({ specifications, value, onChange }: VariantStockInpu
     const relevantSpecs = getRelevantSpecs();
     if (relevantSpecs.length === 0) return [];
 
-    // Sort specs by priority: Ram, Color, Storage
+    // Sort specs by priority: Color, Ram, Storage
     const sortedSpecs = [...relevantSpecs].sort((a, b) => {
-      const order = ['ram', 'color', 'storage', 'memory'];
+      const order = ['color', 'ram', 'storage', 'memory'];
       const indexA = order.findIndex(k => a.key.toLowerCase().includes(k));
       const indexB = order.findIndex(k => b.key.toLowerCase().includes(k));
       return indexA - indexB;
@@ -76,7 +76,7 @@ const VariantStockInput = ({ specifications, value, onChange }: VariantStockInpu
       const sortedParts = parts.sort((a, b) => {
         const [keyA] = a.split(': ');
         const [keyB] = b.split(': ');
-        const order = ['ram', 'color', 'storage', 'memory'];
+        const order = ['color', 'ram', 'storage', 'memory'];
         const indexA = order.findIndex(k => keyA.toLowerCase().includes(k));
         const indexB = order.findIndex(k => keyB.toLowerCase().includes(k));
         return indexA - indexB;

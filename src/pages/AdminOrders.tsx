@@ -147,7 +147,7 @@ const AdminOrders = () => {
 
     if (product?.variant_stock && !selectedOrder.is_delivered) {
       const sortedEntries = Object.entries(selectedOrder.variants).sort(([keyA], [keyB]) => {
-        const order = ['Ram', 'RAM', 'Color', 'COLOR', 'Storage', 'STORAGE'];
+        const order = ['Color', 'COLOR', 'Ram', 'RAM', 'Storage', 'STORAGE'];
         const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
         const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
         return indexA - indexB;
