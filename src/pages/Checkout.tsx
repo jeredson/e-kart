@@ -281,6 +281,10 @@ const Checkout = () => {
       await supabase.from('cart_items').delete().eq('user_id', user.id);
 
       toast.success('Order placed successfully!');
+      
+      // Invalidate products cache to refresh stock
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      
       navigate('/orders');
     } catch (error) {
       toast.error('Failed to place order');
