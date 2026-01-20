@@ -188,6 +188,7 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       product_id: product.id,
       quantity,
       variants: selectedVariants,
+      variant_image: selectedImage,
       shop_name: shopName.trim(),
       shop_address: shopAddress.trim(),
     });

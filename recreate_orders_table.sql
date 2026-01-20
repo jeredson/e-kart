@@ -16,6 +16,7 @@ CREATE TABLE orders (
   product_id UUID NOT NULL,
   quantity INTEGER NOT NULL DEFAULT 1,
   variants JSONB DEFAULT '{}',
+  variant_image TEXT,
   shop_name TEXT NOT NULL,
   shop_address TEXT NOT NULL,
   is_delivered BOOLEAN DEFAULT false,

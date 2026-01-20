@@ -18,6 +18,7 @@ interface Order {
   product_id: string;
   quantity: number;
   variants: Record<string, string>;
+  variant_image: string | null;
   shop_name: string;
   shop_address: string;
   is_delivered: boolean;
@@ -222,13 +223,11 @@ const AdminOrders = () => {
             onClick={() => setSelectedOrder(order)}
           >
             <div className="flex gap-3">
-              <div className="w-20 h-20 rounded flex items-center justify-center" style={{ backgroundColor: order.variants.Color || '#f3f4f6' }}>
-                <img
-                  src={order.product.image}
-                  alt={order.product.name}
-                  className="w-16 h-16 object-contain"
-                />
-              </div>
+              <img
+                src={order.variant_image || order.product.image}
+                alt={order.product.name}
+                className="w-20 h-20 object-contain rounded"
+              />
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm line-clamp-2">{order.product.name}</h3>
                 <p className="text-xs text-muted-foreground mt-1">{order.shop_name}</p>
@@ -256,13 +255,11 @@ const AdminOrders = () => {
           {selectedOrder && (
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
-                <div className="w-24 h-24 rounded flex items-center justify-center mx-auto sm:mx-0" style={{ backgroundColor: selectedOrder.variants.Color || '#f3f4f6' }}>
-                  <img
-                    src={selectedOrder.product.image}
-                    alt={selectedOrder.product.name}
-                    className="w-20 h-20 object-contain"
-                  />
-                </div>
+                <img
+                  src={selectedOrder.variant_image || selectedOrder.product.image}
+                  alt={selectedOrder.product.name}
+                  className="w-24 h-24 object-contain rounded mx-auto sm:mx-0"
+                />
                 <div className="flex-1 text-center sm:text-left">
                   <h3 className="font-semibold">{selectedOrder.product.name}</h3>
                   <p className="text-sm text-muted-foreground break-all">{selectedOrder.user_email}</p>
