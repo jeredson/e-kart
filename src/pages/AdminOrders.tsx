@@ -89,6 +89,7 @@ const AdminOrders = () => {
     }
 
     if (data) {
+      console.log('Raw order data:', data[0]);
       // Fetch product details and user emails separately
       const ordersWithDetails = await Promise.all(
         data.map(async (order) => {
@@ -111,6 +112,7 @@ const AdminOrders = () => {
           };
         })
       );
+      console.log('Order with details:', ordersWithDetails[0]);
       setOrders(ordersWithDetails as Order[]);
       const uniqueShops = [...new Set(ordersWithDetails.map(o => o.shop_name))];
       setShops(uniqueShops);
