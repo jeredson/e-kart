@@ -67,43 +67,12 @@ const VariantStockInput = ({ specifications, value, onChange }: VariantStockInpu
   useEffect(() => {
     const combinations = generateVariantCombinations();
     
-    // Normalize and deduplicate combinations
-    const normalizedCombinations = new Map<string, number>();
-    
-    // First, normalize all existing stock entries
-    Object.entries(value).forEach(([key, stock]) => {
-      const parts = key.split(' | ');
-      const sortedParts = parts.sort((a, b) => {
-        const [keyA] = a.split(': ');
-        const [keyB] = b.split(': ');
-        const order = ['color', 'ram', 'storage', 'memory'];
-        const indexA = order.findIndex(k => keyA.toLowerCase().includes(k));
-        const indexB = order.findIndex(k => keyB.toLowerCase().includes(k));
-        return indexA - indexB;
-      });
-      const normalizedKey = sortedParts.join(' | ');
-      
-      // Sum up stock if duplicate keys exist
-      normalizedCombinations.set(normalizedKey, (normalizedCombinations.get(normalizedKey) || 0) + stock);
-    });
-    
-    // Update the value with normalized keys
-    const normalizedValue: Record<string, number> = {};
-    normalizedCombinations.forEach((stock, key) => {
-      normalizedValue[key] = stock;
-    });
-    
-    // Only update if there are changes
-    if (JSON.stringify(normalizedValue) !== JSON.stringify(value)) {
-      onChange(normalizedValue);
-    }
-    
     const newEntries = combinations.map(variant => ({
       variant,
-      stock: normalizedValue[variant] || 0
+      stock: value[variant] || 0
     }));
     setStockEntries(newEntries);
-  }, [specifications]);
+  }, [specifications, value]);
 
   const handleStockChange = (variant: string, stock: number) => {
     const newValue = { ...value };
