@@ -252,7 +252,8 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+      <SheetContent side="right" className="w-[95vw] sm:w-[540px] sm:max-w-[540px] overflow-y-auto p-0">
+        <div className="p-6">
         <SheetHeader>
           <SheetTitle>Buy Now</SheetTitle>
         </SheetHeader>
