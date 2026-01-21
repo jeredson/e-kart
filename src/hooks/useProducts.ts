@@ -31,6 +31,7 @@ export interface DbProduct {
 export interface DbCategory {
   id: string;
   name: string;
+  display_order: number;
   created_at: string;
 }
 
@@ -98,7 +99,7 @@ export const useCategories = () => {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .order('name');
+        .order('display_order');
 
       if (error) throw error;
       return data || [];
@@ -249,6 +250,30 @@ export const useDeleteCategory = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       toast.success('Category deleted successfully!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+};
+
+export const useUpdateCategoryOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (categories: { id: string; display_order: number }[]) => {
+      const updates = categories.map(cat => 
+        supabase
+          .from('categories')
+          .update({ display_order: cat.display_order })
+          .eq('id', cat.id)
+      );
+      
+      await Promise.all(updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Category order updated!');
     },
     onError: (error: Error) => {
       toast.error(error.message);

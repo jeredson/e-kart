@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProducts, useCategories, useCreateProduct, useUpdateProduct, useDeleteProduct, useCreateCategory, useDeleteCategory, useToggleFeatured, DbProduct } from '@/hooks/useProducts';
+import { useProducts, useCategories, useCreateProduct, useUpdateProduct, useDeleteProduct, useCreateCategory, useDeleteCategory, useToggleFeatured, useUpdateCategoryOrder, DbProduct } from '@/hooks/useProducts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Zap, Plus, Pencil, Trash2, ArrowLeft, Loader2, Star } from 'lucide-react';
+import { Zap, Plus, Pencil, Trash2, ArrowLeft, Loader2, Star, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import SpecificationsInput from '@/components/SpecificationsInput';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -40,6 +40,7 @@ const Admin = () => {
   const createCategory = useCreateCategory();
   const deleteCategory = useDeleteCategory();
   const toggleFeatured = useToggleFeatured();
+  const updateCategoryOrder = useUpdateCategoryOrder();
 
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -215,6 +216,22 @@ const Admin = () => {
     if (confirm('Are you sure you want to delete this category? Products in this category will not be deleted.')) {
       await deleteCategory.mutateAsync(id);
     }
+  };
+
+  const moveCategoryUp = (index: number) => {
+    if (index === 0 || !categories) return;
+    const newCategories = [...categories];
+    [newCategories[index - 1], newCategories[index]] = [newCategories[index], newCategories[index - 1]];
+    const updates = newCategories.map((cat, idx) => ({ id: cat.id, display_order: idx }));
+    updateCategoryOrder.mutate(updates);
+  };
+
+  const moveCategoryDown = (index: number) => {
+    if (!categories || index === categories.length - 1) return;
+    const newCategories = [...categories];
+    [newCategories[index], newCategories[index + 1]] = [newCategories[index + 1], newCategories[index]];
+    const updates = newCategories.map((cat, idx) => ({ id: cat.id, display_order: idx }));
+    updateCategoryOrder.mutate(updates);
   };
 
   if (authLoading || productsLoading) {
@@ -472,9 +489,29 @@ const Admin = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {categories?.map((cat) => (
-                  <div key={cat.id} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                    <span className="font-medium">{cat.name}</span>
+                {categories?.map((cat, index) => (
+                  <div key={cat.id} className="flex items-center gap-2 p-3 bg-secondary rounded-lg">
+                    <div className="flex flex-col gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6"
+                        onClick={() => moveCategoryUp(index)}
+                        disabled={index === 0}
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6"
+                        onClick={() => moveCategoryDown(index)}
+                        disabled={index === categories.length - 1}
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <span className="font-medium flex-1">{cat.name}</span>
                     <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteCategory(cat.id)}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
