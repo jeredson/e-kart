@@ -254,11 +254,11 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-[95vw] sm:w-[540px] sm:max-w-[540px] overflow-y-auto p-0">
         <div className="p-6">
-        <SheetHeader>
-          <SheetTitle>Buy Now</SheetTitle>
-        </SheetHeader>
+          <SheetHeader>
+            <SheetTitle>Buy Now</SheetTitle>
+          </SheetHeader>
 
-        <div className="mt-6 space-y-6">
+          <div className="mt-6 space-y-6">
           <div className="flex gap-4">
             <img
               src={selectedImage || product.image || '/placeholder.svg'}
@@ -399,6 +399,7 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
               {!shopName.trim() || !shopAddress.trim() ? 'Update Profile to Continue' : 'Place Order'}
             </Button>
           </div>
+        </div>
         </div>
       </SheetContent>
     </Sheet>
