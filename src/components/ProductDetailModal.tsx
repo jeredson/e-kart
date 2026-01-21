@@ -315,7 +315,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 )}
               </div>
 
-              <p className="text-muted-foreground text-xs sm:text-sm mb-3 line-clamp-3">{product.description}</p>
+              <p className="text-muted-foreground text-xs sm:text-sm mb-3 whitespace-pre-wrap">{product.description}</p>
 
               {orderedSpecs && Object.keys(orderedSpecs).length > 0 && (
                 <div className="mb-3">
