@@ -297,7 +297,7 @@ const Checkout = () => {
       // Invalidate products cache to refresh stock
       queryClient.invalidateQueries({ queryKey: ['products'] });
       
-      navigate('/orders');
+      navigate('/');
     } catch (error) {
       toast.error('Failed to place order');
     }
