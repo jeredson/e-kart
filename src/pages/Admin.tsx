@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProducts, useCategories, useCreateProduct, useUpdateProduct, useDeleteProduct, useCreateCategory, useDeleteCategory, useToggleFeatured, useUpdateCategoryOrder, DbProduct } from '@/hooks/useProducts';
+import { useProducts, useCategories, useCreateProduct, useUpdateProduct, useDeleteProduct, useCreateCategory, useDeleteCategory, useToggleFeatured, useUpdateCategoryOrder, useUpdateProductOrder, DbProduct } from '@/hooks/useProducts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +41,9 @@ const Admin = () => {
   const deleteCategory = useDeleteCategory();
   const toggleFeatured = useToggleFeatured();
   const updateCategoryOrder = useUpdateCategoryOrder();
+  const updateProductOrder = useUpdateProductOrder();
+
+  const [draggedProduct, setDraggedProduct] = useState<string | null>(null);
 
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -232,6 +235,29 @@ const Admin = () => {
     [newCategories[index], newCategories[index + 1]] = [newCategories[index + 1], newCategories[index]];
     const updates = newCategories.map((cat, idx) => ({ id: cat.id, display_order: idx }));
     updateCategoryOrder.mutate(updates);
+  };
+
+  const handleDragStart = (productId: string) => {
+    setDraggedProduct(productId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (targetProductId: string) => {
+    if (!draggedProduct || !products || draggedProduct === targetProductId) return;
+    
+    const draggedIndex = products.findIndex(p => p.id === draggedProduct);
+    const targetIndex = products.findIndex(p => p.id === targetProductId);
+    
+    const newProducts = [...products];
+    const [removed] = newProducts.splice(draggedIndex, 1);
+    newProducts.splice(targetIndex, 0, removed);
+    
+    const updates = newProducts.map((prod, idx) => ({ id: prod.id, display_order: idx }));
+    updateProductOrder.mutate(updates);
+    setDraggedProduct(null);
   };
 
   if (authLoading || productsLoading) {
@@ -437,6 +463,7 @@ const Admin = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12"></TableHead>
                       <TableHead>Image</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Price</TableHead>
@@ -445,7 +472,17 @@ const Admin = () => {
                   </TableHeader>
                   <TableBody>
                     {products?.map((product) => (
-                      <TableRow key={product.id}>
+                      <TableRow 
+                        key={product.id}
+                        draggable
+                        onDragStart={() => handleDragStart(product.id)}
+                        onDragOver={handleDragOver}
+                        onDrop={() => handleDrop(product.id)}
+                        className="cursor-move"
+                      >
+                        <TableCell>
+                          <GripVertical className="w-4 h-4 text-muted-foreground" />
+                        </TableCell>
                         <TableCell>
                           <img
                             src={product.image || '/placeholder.svg'}

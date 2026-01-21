@@ -19,6 +19,7 @@ export interface DbProduct {
   reviews_count: number | null;
   in_stock: boolean | null;
   featured: boolean | null;
+  display_order: number;
   specifications: Json | null;
   variant_pricing: Json | null;
   variant_exceptions: Json | null;
@@ -42,7 +43,7 @@ export const useProducts = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*, category:categories(id, name)')
-        .order('created_at', { ascending: false });
+        .order('display_order', { ascending: true });
 
       if (error) throw error;
       return data || [];
@@ -274,6 +275,30 @@ export const useUpdateCategoryOrder = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       toast.success('Category order updated!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+};
+
+export const useUpdateProductOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (products: { id: string; display_order: number }[]) => {
+      const updates = products.map(prod => 
+        supabase
+          .from('products')
+          .update({ display_order: prod.display_order })
+          .eq('id', prod.id)
+      );
+      
+      await Promise.all(updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Product order updated!');
     },
     onError: (error: Error) => {
       toast.error(error.message);
