@@ -11,6 +11,7 @@ DECLARE
   product_data RECORD;
   variant_text TEXT;
   webhook_url TEXT := 'YOUR_WEBHOOK_URL_HERE'; -- Replace with your webhook URL
+  http_response http_response;
 BEGIN
   -- Fetch product details
   SELECT name, brand, model INTO product_data
@@ -23,7 +24,7 @@ BEGIN
   FROM jsonb_each_text(NEW.variants);
   
   -- Send webhook (async, won't block order creation)
-  PERFORM http_post(
+  SELECT * INTO http_response FROM http_post(
     webhook_url,
     jsonb_build_object(
       'order_id', NEW.id,
@@ -40,6 +41,11 @@ BEGIN
   );
   
   RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log error but don't fail the order
+    RAISE WARNING 'Webhook failed: %', SQLERRM;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 

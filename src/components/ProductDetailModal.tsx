@@ -168,9 +168,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
         keyVariants[type.toLowerCase()] === value
       );
       
-      const hasAllRequiredVariants = Object.keys(selectedVariants).length >= 3;
-      
-      if (allSelectedMatch && hasAllRequiredVariants && Object.keys(selectedVariants).length === Object.keys(keyVariants).length) {
+      if (allSelectedMatch && Object.keys(selectedVariants).length === Object.keys(keyVariants).length) {
         return variantStock[key];
       }
     }
