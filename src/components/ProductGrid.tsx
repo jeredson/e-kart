@@ -24,7 +24,7 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
   const [currentPage, setCurrentPage] = useState(1);
   const isMobile = useIsMobile();
   
-  const PRODUCTS_PER_PAGE = isMobile ? 20 : 10;
+  const PRODUCTS_PER_PAGE = 5;
 
   const maxPrice = Math.max(...(products?.map(p => Number(p.price)) || [100000]));
   const [filters, setFilters] = useState<FilterState>({
