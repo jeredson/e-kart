@@ -44,12 +44,26 @@ const OrdersDrawer = ({ children }: OrdersDrawerProps) => {
     setIsLoading(true);
     const { data } = await supabase
       .from('orders')
-      .select('*, products(name, brand, model, price)')
+      .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (data) {
-      setOrders(data as Order[]);
+      const ordersWithProducts = await Promise.all(
+        data.map(async (order) => {
+          const { data: product } = await supabase
+            .from('products')
+            .select('name, brand, model, price')
+            .eq('id', order.product_id)
+            .single();
+
+          return {
+            ...order,
+            products: product || { name: 'Unknown Product', brand: '', model: '', price: 0 }
+          };
+        })
+      );
+      setOrders(ordersWithProducts as Order[]);
     }
     setIsLoading(false);
   };

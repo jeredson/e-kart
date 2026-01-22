@@ -32,7 +32,7 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="flex flex-col w-full sm:max-w-md pb-24 md:pb-6">
-        <SheetHeader className="flex-row items-center justify-between space-y-0">
+        <SheetHeader className="flex-row items-center justify-between space-y-0 pr-12">
           <SheetTitle className="font-display flex items-center gap-2">
             <ShoppingBag className="w-5 h-5" />
             Your Cart
