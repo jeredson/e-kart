@@ -23,7 +23,7 @@ const MobileBottomNav = () => {
   if (!user) return null;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 pb-safe pointer-events-none">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] pb-safe pointer-events-none">
       <div className="mx-3 mb-3 rounded-2xl bg-background/70 backdrop-blur-2xl border border-white/20 shadow-2xl overflow-hidden pointer-events-auto">
         <div className="flex items-center justify-around px-1 py-2">
           {/* Favorites */}
