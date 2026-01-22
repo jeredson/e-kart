@@ -28,6 +28,14 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const [showBuyNowSheet, setShowBuyNowSheet] = useState(false);
   const [productId, setProductId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      window.dispatchEvent(new Event('productModalOpen'));
+    } else {
+      window.dispatchEvent(new Event('productModalClose'));
+    }
+  }, [isOpen]);
+
   if (!product) return null;
 
   const specs = product.specifications && typeof product.specifications === 'object' && !Array.isArray(product.specifications)

@@ -16,6 +16,7 @@ const MobileBottomNav = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('');
   const [isVisible, setIsVisible] = useState(false);
+  const [hideNav, setHideNav] = useState(false);
 
   useEffect(() => {
     setActiveTab('');
@@ -31,7 +32,18 @@ const MobileBottomNav = () => {
     return () => window.removeEventListener('resize', checkWidth);
   }, []);
 
-  if (!user || !isVisible) return null;
+  useEffect(() => {
+    const handleModalOpen = () => setHideNav(true);
+    const handleModalClose = () => setHideNav(false);
+    window.addEventListener('productModalOpen', handleModalOpen);
+    window.addEventListener('productModalClose', handleModalClose);
+    return () => {
+      window.removeEventListener('productModalOpen', handleModalOpen);
+      window.removeEventListener('productModalClose', handleModalClose);
+    };
+  }, []);
+
+  if (!user || !isVisible || hideNav) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
