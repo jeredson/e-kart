@@ -114,7 +114,7 @@ const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="flex flex-col w-full sm:max-w-md">
+      <SheetContent className="flex flex-col w-full sm:max-w-md pb-24 md:pb-6">
         <SheetHeader>
           <SheetTitle className="font-display flex items-center gap-2">
             <Heart className="w-5 h-5" />

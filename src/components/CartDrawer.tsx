@@ -31,12 +31,27 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="flex flex-col w-full sm:max-w-md">
-        <SheetHeader>
+      <SheetContent className="flex flex-col w-full sm:max-w-md pb-24 md:pb-6">
+        <SheetHeader className="flex-row items-center justify-between space-y-0">
           <SheetTitle className="font-display flex items-center gap-2">
             <ShoppingBag className="w-5 h-5" />
             Your Cart
           </SheetTitle>
+          {items.length > 0 && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearCart}
+                className="h-8 text-xs"
+              >
+                Clear
+              </Button>
+              <Button size="sm" asChild className="h-8 text-xs">
+                <Link to="/checkout" onClick={() => setIsOpen(false)}>Checkout</Link>
+              </Button>
+            </div>
+          )}
         </SheetHeader>
 
         {isLoading ? (
@@ -133,23 +148,13 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
               })}
             </div>
 
-            <div className="border-t border-border pt-4 space-y-4">
+            <div className="border-t border-border pt-4">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-display font-bold text-xl">
                   ₹{totalPrice.toLocaleString()}
                 </span>
               </div>
-              <Button className="w-full shadow-glow" size="lg" asChild>
-                <Link to="/checkout">Checkout</Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full text-muted-foreground"
-                onClick={clearCart}
-              >
-                Clear Cart
-              </Button>
             </div>
           </>
         )}
