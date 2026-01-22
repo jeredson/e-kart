@@ -143,6 +143,7 @@ const FavoritesDrawer = ({ children }: FavoritesDrawerProps) => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
+                  inputMode="none"
                 />
               </div>
             </div>
