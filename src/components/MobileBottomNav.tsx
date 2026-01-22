@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useState, useEffect } from 'react';
 import CartDrawer from './CartDrawer';
 import FavoritesDrawer from './FavoritesDrawer';
+import OrdersDrawer from './OrdersDrawer';
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -16,8 +17,7 @@ const MobileBottomNav = () => {
   const [activeTab, setActiveTab] = useState('');
 
   useEffect(() => {
-    if (location.pathname === '/orders') setActiveTab('orders');
-    else setActiveTab('');
+    setActiveTab('');
   }, [location]);
 
   if (!user) return null;
@@ -99,32 +99,33 @@ const MobileBottomNav = () => {
           </CartDrawer>
 
           {/* Orders */}
-          <Link
-            to="/orders"
-            onClick={() => setActiveTab('orders')}
-            className="relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all duration-300"
-            style={{
-              transform: activeTab === 'orders' ? 'scale(1.05)' : 'scale(1)',
-              background: activeTab === 'orders' ? 'rgba(var(--primary-rgb, 59, 130, 246), 0.15)' : 'transparent',
-            }}
-          >
-            <Package 
-              className="w-5 h-5 transition-all duration-300" 
+          <OrdersDrawer>
+            <button
+              onClick={() => setActiveTab('orders')}
+              className="relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all duration-300"
               style={{
-                color: activeTab === 'orders' ? 'rgb(var(--primary-rgb, 59, 130, 246))' : 'currentColor',
-                strokeWidth: activeTab === 'orders' ? 2.5 : 2,
-              }}
-            />
-            <span 
-              className="text-[10px] font-medium transition-all duration-300"
-              style={{
-                color: activeTab === 'orders' ? 'rgb(var(--primary-rgb, 59, 130, 246))' : 'currentColor',
-                opacity: activeTab === 'orders' ? 1 : 0.7,
+                transform: activeTab === 'orders' ? 'scale(1.05)' : 'scale(1)',
+                background: activeTab === 'orders' ? 'rgba(var(--primary-rgb, 59, 130, 246), 0.15)' : 'transparent',
               }}
             >
-              Orders
-            </span>
-          </Link>
+              <Package 
+                className="w-5 h-5 transition-all duration-300" 
+                style={{
+                  color: activeTab === 'orders' ? 'rgb(var(--primary-rgb, 59, 130, 246))' : 'currentColor',
+                  strokeWidth: activeTab === 'orders' ? 2.5 : 2,
+                }}
+              />
+              <span 
+                className="text-[10px] font-medium transition-all duration-300"
+                style={{
+                  color: activeTab === 'orders' ? 'rgb(var(--primary-rgb, 59, 130, 246))' : 'currentColor',
+                  opacity: activeTab === 'orders' ? 1 : 0.7,
+                }}
+              >
+                Orders
+              </span>
+            </button>
+          </OrdersDrawer>
         </div>
       </div>
     </div>
