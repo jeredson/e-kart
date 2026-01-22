@@ -15,15 +15,26 @@ const MobileBottomNav = () => {
   const { favorites } = useFavorites();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('');
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setActiveTab('');
   }, [location]);
 
-  if (!user) return null;
+  useEffect(() => {
+    // Check if screen width is less than 1024px
+    const checkWidth = () => {
+      setIsVisible(window.innerWidth < 1024);
+    };
+    checkWidth();
+    window.addEventListener('resize', checkWidth);
+    return () => window.removeEventListener('resize', checkWidth);
+  }, []);
+
+  if (!user || !isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] pb-safe pointer-events-none lg:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
       <div className="mx-3 mb-3 rounded-2xl bg-background/70 backdrop-blur-2xl border border-white/20 shadow-2xl overflow-hidden pointer-events-auto">
         <div className="flex items-center justify-around px-1 py-2">
           {/* Favorites */}
