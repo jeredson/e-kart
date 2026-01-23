@@ -1,0 +1,8 @@
+C:\Users\meleeGOD\Pictures\Screenshots\
+
+1. Add the price tag with quantity in the mail id
+2. After the user placed an order through buy now or checkout, Show a 3 secs popup in the center that the orders are placed with a tick animation
+3. When users delete a product from their order management instead of removing the order mark it as canceled and show a mail for this also. The canceled product should be seen in the admin order management page
+4. For users also send a mail regarding order placed and canceled
+5. In order management use a popup to show multiple products bought at a same time in checkout page of a single shop
+6. Change the name Agnes Mobiles - B2B

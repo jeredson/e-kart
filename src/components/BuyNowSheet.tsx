@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Loader2, Plus, Minus } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import OrderSuccessPopup from './OrderSuccessPopup';
 
 interface BuyNowSheetProps {
   product: DbProduct | null;
@@ -30,6 +31,7 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
   const [shopAddress, setShopAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   useEffect(() => {
     setSelectedVariants(initialVariants);
@@ -229,6 +231,7 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       user_id: user.id,
       product_id: product.id,
       quantity,
+      price: currentPrice,
       variants: selectedVariants,
       variant_image: selectedImage || product.image,
       shop_name: shopName.trim(),
@@ -240,9 +243,11 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       toast.error('Failed to place order');
       console.error(error);
     } else {
-      toast.success('Order placed successfully!');
-      onClose();
-      setQuantity(1);
+      setShowSuccessPopup(true);
+      setTimeout(() => {
+        onClose();
+        setQuantity(1);
+      }, 3000);
     }
   };
 
@@ -251,6 +256,7 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
   const variantExceptions = product.variant_exceptions as string[] | null;
 
   return (
+    <>
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-[95vw] sm:w-[540px] sm:max-w-[540px] overflow-y-auto p-0">
         <div className="p-6">
@@ -403,6 +409,8 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
         </div>
       </SheetContent>
     </Sheet>
+    <OrderSuccessPopup isOpen={showSuccessPopup} onClose={() => setShowSuccessPopup(false)} />
+    </>
   );
 };
 

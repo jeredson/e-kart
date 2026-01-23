@@ -45,6 +45,8 @@ serve(async (req) => {
             <li><strong>Model:</strong> ${product?.model || product?.name || 'N/A'}</li>
             <li><strong>Selected Variation:</strong> ${variantText || 'None'}</li>
             <li><strong>Quantity:</strong> ${record.quantity}</li>
+            <li><strong>Price per unit:</strong> ₹${Number(record.price).toLocaleString('en-IN')}</li>
+            <li><strong>Subtotal:</strong> ₹${(record.quantity * record.price).toLocaleString('en-IN')}</li>
           </ul>
           <p><strong>Shop Details:</strong></p>
           <ul>

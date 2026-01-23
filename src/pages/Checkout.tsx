@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import OrderSuccessPopup from '@/components/OrderSuccessPopup';
 
 const Checkout = () => {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ const Checkout = () => {
   const queryClient = useQueryClient();
   const [checkoutItems, setCheckoutItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -275,16 +277,20 @@ const Checkout = () => {
         }
       }
 
-      const orders = checkoutItems.map(item => ({
-        user_id: user.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        variants: item.variants || {},
-        variant_image: item.image,
-        shop_name: userShopName,
-        shop_address: userShopAddress,
-        is_delivered: false
-      }));
+      const orders = checkoutItems.map(item => {
+        const variantPrice = getVariantPrice(item.id, item.variants || {});
+        return {
+          user_id: user.id,
+          product_id: item.id,
+          quantity: item.quantity,
+          price: variantPrice,
+          variants: item.variants || {},
+          variant_image: item.image,
+          shop_name: userShopName,
+          shop_address: userShopAddress,
+          is_delivered: false
+        };
+      });
 
       const { error } = await supabase.from('orders').insert(orders);
 
@@ -292,12 +298,14 @@ const Checkout = () => {
 
       await supabase.from('cart_items').delete().eq('user_id', user.id);
 
-      toast.success('Order placed successfully!');
+      setShowSuccessPopup(true);
       
       // Invalidate products cache to refresh stock
       queryClient.invalidateQueries({ queryKey: ['products'] });
       
-      navigate('/');
+      setTimeout(() => {
+        navigate('/');
+      }, 3000);
     } catch (error) {
       toast.error('Failed to place order');
     }
@@ -334,6 +342,7 @@ const Checkout = () => {
   }
 
   return (
+    <>
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-4 mb-6">
         <Button 
@@ -528,6 +537,8 @@ const Checkout = () => {
         </div>
       </div>
     </div>
+    <OrderSuccessPopup isOpen={showSuccessPopup} onClose={() => setShowSuccessPopup(false)} />
+    </>
   );
 };
 
