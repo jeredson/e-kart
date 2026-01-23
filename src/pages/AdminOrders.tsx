@@ -140,6 +140,8 @@ const AdminOrders = () => {
         }
         return acc;
       }, [] as GroupedOrders[]);
+      // Sort by most recent first
+      grouped.sort((a, b) => new Date(b.orders[0].created_at).getTime() - new Date(a.orders[0].created_at).getTime());
       setGroupedOrders(grouped);
       
       const uniqueShops = [...new Set(ordersWithDetails.map(o => o.shop_name))];
@@ -291,7 +293,7 @@ const AdminOrders = () => {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">{group.date}</h3>
-                <p className="text-xs text-muted-foreground truncate">{group.user_email}</p>
+                <p className="text-xs text-muted-foreground truncate">{group.orders[0].shop_name}</p>
               </div>
             </div>
             <div className="flex items-center justify-between">
