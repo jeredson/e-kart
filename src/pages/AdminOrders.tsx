@@ -63,7 +63,7 @@ const AdminOrders = () => {
     }
     
     if (dateFilter === 'custom' && selectedDate) {
-      const targetDate = selectedDate.toLocaleDateString();
+      const targetDate = `${selectedDate.getDate().toString().padStart(2, '0')}/${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}/${selectedDate.getFullYear()}`;
       filtered = filtered.filter(g => g.date === targetDate);
     } else if (dateFilter !== 'all') {
       const now = new Date();
