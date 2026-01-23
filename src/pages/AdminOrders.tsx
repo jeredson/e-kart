@@ -31,12 +31,21 @@ interface Order {
   user_email: string;
 }
 
+interface GroupedOrders {
+  date: string;
+  user_id: string;
+  user_email: string;
+  orders: Order[];
+  totalItems: number;
+}
+
 const AdminOrders = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [groupedOrders, setGroupedOrders] = useState<GroupedOrders[]>([]);
+  const [filteredGroups, setFilteredGroups] = useState<GroupedOrders[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<GroupedOrders | null>(null);
   const [shopFilter, setShopFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -47,22 +56,20 @@ const AdminOrders = () => {
   }, []);
 
   useEffect(() => {
-    let filtered = orders;
+    let filtered = groupedOrders;
     
     if (shopFilter !== 'all') {
-      filtered = filtered.filter(o => o.shop_name === shopFilter);
+      filtered = filtered.filter(g => g.orders.some(o => o.shop_name === shopFilter));
     }
     
     if (dateFilter === 'custom' && selectedDate) {
-      filtered = filtered.filter(o => {
-        const orderDate = new Date(o.created_at);
-        return orderDate.toDateString() === selectedDate.toDateString();
-      });
+      const targetDate = selectedDate.toLocaleDateString();
+      filtered = filtered.filter(g => g.date === targetDate);
     } else if (dateFilter !== 'all') {
       const now = new Date();
-      filtered = filtered.filter(o => {
-        const orderDate = new Date(o.created_at);
-        const diffDays = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24));
+      filtered = filtered.filter(g => {
+        const groupDate = new Date(g.orders[0].created_at);
+        const diffDays = Math.floor((now.getTime() - groupDate.getTime()) / (1000 * 60 * 60 * 24));
         
         switch(dateFilter) {
           case 'today': return diffDays === 0;
@@ -73,8 +80,8 @@ const AdminOrders = () => {
       });
     }
     
-    setFilteredOrders(filtered);
-  }, [shopFilter, dateFilter, selectedDate, orders]);
+    setFilteredGroups(filtered);
+  }, [shopFilter, dateFilter, selectedDate, groupedOrders]);
 
   const loadOrders = async () => {
     const { data, error } = await supabase
@@ -90,7 +97,6 @@ const AdminOrders = () => {
 
     if (data) {
       console.log('Raw order data:', data[0]);
-      // Fetch product details and user emails separately
       const ordersWithDetails = await Promise.all(
         data.map(async (order) => {
           const { data: product } = await supabase
@@ -114,6 +120,28 @@ const AdminOrders = () => {
       );
       console.log('Order with details:', ordersWithDetails[0]);
       setOrders(ordersWithDetails as Order[]);
+      
+      // Group orders by date and user
+      const grouped = ordersWithDetails.reduce((acc, order) => {
+        const date = new Date(order.created_at).toLocaleDateString();
+        const key = `${date}_${order.user_id}`;
+        const existing = acc.find(g => g.date === date && g.user_id === order.user_id);
+        if (existing) {
+          existing.orders.push(order);
+          existing.totalItems += order.quantity;
+        } else {
+          acc.push({ 
+            date, 
+            user_id: order.user_id,
+            user_email: order.user_email,
+            orders: [order], 
+            totalItems: order.quantity 
+          });
+        }
+        return acc;
+      }, [] as GroupedOrders[]);
+      setGroupedOrders(grouped);
+      
       const uniqueShops = [...new Set(ordersWithDetails.map(o => o.shop_name))];
       setShops(uniqueShops);
     }
@@ -131,22 +159,21 @@ const AdminOrders = () => {
     } else {
       toast.success('Order marked as delivered');
       loadOrders();
-      setSelectedOrder(null);
     }
   };
 
   const deleteOrder = async (orderId: string) => {
-    if (!selectedOrder) return;
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
 
-    // Restock the product variant
     const { data: product } = await supabase
       .from('products')
       .select('variant_stock')
-      .eq('id', selectedOrder.product_id)
+      .eq('id', order.product_id)
       .single();
 
-    if (product?.variant_stock && !selectedOrder.is_delivered) {
-      const sortedEntries = Object.entries(selectedOrder.variants).sort(([keyA], [keyB]) => {
+    if (product?.variant_stock && !order.is_delivered) {
+      const sortedEntries = Object.entries(order.variants).sort(([keyA], [keyB]) => {
         const order = ['Color', 'COLOR', 'Ram', 'RAM', 'Storage', 'STORAGE'];
         const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
         const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
@@ -161,13 +188,13 @@ const AdminOrders = () => {
       const currentStock = variantStock[variantStockKey];
 
       if (currentStock !== undefined) {
-        const newStock = currentStock + selectedOrder.quantity;
+        const newStock = currentStock + order.quantity;
         const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
 
         await supabase
           .from('products')
           .update({ variant_stock: updatedVariantStock })
-          .eq('id', selectedOrder.product_id);
+          .eq('id', order.product_id);
       }
     }
 
@@ -181,7 +208,6 @@ const AdminOrders = () => {
     } else {
       toast.success('Order deleted successfully');
       loadOrders();
-      setSelectedOrder(null);
     }
   };
 
@@ -253,105 +279,100 @@ const AdminOrders = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredOrders.map((order) => (
+        {filteredGroups.map((group, idx) => (
           <Card
-            key={order.id}
+            key={idx}
             className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => setSelectedOrder(order)}
+            onClick={() => setSelectedGroup(group)}
           >
-            <div className="flex gap-3">
-              <img
-                src={order.variant_image || order.product.image}
-                alt={order.product.name}
-                className="w-20 h-20 object-contain rounded"
-              />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm line-clamp-2">{order.product.name}</h3>
-                <p className="text-xs text-muted-foreground mt-1">{order.shop_name}</p>
-                <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
-                <p className="text-sm font-bold mt-1">Qty: {order.quantity}</p>
-                {Object.keys(order.variants).length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {Object.values(order.variants).join(', ')}
-                  </p>
-                )}
-                <Badge className="mt-2" variant={order.is_delivered ? 'default' : 'secondary'}>
-                  {order.is_delivered ? 'Delivered' : 'Pending'}
-                </Badge>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <CalendarIcon className="w-6 h-6 text-primary" />
               </div>
+              <div className="flex-1">
+                <h3 className="font-semibold">{group.date}</h3>
+                <p className="text-xs text-muted-foreground truncate">{group.user_email}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm">{group.totalItems} item{group.totalItems > 1 ? 's' : ''}</span>
+              </div>
+              <Badge variant={group.orders.every(o => o.is_delivered) ? 'default' : 'secondary'}>
+                {group.orders.every(o => o.is_delivered) ? 'Delivered' : 'Pending'}
+              </Badge>
             </div>
           </Card>
         ))}
       </div>
 
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-        <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <Dialog open={!!selectedGroup} onOpenChange={() => setSelectedGroup(null)}>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Order Details</DialogTitle>
+            <DialogTitle>
+              <div>
+                <div>Orders from {selectedGroup?.date}</div>
+                <div className="text-sm font-normal text-muted-foreground">{selectedGroup?.user_email}</div>
+              </div>
+            </DialogTitle>
           </DialogHeader>
-          {selectedOrder && (
+          {selectedGroup && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <img
-                  src={selectedOrder.variant_image || selectedOrder.product.image}
-                  alt={selectedOrder.product.name}
-                  className="w-24 h-24 object-contain rounded mx-auto sm:mx-0"
-                />
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="font-semibold">{selectedOrder.product.name}</h3>
-                  <p className="text-sm text-muted-foreground break-all">{selectedOrder.user_email}</p>
-                  <p className="text-lg font-bold mt-2">
-                    ₹{(selectedOrder.product.price * selectedOrder.quantity).toLocaleString('en-IN')}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div>
-                  <p className="text-sm font-semibold">Quantity</p>
-                  <p className="text-sm">{selectedOrder.quantity}</p>
-                </div>
-                {Object.keys(selectedOrder.variants).length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold">Variants</p>
-                    <p className="text-sm break-words">{Object.entries(selectedOrder.variants).map(([k, v]) => `${k}: ${v}`).join(', ')}</p>
+              {selectedGroup.orders.map((order) => (
+                <Card key={order.id} className="p-4">
+                  <div className="flex gap-3">
+                    <img
+                      src={order.variant_image || order.product.image}
+                      alt={order.product.name}
+                      className="w-20 h-20 object-contain rounded flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm line-clamp-2">{order.product.name}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">{order.shop_name}</p>
+                      <p className="text-xs text-muted-foreground">{order.shop_address}</p>
+                      <p className="text-sm font-bold mt-1">₹{(order.product.price * order.quantity).toLocaleString('en-IN')}</p>
+                      <p className="text-sm mt-1">Qty: {order.quantity}</p>
+                      {Object.keys(order.variants).length > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {Object.entries(order.variants).map(([k, v]) => `${k}: ${v}`).join(', ')}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant={order.is_delivered ? 'default' : 'secondary'}>
+                          {order.is_delivered ? 'Delivered' : 'Pending'}
+                        </Badge>
+                        {!order.is_delivered && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markAsDelivered(order.id);
+                              }}
+                            >
+                              <Package className="w-4 h-4 mr-1" />
+                              Deliver
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteOrder(order.id);
+                              }}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
-                <div>
-                  <p className="text-sm font-semibold">Shop Name</p>
-                  <p className="text-sm break-words">{selectedOrder.shop_name}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">Shop Address</p>
-                  <p className="text-sm break-words">{selectedOrder.shop_address}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">Order Date</p>
-                  <p className="text-sm">{new Date(selectedOrder.created_at).toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">Status</p>
-                  <Badge variant={selectedOrder.is_delivered ? 'default' : 'secondary'}>
-                    {selectedOrder.is_delivered ? 'Delivered' : 'Pending'}
-                  </Badge>
-                </div>
-              </div>
-
-              {!selectedOrder.is_delivered && (
-                <Button onClick={() => markAsDelivered(selectedOrder.id)} className="w-full">
-                  <Package className="w-4 h-4 mr-2" />
-                  Mark as Delivered
-                </Button>
-              )}
-              <Button 
-                onClick={() => deleteOrder(selectedOrder.id)} 
-                variant="destructive" 
-                className="w-full"
-                disabled={selectedOrder.is_delivered}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                {selectedOrder.is_delivered ? 'Cannot Delete Delivered Order' : 'Delete Order'}
-              </Button>
+                </Card>
+              ))}
             </div>
           )}
         </DialogContent>
