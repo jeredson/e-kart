@@ -349,7 +349,7 @@ const Checkout = () => {
 
   return (
     <>
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 pb-32 lg:pb-8">
       <div className="flex items-center gap-4 mb-6">
         <Button 
           variant="ghost" 
@@ -516,7 +516,7 @@ const Checkout = () => {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <Card>
+          <Card className="lg:sticky lg:top-4">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
