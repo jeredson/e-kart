@@ -13,7 +13,7 @@ const OrderSuccessPopup = ({ isOpen, onClose }: OrderSuccessPopupProps) => {
     if (isOpen) {
       setShow(true);
       const isMobile = window.innerWidth < 1024;
-      const duration = isMobile ? 2000 : 3000;
+      const duration = isMobile ? 1000 : 3000;
       const timer = setTimeout(() => {
         setShow(false);
         setTimeout(onClose, 300);

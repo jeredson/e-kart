@@ -306,7 +306,7 @@ const Checkout = () => {
       const isMobile = window.innerWidth < 1024;
       setTimeout(() => {
         navigate('/');
-      }, isMobile ? 2000 : 3000);
+      }, isMobile ? 1000 : 3000);
     } catch (error) {
       toast.error('Failed to place order');
     }

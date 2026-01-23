@@ -248,7 +248,7 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       setTimeout(() => {
         onClose();
         setQuantity(1);
-      }, isMobile ? 2000 : 3000);
+      }, isMobile ? 1000 : 3000);
     }
   };
 
