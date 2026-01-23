@@ -244,10 +244,11 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       console.error(error);
     } else {
       setShowSuccessPopup(true);
+      const isMobile = window.innerWidth < 1024;
       setTimeout(() => {
         onClose();
         setQuantity(1);
-      }, 3000);
+      }, isMobile ? 2000 : 3000);
     }
   };
 

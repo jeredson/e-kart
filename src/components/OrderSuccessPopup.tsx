@@ -12,10 +12,12 @@ const OrderSuccessPopup = ({ isOpen, onClose }: OrderSuccessPopupProps) => {
   useEffect(() => {
     if (isOpen) {
       setShow(true);
+      const isMobile = window.innerWidth < 1024;
+      const duration = isMobile ? 2000 : 3000;
       const timer = setTimeout(() => {
         setShow(false);
         setTimeout(onClose, 300);
-      }, 3000);
+      }, duration);
       return () => clearTimeout(timer);
     }
   }, [isOpen, onClose]);

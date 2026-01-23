@@ -303,9 +303,10 @@ const Checkout = () => {
       // Invalidate products cache to refresh stock
       queryClient.invalidateQueries({ queryKey: ['products'] });
       
+      const isMobile = window.innerWidth < 1024;
       setTimeout(() => {
         navigate('/');
-      }, 3000);
+      }, isMobile ? 2000 : 3000);
     } catch (error) {
       toast.error('Failed to place order');
     }

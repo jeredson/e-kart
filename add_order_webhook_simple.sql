@@ -33,6 +33,8 @@ BEGIN
       'product_name', product_data.name,
       'variants', COALESCE(variant_text, 'None'),
       'quantity', NEW.quantity,
+      'price', COALESCE(NEW.price, 0),
+      'subtotal', COALESCE(NEW.quantity * NEW.price, 0),
       'shop_name', NEW.shop_name,
       'shop_address', NEW.shop_address,
       'created_at', NEW.created_at
