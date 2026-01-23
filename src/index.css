@@ -184,3 +184,14 @@
     transform: scale(1);
   }
 }
+
+/* Calendar today styling - transparent background with border */
+.rdp-day_today:not(.rdp-day_selected) {
+  background-color: transparent !important;
+  border: 2px solid hsl(var(--primary)) !important;
+  font-weight: 600;
+}
+
+.rdp-day_today:not(.rdp-day_selected):hover {
+  background-color: hsl(var(--accent) / 0.1) !important;
+}
