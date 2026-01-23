@@ -292,8 +292,8 @@ const AdminOrders = () => {
                 <CalendarIcon className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold">{group.date}</h3>
-                <p className="text-xs text-muted-foreground truncate">{group.orders[0].shop_name}</p>
+                <h3 className="font-semibold">{group.orders[0].shop_name}</h3>
+                <p className="text-xs text-muted-foreground truncate">{group.date}</p>
               </div>
             </div>
             <div className="flex items-center justify-between">
