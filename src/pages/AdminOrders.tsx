@@ -123,7 +123,8 @@ const AdminOrders = () => {
       
       // Group orders by date and user
       const grouped = ordersWithDetails.reduce((acc, order) => {
-        const date = new Date(order.created_at).toLocaleDateString();
+        const orderDate = new Date(order.created_at);
+        const date = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}/${orderDate.getFullYear()}`;
         const key = `${date}_${order.user_id}`;
         const existing = acc.find(g => g.date === date && g.user_id === order.user_id);
         if (existing) {
