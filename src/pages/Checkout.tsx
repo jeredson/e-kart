@@ -288,9 +288,14 @@ const Checkout = () => {
           variant_image: item.image,
           shop_name: userShopName,
           shop_address: userShopAddress,
-          is_delivered: false
+          is_delivered: false,
+          batch_id: crypto.randomUUID() // Same batch_id for all cart items
         };
       });
+
+      // Use the same batch_id for all orders from this checkout
+      const batchId = crypto.randomUUID();
+      orders.forEach(order => order.batch_id = batchId);
 
       const { error } = await supabase.from('orders').insert(orders);
 

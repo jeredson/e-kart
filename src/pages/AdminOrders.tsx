@@ -376,6 +376,14 @@ const AdminOrders = () => {
                   </div>
                 </Card>
               ))}
+              <div className="border-t pt-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Subtotal:</span>
+                  <span className="text-lg font-bold text-primary">
+                    ₹{selectedGroup.orders.reduce((sum, order) => sum + (order.product.price * order.quantity), 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
