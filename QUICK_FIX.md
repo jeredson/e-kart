@@ -1,68 +1,39 @@
-# Quick Fix - Add Brand & Model Columns
+# Quick Fix for Buy Now Email Issue
 
-## Your Project is Working!
-Your Supabase project exists and has data. You just need to add 2 columns.
+## The Problem
+The `orders` table is missing the `price` and `variant_image` columns that the BuyNowSheet component is trying to insert.
 
-## How to Access Your Project
+## Simple Solution
 
-### Option 1: Check All Your Supabase Accounts
-You might have multiple Supabase accounts. Try logging in with:
-- Your GitHub account
-- Your Google account  
-- Your work email
-- Your personal email
-
-Go to https://supabase.com/dashboard and try each login method.
-
-### Option 2: Use Direct Database Connection
-Since your project is working, run this SQL directly:
-
-1. Try this link (might work): https://supabase.com/dashboard/project/ggqmzavgcmphbqvhzwhu/sql/new
-
-2. If that doesn't work, contact Supabase support with your project ID: **ggqmzavgcmphbqvhzwhu**
-
-## The SQL You Need to Run
-
-Once you access the SQL Editor, run this:
+### Step 1: Run this SQL in Supabase Dashboard
+Go to SQL Editor and run:
 
 ```sql
--- Add brand and model columns
-ALTER TABLE public.products 
-ADD COLUMN IF NOT EXISTS brand TEXT,
-ADD COLUMN IF NOT EXISTS model TEXT;
-
--- Add indexes
-CREATE INDEX IF NOT EXISTS idx_products_brand ON public.products(brand);
-CREATE INDEX IF NOT EXISTS idx_products_price ON public.products(price);
+-- Add missing columns to orders table
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS price NUMERIC NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS variant_image TEXT;
 ```
 
-## Alternative: Use Supabase API (Advanced)
+### Step 2: Set up Database Webhook (Alternative to Trigger)
+1. Go to Supabase Dashboard → Database → Webhooks
+2. Click "Create a new hook"
+3. Configure:
+   - **Name**: `send-order-notification`
+   - **Table**: `orders`
+   - **Events**: Check "Insert"
+   - **Type**: `HTTP Request`
+   - **Method**: `POST`
+   - **URL**: `https://[YOUR-PROJECT-REF].supabase.co/functions/v1/send-order-notification`
+   - **HTTP Headers**:
+     ```
+     Content-Type: application/json
+     Authorization: Bearer [YOUR-SERVICE-ROLE-KEY]
+     ```
 
-If you can't access the dashboard, you can use the API:
+### Step 3: Test
+Place a test order and check your email!
 
-```bash
-# Install Supabase CLI
-npm install -g supabase
-
-# Login
-supabase login
-
-# Link project
-supabase link --project-ref ggqmzavgcmphbqvhzwhu
-
-# Run migration
-supabase db push
-```
-
-## Your Current Data
-Your project has 8 products already:
-- iPhone 15 Pro Max
-- Samsung Galaxy S24 Ultra
-- MacBook Pro 16" M3 Max
-- Dell XPS 15
-- ASUS TUF A15
-- Sony WH-1000XM5
-- Apple AirPods Pro 2
-- Oppo k13
-
-All working fine! Just need to add brand/model columns.
+## Why This Works
+- The webhook automatically calls the email function when a new order is inserted
+- No need for pg_net extension or complex triggers
+- Simpler and more reliable

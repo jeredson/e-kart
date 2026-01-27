@@ -9,7 +9,7 @@ serve(async (req) => {
     
     // Fetch product details
     const productResponse = await fetch(
-      `${Deno.env.get('SUPABASE_URL')}/rest/v1/products?id=eq.${record.product_id}&select=name,brand,model`,
+      `${Deno.env.get('SUPABASE_URL')}/rest/v1/products?id=eq.${record.product_id}&select=name,brand,model,description`,
       {
         headers: {
           'apikey': Deno.env.get('SUPABASE_ANON_KEY')!,
@@ -18,7 +18,7 @@ serve(async (req) => {
       }
     )
     const products = await productResponse.json()
-    const product = products[0]
+    const product = products && products.length > 0 ? products[0] : null
 
     // Format variants
     const variants = record.variants || {}
@@ -36,25 +36,74 @@ serve(async (req) => {
       body: JSON.stringify({
         from: 'E-Kart Orders <orders@yourdomain.com>',
         to: [ADMIN_EMAIL],
-        subject: `New Order: ${product?.brand || 'N/A'} ${product?.model || product?.name || 'Product'}`,
+        subject: `New Order: ${product?.brand || product?.name || 'Product'} ${product?.model || ''}`,
         html: `
-          <h2>New Order Received</h2>
-          <p><strong>Product Details:</strong></p>
-          <ul>
-            <li><strong>Brand:</strong> ${product?.brand || 'N/A'}</li>
-            <li><strong>Model:</strong> ${product?.model || product?.name || 'N/A'}</li>
-            <li><strong>Selected Variation:</strong> ${variantText || 'None'}</li>
-            <li><strong>Quantity:</strong> ${record.quantity}</li>
-            <li><strong>Price per unit:</strong> ₹${Number(record.price).toLocaleString('en-IN')}</li>
-            <li><strong>Subtotal:</strong> ₹${(record.quantity * record.price).toLocaleString('en-IN')}</li>
-          </ul>
-          <p><strong>Shop Details:</strong></p>
-          <ul>
-            <li><strong>Shop Name:</strong> ${record.shop_name}</li>
-            <li><strong>Shop Address:</strong> ${record.shop_address}</li>
-          </ul>
-          <p><strong>Order ID:</strong> ${record.id}</p>
-          <p><strong>Order Date:</strong> ${new Date(record.created_at).toLocaleString()}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">A new order has been received.</h2>
+            
+            <h3 style="color: #666; margin-top: 20px;">PRODUCT DETAILS</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+              ${product ? `
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Product Name:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">${product.name || 'N/A'}</td>
+              </tr>
+              ${product.brand ? `
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Brand:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">${product.brand}</td>
+              </tr>
+              ` : ''}
+              ${product.model ? `
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Model:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">${product.model}</td>
+              </tr>
+              ` : ''}
+              ${product.description ? `
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Description:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">${product.description}</td>
+              </tr>
+              ` : ''}
+              ` : '<tr><td colspan="2" style="padding: 8px; color: #999;">Product details not available</td></tr>'}
+              ${variantText ? `
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Selected Variation:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">${variantText}</td>
+              </tr>
+              ` : ''}
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Quantity:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">${record.quantity}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Price per unit:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">₹${Number(record.price).toLocaleString('en-IN')}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Subtotal:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">₹${(record.quantity * record.price).toLocaleString('en-IN')}</td>
+              </tr>
+            </table>
+            
+            <h3 style="color: #666; margin-top: 20px;">SHOP DETAILS</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Shop Name:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">${record.shop_name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Shop Address:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">${record.shop_address}</td>
+              </tr>
+            </table>
+            
+            <p style="margin-top: 20px; color: #666;">
+              <strong>Batch ID:</strong> ${record.id || 'N/A'}<br>
+              <strong>Order Date:</strong> ${record.created_at || new Date().toISOString()}
+            </p>
+          </div>
         `
       })
     })

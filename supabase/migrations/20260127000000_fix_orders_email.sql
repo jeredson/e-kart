@@ -1,0 +1,4 @@
+-- Add missing columns to orders table
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS price NUMERIC NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS variant_image TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS batch_id UUID;
