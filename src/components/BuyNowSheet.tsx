@@ -236,6 +236,8 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       variant_image: selectedImage || product.image,
       shop_name: shopName.trim(),
       shop_address: shopAddress.trim(),
+      is_delivered: false,
+      batch_id: null,
     });
 
     setLoading(false);
