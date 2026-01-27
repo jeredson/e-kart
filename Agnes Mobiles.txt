@@ -6,3 +6,9 @@ C:\Users\meleeGOD\Pictures\Screenshots\
 4. For users also send a mail regarding order placed and canceled
 5. In order management use a popup to show multiple products bought at a same time in checkout page of a single shop
 6. Change the name Agnes Mobiles - B2B
+7. Order management for admin pop up quick delete
+
+5. For the order management in both user and admin, if the user buys a product in a single day shown them in a single card when clicked shows all the product bought in that day by the single user with all details in the order management.  
+
+6. For mail change the date format to: dd/mm/yyyy
+7. Add the same mail format for buynow also 
