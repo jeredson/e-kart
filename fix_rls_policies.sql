@@ -1,44 +1,42 @@
--- Fix RLS policies for profiles table so admins can see all users
+-- Check current RLS policies on orders table
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+FROM pg_policies
+WHERE tablename = 'orders';
 
--- Drop ALL existing policies
-DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can view their own roles" ON profiles;
-DROP POLICY IF EXISTS "Admins can view all roles" ON profiles;
-DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
-DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
-DROP POLICY IF EXISTS "Admins can update all profiles" ON profiles;
-DROP POLICY IF EXISTS "Admins can delete profiles" ON profiles;
+-- Drop existing policies and recreate them properly
+DROP POLICY IF EXISTS "Users can view their own orders" ON orders;
+DROP POLICY IF EXISTS "Users can insert their own orders" ON orders;
+DROP POLICY IF EXISTS "Admins can view all orders" ON orders;
+DROP POLICY IF EXISTS "Admins can update all orders" ON orders;
 
--- Create new policies for profiles table
-CREATE POLICY "Users can view their own profile"
-ON profiles FOR SELECT
-USING (auth.uid() = id);
+-- Recreate policies with proper permissions
+CREATE POLICY "Users can view their own orders"
+  ON orders FOR SELECT
+  USING (auth.uid() = user_id);
 
-CREATE POLICY "Admins can view all profiles"
-ON profiles FOR SELECT
-USING (is_admin = true AND auth.uid() = id);
+CREATE POLICY "Users can insert their own orders"
+  ON orders FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Admins can update all profiles"
-ON profiles FOR UPDATE
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    WHERE p.id = auth.uid()
-    AND p.is_admin = true
-  )
-);
+CREATE POLICY "Admins can view all orders"
+  ON orders FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.is_admin = true
+    )
+  );
 
-CREATE POLICY "Admins can delete profiles"
-ON profiles FOR DELETE
-USING (
-  EXISTS (
-    SELECT 1 FROM profiles p
-    WHERE p.id = auth.uid()
-    AND p.is_admin = true
-  )
-);
+CREATE POLICY "Admins can update all orders"
+  ON orders FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.is_admin = true
+    )
+  );
 
--- Verify policies
-SELECT schemaname, tablename, policyname FROM pg_policies WHERE tablename = 'profiles';
+-- Verify RLS is enabled
+SELECT tablename, rowsecurity FROM pg_tables WHERE tablename = 'orders';
