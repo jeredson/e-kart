@@ -143,21 +143,28 @@ const UserOrders = () => {
       toast.success('Order canceled successfully');
       
       // Send notification to Zapier
+      console.log('🔔 Sending webhook to Zapier...');
       try {
-        await fetch('https://hooks.zapier.com/hooks/catch/26132431/ulyrew2/', {
+        const webhookData = {
+          order_id: orderId,
+          user_id: user?.id,
+          product_id: order.product_id,
+          quantity: order.quantity,
+          shop_name: order.shop_name,
+          cancelled_at: new Date().toISOString()
+        };
+        console.log('📤 Webhook data:', webhookData);
+        
+        const response = await fetch('https://hooks.zapier.com/hooks/catch/26132431/ulyrew2/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            order_id: orderId,
-            user_id: user?.id,
-            product_id: order.product_id,
-            quantity: order.quantity,
-            shop_name: order.shop_name,
-            cancelled_at: new Date().toISOString()
-          })
+          body: JSON.stringify(webhookData)
         });
+        
+        console.log('✅ Webhook response status:', response.status);
+        console.log('✅ Webhook sent successfully!');
       } catch (webhookError) {
-        console.error('Webhook error:', webhookError);
+        console.error('❌ Webhook error:', webhookError);
         // Don't show error to user - order is still cancelled
       }
       
