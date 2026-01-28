@@ -25,8 +25,8 @@ supabase login
 supabase link --project-ref YOUR_PROJECT_REF
 
 # Set secrets
-supabase secrets set RESEND_API_KEY=your_resend_api_key
-supabase secrets set ADMIN_EMAIL=your@email.com
+supabase secrets set RESEND_API_KEY=re_Q2qtQcKd_4J3HViJzbrbjY8KQaHxQ3ZnY
+supabase secrets set ADMIN_EMAIL=agnesm0bil3s@gmail.com
 
 # Deploy function
 supabase functions deploy send-order-email

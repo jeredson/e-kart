@@ -14,8 +14,8 @@ CREATE EXTENSION IF NOT EXISTS http;
 CREATE OR REPLACE FUNCTION send_order_email()
 RETURNS TRIGGER AS $$
 DECLARE
-  function_url TEXT := 'YOUR_SUPABASE_PROJECT_URL/functions/v1/send-order-email';
-  service_role_key TEXT := 'YOUR_SUPABASE_SERVICE_ROLE_KEY';
+  function_url TEXT := 'https://aqcmmfeimioxvcpwpafr.supabase.co/functions/v1/send-order-email';
+  service_role_key TEXT := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxY21tZmVpbWlveHZjcHdwYWZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODAxODM3OSwiZXhwIjoyMDgzNTk0Mzc5fQ.r-FOYCZy3RPLnCxfP6QOPOxs3eLNvCUsaVmga3dWQqc';
   batch_orders JSONB;
   http_response http_response;
 BEGIN
