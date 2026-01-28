@@ -16,7 +16,7 @@ CREATE EXTENSION IF NOT EXISTS http;
 CREATE OR REPLACE FUNCTION send_batch_webhook()
 RETURNS TRIGGER AS $$
 DECLARE
-  webhook_url TEXT := 'https://hooks.zapier.com/hooks/catch/26132431/uqvi1ip/';
+  webhook_url TEXT := 'https://hooks.zapier.com/hooks/catch/26132431/uqvigh0/';
   products_array JSONB;
   total_amount NUMERIC := 0;
 BEGIN

@@ -5,7 +5,7 @@ BEGIN
   -- Only trigger if is_canceled changed from false to true
   IF NEW.is_canceled = true AND (OLD.is_canceled = false OR OLD.is_canceled IS NULL) THEN
     PERFORM net.http_post(
-      url := 'YOUR_ZAPIER_WEBHOOK_URL', -- Replace with your Zapier webhook URL
+      url := 'https://hooks.zapier.com/hooks/catch/26132431/uqvqkun/', -- Replace with your Zapier webhook URL
       headers := '{"Content-Type": "application/json"}'::jsonb,
       body := json_build_object(
         'order_id', NEW.id,

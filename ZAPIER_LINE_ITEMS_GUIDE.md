@@ -69,7 +69,7 @@ Quantity: [1. Products Quantity] × ₹[1. Products Unit Price] = ₹[1. Product
 
 ---
 
-## Better Method: Use Text Template
+## Better Method: Use Text Template 
 
 ### Step 2 Alternative: Formatter Text
 

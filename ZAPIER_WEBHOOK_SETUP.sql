@@ -23,7 +23,7 @@ BEGIN
     
     -- Call Zapier webhook
     SELECT * FROM extensions.http_post(
-      url := 'YOUR_ZAPIER_WEBHOOK_URL',
+      url := 'https://hooks.zapier.com/hooks/catch/26132431/uqvqkun/',
       body := json_build_object(
         'order_id', NEW.id,
         'user_id', NEW.user_id,

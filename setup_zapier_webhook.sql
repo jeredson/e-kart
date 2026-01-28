@@ -16,7 +16,7 @@ RETURNS TRIGGER AS $$
 DECLARE
   product_data RECORD;
   variant_text TEXT;
-  webhook_url TEXT := 'YOUR_ZAPIER_WEBHOOK_URL'; -- Replace with your Zapier webhook URL
+  webhook_url TEXT := 'https://hooks.zapier.com/hooks/catch/26132431/uqvi1ip/'; -- Replace with your Zapier webhook URL
 BEGIN
   -- Get product details
   SELECT name, brand, model INTO product_data

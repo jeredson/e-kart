@@ -301,40 +301,7 @@ const Checkout = () => {
 
       if (error) throw error;
 
-      // Send order notification to Zapier
-      try {
-        console.log('📧 Sending order notification to Zapier...');
-        const webhookData = {
-          batch_id: batchId,
-          user_id: user.id,
-          shop_name: userShopName,
-          shop_address: userShopAddress,
-          total_items: checkoutItems.length,
-          total_amount: totalPrice,
-          orders: orders.map(o => ({
-            product_id: o.product_id,
-            quantity: o.quantity,
-            price: o.price,
-            variants: o.variants
-          })),
-          ordered_at: new Date().toISOString()
-        };
-        
-        await fetch('https://hooks.zapier.com/hooks/catch/26132431/uqvigh0/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...webhookData,
-            event_type: 'order_placed'
-          })
-        });
-        
-        console.log('✅ Order notification sent to Zapier');
-      } catch (webhookError) {
-        console.error('❌ Webhook error:', webhookError);
-      }
-
-      await supabase.from('cart_items').delete().eq('user_id', user.id);
+await supabase.from('cart_items').delete().eq('user_id', user.id);
 
       setShowSuccessPopup(true);
       

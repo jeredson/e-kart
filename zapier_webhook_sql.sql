@@ -4,9 +4,7 @@
 -- ============================================
 -- STEP 1: Create view with all order data
 -- ============================================
-DROP VIEW IF EXISTS order_email_data CASCADE;
-
-CREATE VIEW order_email_data AS
+CREATE OR REPLACE VIEW order_email_data AS
 SELECT 
     o.id as order_id,
     o.batch_id,
@@ -36,7 +34,7 @@ CREATE OR REPLACE FUNCTION send_single_order_to_zapier()
 RETURNS TRIGGER AS $$
 DECLARE
     order_data json;
-    webhook_url text := 'YOUR_ZAPIER_WEBHOOK_URL_HERE'; -- Replace with your Zapier webhook URL
+    webhook_url text := 'https://hooks.zapier.com/hooks/catch/26132431/uqxjcfi/'; -- Replace with your Zapier webhook URL
 BEGIN
     -- Only process if batch_id is NULL (Buy Now orders)
     IF NEW.batch_id IS NULL THEN
