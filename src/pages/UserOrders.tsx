@@ -141,6 +141,26 @@ const UserOrders = () => {
       toast.error('Failed to cancel order');
     } else {
       toast.success('Order canceled successfully');
+      
+      // Send notification to Zapier
+      try {
+        await fetch('https://hooks.zapier.com/hooks/catch/26132431/uqvqkun/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: orderId,
+            user_id: user?.id,
+            product_id: order.product_id,
+            quantity: order.quantity,
+            shop_name: order.shop_name,
+            cancelled_at: new Date().toISOString()
+          })
+        });
+      } catch (webhookError) {
+        console.error('Webhook error:', webhookError);
+        // Don't show error to user - order is still cancelled
+      }
+      
       loadOrders();
     }
   };
