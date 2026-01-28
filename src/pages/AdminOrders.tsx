@@ -114,6 +114,7 @@ const AdminOrders = () => {
 
           return {
             ...order,
+            is_canceled: order.is_canceled || false,
             product: product || { name: 'Unknown Product', image: '', price: 0 },
             user_email: profile?.email || 'N/A'
           };
@@ -208,6 +209,7 @@ const AdminOrders = () => {
       .eq('id', orderId);
 
     if (error) {
+      console.error('Cancel error:', error);
       toast.error('Failed to cancel order');
     } else {
       toast.success('Order canceled successfully');

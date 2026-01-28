@@ -45,11 +45,17 @@ const OrdersDrawer = ({ children }: OrdersDrawerProps) => {
   const loadOrders = async () => {
     if (!user) return;
     setIsLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('orders')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading orders:', error);
+      setIsLoading(false);
+      return;
+    }
 
     if (data) {
       const ordersWithProducts = await Promise.all(
@@ -62,6 +68,7 @@ const OrdersDrawer = ({ children }: OrdersDrawerProps) => {
 
           return {
             ...order,
+            is_canceled: order.is_canceled || false,
             products: product || { name: 'Unknown Product', brand: '', model: '', price: 0 }
           };
         })
@@ -116,6 +123,7 @@ const OrdersDrawer = ({ children }: OrdersDrawerProps) => {
       .eq('id', orderId);
 
     if (error) {
+      console.error('Cancel error:', error);
       toast.error('Failed to cancel order');
     } else {
       toast.success('Order canceled successfully');
