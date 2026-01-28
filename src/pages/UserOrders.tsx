@@ -16,6 +16,7 @@ interface Order {
   variant_image: string | null;
   shop_name: string;
   is_delivered: boolean;
+  is_canceled: boolean;
   created_at: string;
   product: {
     name: string;
@@ -90,7 +91,7 @@ const UserOrders = () => {
     setLoading(false);
   };
 
-  const deleteOrder = async (orderId: string) => {
+  const cancelOrder = async (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
@@ -131,13 +132,13 @@ const UserOrders = () => {
 
     const { error } = await supabase
       .from('orders')
-      .delete()
+      .update({ is_canceled: true })
       .eq('id', orderId);
 
     if (error) {
-      toast.error('Failed to delete order');
+      toast.error('Failed to cancel order');
     } else {
-      toast.success('Order deleted successfully');
+      toast.success('Order canceled successfully');
       loadOrders();
     }
   };
@@ -215,16 +216,16 @@ const UserOrders = () => {
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge variant={order.is_delivered ? 'default' : 'secondary'}>
-                          {order.is_delivered ? 'Delivered' : 'Processing'}
+                        <Badge variant={order.is_canceled ? 'destructive' : order.is_delivered ? 'default' : 'secondary'}>
+                          {order.is_canceled ? 'Canceled' : order.is_delivered ? 'Delivered' : 'Processing'}
                         </Badge>
-                        {!order.is_delivered && (
+                        {!order.is_delivered && !order.is_canceled && (
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={(e) => {
                               e.stopPropagation();
-                              deleteOrder(order.id);
+                              cancelOrder(order.id);
                             }}
                             className="h-6 w-6 p-0"
                           >

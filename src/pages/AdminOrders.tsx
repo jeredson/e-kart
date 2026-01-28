@@ -22,6 +22,7 @@ interface Order {
   shop_name: string;
   shop_address: string;
   is_delivered: boolean;
+  is_canceled: boolean;
   created_at: string;
   product: {
     name: string;
@@ -203,14 +204,21 @@ const AdminOrders = () => {
 
     const { error } = await supabase
       .from('orders')
-      .delete()
+      .update({ is_canceled: true })
       .eq('id', orderId);
 
     if (error) {
-      toast.error('Failed to delete order');
+      toast.error('Failed to cancel order');
     } else {
-      toast.success('Order deleted successfully');
-      loadOrders();
+      toast.success('Order canceled successfully');
+      // Update local state immediately
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, is_canceled: true } : o));
+      if (selectedGroup) {
+        setSelectedGroup({
+          ...selectedGroup,
+          orders: selectedGroup.orders.map(o => o.id === orderId ? { ...o, is_canceled: true } : o)
+        });
+      }
     }
   };
 
@@ -342,10 +350,10 @@ const AdminOrders = () => {
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge variant={order.is_delivered ? 'default' : 'secondary'}>
-                          {order.is_delivered ? 'Delivered' : 'Pending'}
+                        <Badge variant={order.is_canceled ? 'destructive' : order.is_delivered ? 'default' : 'secondary'}>
+                          {order.is_canceled ? 'Canceled' : order.is_delivered ? 'Delivered' : 'Pending'}
                         </Badge>
-                        {!order.is_delivered && (
+                        {!order.is_delivered && !order.is_canceled && (
                           <>
                             <Button
                               size="sm"
