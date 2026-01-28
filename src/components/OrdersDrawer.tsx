@@ -82,6 +82,8 @@ const OrdersDrawer = ({ children }: OrdersDrawerProps) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
+    console.log('Canceling order:', orderId);
+
     // Restock the product variant if not delivered
     if (!order.is_delivered) {
       const { data: product } = await supabase
@@ -117,15 +119,20 @@ const OrdersDrawer = ({ children }: OrdersDrawerProps) => {
       }
     }
 
-    const { error } = await supabase
+    console.log('Updating order to canceled...');
+    const { data, error } = await supabase
       .from('orders')
       .update({ is_canceled: true })
-      .eq('id', orderId);
+      .eq('id', orderId)
+      .select();
+
+    console.log('Update result:', { data, error });
 
     if (error) {
       console.error('Cancel error:', error);
-      toast.error('Failed to cancel order');
+      toast.error(`Failed to cancel order: ${error.message}`);
     } else {
+      console.log('Order canceled successfully');
       toast.success('Order canceled successfully');
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, is_canceled: true } : o));
     }
