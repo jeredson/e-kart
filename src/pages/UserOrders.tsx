@@ -144,7 +144,7 @@ const UserOrders = () => {
       
       // Send notification to Zapier
       try {
-        await fetch('https://hooks.zapier.com/hooks/catch/26132431/uqvqkun/', {
+        await fetch('https://hooks.zapier.com/hooks/catch/26132431/ulyrew2/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
