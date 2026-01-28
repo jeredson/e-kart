@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
-import { Package, Calendar, MapPin, Trash2 } from 'lucide-react';
+import { Package, Calendar, MapPin, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -205,11 +205,12 @@ const OrdersDrawer = ({ children }: OrdersDrawerProps) => {
                   {!order.is_delivered && !order.is_canceled && (
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => cancelOrder(order.id)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 text-xs"
                     >
-                      <Trash2 className="w-4 h-4 text-destructive" />
+                      <X className="w-3 h-3 mr-1" />
+                      Cancel
                     </Button>
                   )}
                 </div>

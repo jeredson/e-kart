@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Trash2, Package, Calendar } from 'lucide-react';
+import { Loader2, X, Package, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Order {
@@ -222,14 +222,14 @@ const UserOrders = () => {
                         {!order.is_delivered && !order.is_canceled && (
                           <Button
                             size="sm"
-                            variant="ghost"
+                            variant="outline"
                             onClick={(e) => {
                               e.stopPropagation();
                               cancelOrder(order.id);
                             }}
-                            className="h-6 w-6 p-0"
                           >
-                            <Trash2 className="w-4 h-4 text-destructive" />
+                            <X className="w-4 h-4 mr-1" />
+                            Cancel
                           </Button>
                         )}
                       </div>
