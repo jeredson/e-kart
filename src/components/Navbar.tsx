@@ -103,7 +103,7 @@ const Navbar = ({ onSearch }: NavbarProps) => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <img src={branding.logoUrl} alt={branding.siteName} className="w-10 h-10 rounded-xl object-cover" />
-            <span className="font-display font-bold text-xl">Agnes Mobiles</span>
+            <span className="font-display font-bold text-xl">Agnes Mobiles - B2B</span>
           </Link>
 
           {/* Search Bar - Desktop */}
