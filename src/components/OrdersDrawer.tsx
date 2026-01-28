@@ -1,9 +1,11 @@
 import { ReactNode, useState, useEffect } from 'react';
-import { Package, Calendar, MapPin } from 'lucide-react';
+import { Package, Calendar, MapPin, Trash2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface OrdersDrawerProps {
   children: ReactNode;
@@ -18,6 +20,7 @@ interface Order {
   shop_name: string;
   shop_address: string;
   is_delivered: boolean;
+  is_canceled: boolean;
   created_at: string;
   products: {
     name: string;
@@ -66,6 +69,58 @@ const OrdersDrawer = ({ children }: OrdersDrawerProps) => {
       setOrders(ordersWithProducts as Order[]);
     }
     setIsLoading(false);
+  };
+
+  const cancelOrder = async (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Restock the product variant if not delivered
+    if (!order.is_delivered) {
+      const { data: product } = await supabase
+        .from('products')
+        .select('variant_stock')
+        .eq('id', order.product_id)
+        .single();
+
+      if (product?.variant_stock) {
+        const sortedEntries = Object.entries(order.variants).sort(([keyA], [keyB]) => {
+          const order = ['Color', 'COLOR', 'Ram', 'RAM', 'Storage', 'STORAGE'];
+          const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
+          const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
+          return indexA - indexB;
+        });
+        
+        const variantStockKey = sortedEntries
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(' | ');
+
+        const variantStock = product.variant_stock as Record<string, number>;
+        const currentStock = variantStock[variantStockKey];
+
+        if (currentStock !== undefined) {
+          const newStock = currentStock + order.quantity;
+          const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
+
+          await supabase
+            .from('products')
+            .update({ variant_stock: updatedVariantStock })
+            .eq('id', order.product_id);
+        }
+      }
+    }
+
+    const { error } = await supabase
+      .from('orders')
+      .update({ is_canceled: true })
+      .eq('id', orderId);
+
+    if (error) {
+      toast.error('Failed to cancel order');
+    } else {
+      toast.success('Order canceled successfully');
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, is_canceled: true } : o));
+    }
   };
 
   return (
@@ -143,9 +198,21 @@ const OrdersDrawer = ({ children }: OrdersDrawerProps) => {
                   </div>
                 </div>
 
-                <Badge variant={order.is_delivered ? 'default' : 'secondary'} className="text-xs">
-                  {order.is_delivered ? 'Delivered' : 'Pending'}
-                </Badge>
+                <div className="flex items-center justify-between">
+                  <Badge variant={order.is_canceled ? 'destructive' : order.is_delivered ? 'default' : 'secondary'} className="text-xs">
+                    {order.is_canceled ? 'Canceled' : order.is_delivered ? 'Delivered' : 'Pending'}
+                  </Badge>
+                  {!order.is_delivered && !order.is_canceled && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => cancelOrder(order.id)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
