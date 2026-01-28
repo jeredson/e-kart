@@ -1,4 +1,4 @@
-import { Star, ShoppingCart, X, Heart, Zap } from 'lucide-react';
+import { ShoppingCart, X, Heart, Zap } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,6 @@ import { useFavorites } from '@/contexts/FavoritesContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { DbProduct } from '@/hooks/useProducts';
-import ProductReviews from './ProductReviews';
 import SignInDialog from './SignInDialog';
 import BuyNowSheet from './BuyNowSheet';
 import { useState, useEffect } from 'react';
@@ -293,15 +292,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 </Button>
               </h2>
 
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-primary text-primary" />
-                  <span className="font-medium text-sm">{product.rating || 4.5}</span>
-                </div>
-                <span className="text-muted-foreground text-xs">
-                  ({(product.reviews_count || 0).toLocaleString()} reviews)
-                </span>
-              </div>
+
 
               <div className="mb-2">
                 {isVariantAvailable ? (
@@ -386,10 +377,6 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                   </div>
                 </div>
               )}
-
-              <div className="mb-3 border-t border-border pt-3">
-                <ProductReviews productId={product.id} />
-              </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <Button

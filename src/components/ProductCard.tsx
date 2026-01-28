@@ -1,4 +1,4 @@
-import { Star, ShoppingCart, Heart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/contexts/CartContext';
@@ -156,13 +156,6 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
       {/* Content */}
       <div className="p-4 space-y-3">
-        {/* Rating */}
-        <div className="flex items-center gap-1 text-sm">
-          <Star className="w-4 h-4 fill-primary text-primary" />
-          <span className="font-medium">{product.rating || 4.5}</span>
-          <span className="text-muted-foreground">({(product.reviews_count || 0).toLocaleString()})</span>
-        </div>
-
         {/* Name & Description */}
         <div>
           {product.brand && (
