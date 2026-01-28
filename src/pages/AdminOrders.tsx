@@ -214,26 +214,6 @@ const AdminOrders = () => {
     } else {
       toast.success('Order canceled successfully');
       
-      // Send notification to Zapier
-      try {
-        await fetch('https://hooks.zapier.com/hooks/catch/26132431/CANCEL_WEBHOOK_URL/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            order_id: orderId,
-            user_id: order.user_id,
-            product_id: order.product_id,
-            quantity: order.quantity,
-            shop_name: order.shop_name,
-            cancelled_at: new Date().toISOString(),
-            cancelled_by: 'admin',
-            event_type: 'order_cancelled'
-          })
-        });
-      } catch (webhookError) {
-        console.error('Webhook error:', webhookError);
-      }
-      
       // Update local state immediately
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, is_canceled: true } : o));
       if (selectedGroup) {

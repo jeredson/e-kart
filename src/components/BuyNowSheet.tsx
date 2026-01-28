@@ -245,6 +245,31 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       toast.error('Failed to place order');
       console.error(error);
     } else {
+      // Send order notification to Zapier
+      try {
+        await fetch('https://hooks.zapier.com/hooks/catch/26132431/ulyrew2/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: user.id,
+            shop_name: shopName.trim(),
+            shop_address: shopAddress.trim(),
+            total_items: 1,
+            total_amount: currentPrice * quantity,
+            orders: [{
+              product_id: product.id,
+              quantity: quantity,
+              price: currentPrice,
+              variants: selectedVariants
+            }],
+            ordered_at: new Date().toISOString(),
+            event_type: 'order_placed'
+          })
+        });
+      } catch (webhookError) {
+        console.error('Webhook error:', webhookError);
+      }
+      
       setShowSuccessPopup(true);
       const isMobile = window.innerWidth < 1024;
       setTimeout(() => {
