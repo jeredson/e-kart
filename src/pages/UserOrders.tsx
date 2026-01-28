@@ -151,11 +151,12 @@ const UserOrders = () => {
           product_id: order.product_id,
           quantity: order.quantity,
           shop_name: order.shop_name,
-          cancelled_at: new Date().toISOString()
+          cancelled_at: new Date().toISOString(),
+          event_type: 'order_cancelled'
         };
         console.log('📤 Webhook data:', webhookData);
         
-        const response = await fetch('https://hooks.zapier.com/hooks/catch/26132431/ulyrew2/', {
+        const response = await fetch('https://hooks.zapier.com/hooks/catch/26132431/CANCEL_WEBHOOK_URL/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(webhookData)

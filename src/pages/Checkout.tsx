@@ -323,7 +323,10 @@ const Checkout = () => {
         await fetch('https://hooks.zapier.com/hooks/catch/26132431/ulyrew2/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(webhookData)
+          body: JSON.stringify({
+            ...webhookData,
+            event_type: 'order_placed'
+          })
         });
         
         console.log('✅ Order notification sent to Zapier');

@@ -216,7 +216,7 @@ const AdminOrders = () => {
       
       // Send notification to Zapier
       try {
-        await fetch('https://hooks.zapier.com/hooks/catch/26132431/ulyrew2/', {
+        await fetch('https://hooks.zapier.com/hooks/catch/26132431/CANCEL_WEBHOOK_URL/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -226,7 +226,8 @@ const AdminOrders = () => {
             quantity: order.quantity,
             shop_name: order.shop_name,
             cancelled_at: new Date().toISOString(),
-            cancelled_by: 'admin'
+            cancelled_by: 'admin',
+            event_type: 'order_cancelled'
           })
         });
       } catch (webhookError) {
