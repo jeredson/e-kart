@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL')
+const ADDITIONAL_EMAILS = Deno.env.get('ADDITIONAL_EMAILS') || ''
 
 serve(async (req) => {
   try {
@@ -37,8 +38,8 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`
       },
       body: JSON.stringify({
-        from: 'E-Kart Orders <orders@yourdomain.com>',
-        to: [ADMIN_EMAIL],
+        from: 'Agnes Mobiles Order <onboarding@resend.dev>',
+        to: [ADMIN_EMAIL, ...ADDITIONAL_EMAILS.split(',').filter(e => e.trim())],
         subject: `🛒 New Order - ${shop_name}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

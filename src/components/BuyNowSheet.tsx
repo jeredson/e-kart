@@ -175,107 +175,78 @@ const BuyNowSheet = ({ product, isOpen, onClose, initialVariants, initialImage }
       return;
     }
 
-    if (maxStock !== null && quantity > maxStock) {
-      toast.error(`Only ${maxStock} items available in stock for this variant`);
-      return;
-    }
-
     if (quantity < 1) {
       toast.error('Quantity must be at least 1');
       return;
     }
 
+    // Check stock
+    if (maxStock !== null && maxStock === 0) {
+      toast.error('This product is out of stock!');
+      return;
+    }
+
+    if (maxStock !== null && quantity > maxStock) {
+      toast.error(`Only ${maxStock} items available in stock`);
+      return;
+    }
+
     setLoading(true);
+    setShowSuccessPopup(true);
     
-    // Sort keys to match database format (Color, Ram, Storage)
-    const sortedEntries = Object.entries(selectedVariants).sort(([keyA], [keyB]) => {
-      const order = ['Color', 'COLOR', 'Ram', 'RAM', 'Storage', 'STORAGE'];
-      const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
-      const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
-      return indexA - indexB;
-    });
-    
-    const variantStockKey = sortedEntries
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(' | ');
-
-    console.log('Variant stock key:', variantStockKey);
-
-    // Update stock
-    const variantStock = product.variant_stock as Record<string, number> | null;
-    if (variantStock && variantStockKey) {
-      console.log('Current variant stock:', variantStock);
-      const currentStock = variantStock[variantStockKey];
-      console.log('Current stock for variant:', currentStock);
+    try {
+      const sortedEntries = Object.entries(selectedVariants).sort(([keyA], [keyB]) => {
+        const order = ['Color', 'COLOR', 'Ram', 'RAM', 'Storage', 'STORAGE'];
+        const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
+        const indexB = order.findIndex(k => k.toLowerCase() === keyB.toLowerCase());
+        return indexA - indexB;
+      });
       
-      if (currentStock !== undefined) {
-        const newStock = Math.max(0, currentStock - quantity);
-        const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
+      const variantStockKey = sortedEntries
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(' | ');
+
+      const variantStock = product.variant_stock as Record<string, number> | null;
+      if (variantStock && variantStockKey) {
+        const currentStock = variantStock[variantStockKey];
         
-        console.log('Updating stock to:', newStock);
-        const { error: stockError } = await supabase
-          .from('products')
-          .update({ variant_stock: updatedVariantStock })
-          .eq('id', product.id);
-        
-        if (stockError) {
-          console.error('Stock update error:', stockError);
-        } else {
-          console.log('Stock updated successfully');
+        if (currentStock !== undefined) {
+          const newStock = Math.max(0, currentStock - quantity);
+          const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
+          
+          await supabase
+            .from('products')
+            .update({ variant_stock: updatedVariantStock })
+            .eq('id', product.id);
+          
           queryClient.invalidateQueries({ queryKey: ['products'] });
         }
       }
-    }
 
-    const { error } = await supabase.from('orders').insert({
-      user_id: user.id,
-      product_id: product.id,
-      quantity,
-      price: currentPrice,
-      variants: selectedVariants,
-      variant_image: selectedImage || product.image,
-      shop_name: shopName.trim(),
-      shop_address: shopAddress.trim(),
-      is_delivered: false,
-      batch_id: null,
-    });
+      await supabase.from('orders').insert({
+        user_id: user.id,
+        product_id: product.id,
+        quantity,
+        price: currentPrice,
+        variants: selectedVariants,
+        variant_image: selectedImage || product.image,
+        shop_name: shopName.trim(),
+        shop_address: shopAddress.trim(),
+        is_delivered: false,
+        batch_id: null,
+      });
 
-    setLoading(false);
-    if (error) {
-      toast.error('Failed to place order');
-      console.error(error);
-    } else {
-      // Send order notification to Zapier
-      try {
-        await fetch('https://hooks.zapier.com/hooks/catch/26132431/uqvigh0//', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: user.id,
-            shop_name: shopName.trim(),
-            shop_address: shopAddress.trim(),
-            total_items: 1,
-            total_amount: currentPrice * quantity,
-            orders: [{
-              product_id: product.id,
-              quantity: quantity,
-              price: currentPrice,
-              variants: selectedVariants
-            }],
-            ordered_at: new Date().toISOString(),
-            event_type: 'order_placed'
-          })
-        });
-      } catch (webhookError) {
-        console.error('Webhook error:', webhookError);
-      }
-      
-      setShowSuccessPopup(true);
       const isMobile = window.innerWidth < 1024;
       setTimeout(() => {
         onClose();
         setQuantity(1);
       }, isMobile ? 1000 : 3000);
+    } catch (error) {
+      setShowSuccessPopup(false);
+      toast.error('Failed to place order');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 

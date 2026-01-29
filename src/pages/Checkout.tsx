@@ -229,12 +229,27 @@ const Checkout = () => {
       return;
     }
 
+    // Check stock before placing order
+    for (const item of checkoutItems) {
+      const variantStock = getVariantStock(item.id, item.variants || {});
+      if (variantStock !== null && variantStock === 0) {
+        toast.error(`${item.name} is out of stock!`);
+        return;
+      }
+      if (variantStock !== null && item.quantity > variantStock) {
+        toast.error(`Only ${variantStock} units of ${item.name} available!`);
+        return;
+      }
+    }
+
+    // Show success animation immediately
+    setShowSuccessPopup(true);
+
     try {
       // Update stock for each item
       for (const item of checkoutItems) {
         const product = getProductDetails(item.id);
         if (product?.variant_stock) {
-          // Sort keys to match database format (Color, Ram, Storage)
           const sortedEntries = Object.entries(item.variants || {}).sort(([keyA], [keyB]) => {
             const order = ['Color', 'COLOR', 'Ram', 'RAM', 'Storage', 'STORAGE'];
             const indexA = order.findIndex(k => k.toLowerCase() === keyA.toLowerCase());
@@ -246,33 +261,17 @@ const Checkout = () => {
             .map(([key, value]) => `${key}: ${value}`)
             .join(' | ');
           
-          console.log('Checkout - Item variants:', item.variants);
-          console.log('Checkout - Variant stock key:', variantStockKey);
-          console.log('Checkout - Available stock keys:', Object.keys(product.variant_stock));
-          
           const variantStock = product.variant_stock as Record<string, number>;
           const currentStock = variantStock[variantStockKey];
-          
-          console.log('Checkout - Current stock:', currentStock);
           
           if (currentStock !== undefined) {
             const newStock = Math.max(0, currentStock - item.quantity);
             const updatedVariantStock = { ...variantStock, [variantStockKey]: newStock };
             
-            console.log('Checkout - Updating stock from', currentStock, 'to', newStock);
-            const { error: stockError } = await supabase
+            await supabase
               .from('products')
               .update({ variant_stock: updatedVariantStock })
               .eq('id', item.id);
-            
-            if (stockError) {
-              console.error('Checkout - Stock update error:', stockError);
-            } else {
-              console.log('Checkout - Stock updated successfully');
-              queryClient.invalidateQueries({ queryKey: ['products'] });
-            }
-          } else {
-            console.error('Checkout - Stock key not found! Key:', variantStockKey);
           }
         }
       }
@@ -289,23 +288,16 @@ const Checkout = () => {
           shop_name: userShopName,
           shop_address: userShopAddress,
           is_delivered: false,
-          batch_id: crypto.randomUUID() // Same batch_id for all cart items
+          batch_id: crypto.randomUUID()
         };
       });
 
-      // Use the same batch_id for all orders from this checkout
       const batchId = crypto.randomUUID();
       orders.forEach(order => order.batch_id = batchId);
 
-      const { error } = await supabase.from('orders').insert(orders);
-
-      if (error) throw error;
-
-await supabase.from('cart_items').delete().eq('user_id', user.id);
-
-      setShowSuccessPopup(true);
+      await supabase.from('orders').insert(orders);
+      await supabase.from('cart_items').delete().eq('user_id', user.id);
       
-      // Invalidate products cache to refresh stock
       queryClient.invalidateQueries({ queryKey: ['products'] });
       
       const isMobile = window.innerWidth < 1024;
@@ -313,6 +305,7 @@ await supabase.from('cart_items').delete().eq('user_id', user.id);
         navigate('/');
       }, isMobile ? 1000 : 3000);
     } catch (error) {
+      setShowSuccessPopup(false);
       toast.error('Failed to place order');
     }
   };
