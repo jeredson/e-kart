@@ -10,8 +10,8 @@ DROP FUNCTION IF EXISTS send_order_cancel_notification() CASCADE;
 CREATE OR REPLACE FUNCTION send_order_cancel_notification()
 RETURNS TRIGGER AS $$
 DECLARE
-  function_url TEXT := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-order-cancel-notification';
-  service_role_key TEXT := 'YOUR_SERVICE_ROLE_KEY';
+  function_url TEXT := 'https://aqcmmfeimioxvcpwpafr.supabase.co/functions/v1/send-order-cancel-notification';
+  service_role_key TEXT := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxY21tZmVpbWlveHZjcHdwYWZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODAxODM3OSwiZXhwIjoyMDgzNTk0Mzc5fQ.r-FOYCZy3RPLnCxfP6QOPOxs3eLNvCUsaVmga3dWQqc';
 BEGIN
   IF NEW.is_canceled = true AND (OLD.is_canceled = false OR OLD.is_canceled IS NULL) THEN
     PERFORM net.http_post(
