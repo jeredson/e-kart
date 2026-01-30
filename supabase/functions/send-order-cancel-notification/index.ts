@@ -5,6 +5,14 @@ const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL')
 
 serve(async (req) => {
   try {
+    if (!RESEND_API_KEY || !ADMIN_EMAIL) {
+      console.error('Missing RESEND_API_KEY or ADMIN_EMAIL')
+      return new Response(
+        JSON.stringify({ error: 'Missing RESEND_API_KEY or ADMIN_EMAIL in Edge Function secrets' }),
+        { headers: { 'Content-Type': 'application/json' }, status: 500 }
+      )
+    }
+
     const body = await req.json()
     const record = body.record ?? body
 
@@ -49,6 +57,9 @@ serve(async (req) => {
       ? new Date(record.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
       : 'N/A'
 
+    // Use same "from" as working buy email so Resend accepts it (e.g. onboarding@resend.dev)
+    const fromEmail = Deno.env.get('FROM_EMAIL') || 'Agnes Mobiles Order <onboarding@resend.dev>'
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -56,7 +67,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`
       },
       body: JSON.stringify({
-        from: 'E-Kart Orders <orders@yourdomain.com>',
+        from: fromEmail,
         to: [ADMIN_EMAIL],
         subject: `Order canceled: ${productLabel}`,
         html: `
@@ -119,11 +130,19 @@ serve(async (req) => {
     })
 
     const data = await res.json()
+    if (!res.ok) {
+      console.error('Resend API error:', res.status, data)
+      return new Response(JSON.stringify({ error: 'Resend failed', details: data }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 502
+      })
+    }
     return new Response(JSON.stringify(data), {
       headers: { 'Content-Type': 'application/json' },
       status: 200
     })
   } catch (error) {
+    console.error('Cancel notification error:', error)
     return new Response(JSON.stringify({ error: (error as Error).message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 400

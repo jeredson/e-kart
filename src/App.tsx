@@ -7,6 +7,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import { BackNavigationHandler } from "@/components/BackNavigationHandler";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
@@ -28,6 +29,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <BackNavigationHandler />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />

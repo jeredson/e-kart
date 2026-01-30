@@ -117,14 +117,77 @@ Your existing **INSERT** trigger (or Database Webhook for insert) for “buy” 
 3. Cancel that order (mark as canceled).
 4. Check the inbox for **ADMIN_EMAIL**; you should receive a “Order canceled” email with product and order details.
 
-If you don’t get the email:
+If you don’t get the email, see **Troubleshooting** below.
 
-- Check **Edge Functions** → **send-order-cancel-notification** → **Logs** for errors.
-- Confirm `RESEND_API_KEY` and `ADMIN_EMAIL` are set.
-- Confirm the SQL was run and the trigger exists:
-  ```sql
-  SELECT tgname FROM pg_trigger WHERE tgname = 'send_order_cancel_notification_trigger';
-  ```
+---
+
+## Troubleshooting: Cancel email not receiving
+
+### 1. Redeploy the Edge Function (important)
+
+The cancel function was updated to use the **same “from” address** as your working buy email (`Agnes Mobiles Order <onboarding@resend.dev>`). Resend often rejects emails from unverified addresses like `orders@yourdomain.com`. Redeploy so the fix is live:
+
+```bash
+npx supabase functions deploy send-order-cancel-notification
+```
+
+### 2. Check Edge Function logs
+
+1. Supabase Dashboard → **Edge Functions** → **send-order-cancel-notification** → **Logs**.
+2. Cancel an order in the app, then refresh the logs.
+3. Look for:
+   - **No new log entries** → trigger may not be firing or URL/key in the trigger may be wrong (see step 4).
+   - **"Missing RESEND_API_KEY or ADMIN_EMAIL"** → set secrets (Step 2.2).
+   - **"Resend API error"** or **502** → Resend rejected the email (e.g. bad “from”); after redeploy this should be fixed.
+   - **"Missing order record or product_id"** → trigger is firing but payload shape is wrong; ensure you ran `setup_order_cancel_email_trigger.sql` as-is (with your URL and key).
+
+### 3. Confirm the trigger exists
+
+Run in SQL Editor:
+
+```sql
+SELECT tgname, tgenabled
+FROM pg_trigger
+WHERE tgname = 'send_order_cancel_notification_trigger';
+```
+
+- One row with `tgenabled = 'O'` (enabled) → trigger is there.
+- No rows → run `setup_order_cancel_email_trigger.sql` again with your **Project URL** and **service_role** key (Step 3).
+
+### 4. Confirm trigger URL and key
+
+The trigger must call your project’s Edge Function with the correct URL and service role key. In **SQL Editor** run:
+
+```sql
+SELECT prosrc FROM pg_proc WHERE proname = 'send_order_cancel_notification';
+```
+
+Check that the URL is `https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-order-cancel-notification` (with your real project ref) and that the service role key is your project’s **service_role** key from **Project Settings** → **API**. If not, edit the function or re-run `setup_order_cancel_email_trigger.sql` with the correct values.
+
+### 5. Test the Edge Function directly (optional)
+
+To see if the function and Resend work when the trigger is bypassed:
+
+1. Get a real order row that is canceled (e.g. from **Table Editor** → **orders**, or cancel one in the app).
+2. In **Edge Functions** → **send-order-cancel-notification** → **Invoke**, or use curl with the **service_role** key and a body like (replace with real IDs/values):
+
+```json
+{
+  "record": {
+    "id": "order-uuid-here",
+    "product_id": "product-uuid-here",
+    "quantity": 1,
+    "price": 1000,
+    "variants": {},
+    "shop_name": "Test Shop",
+    "shop_address": "Test Address",
+    "is_canceled": true,
+    "created_at": "2025-01-30T12:00:00Z"
+  }
+}
+```
+
+If the email arrives when invoked manually but not when you cancel in the app, the trigger (URL, key, or existence) is the issue.
 
 ---
 
