@@ -1,0 +1,3 @@
+-- Order cancel email notification trigger
+-- Does NOT affect existing "buy" email: that uses INSERT. This uses UPDATE only when is_canceled = true.
+-- Run the version in setup_order_cancel_email_trigger.sql with your URL and service role key filled in.
