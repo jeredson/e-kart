@@ -16,6 +16,16 @@ import AdminOrders from "./pages/AdminOrders";
 import UserOrders from "./pages/UserOrders";
 import Settings from "./pages/Settings";
 import Checkout from "./pages/Checkout";
+import HelpCenter from "./pages/HelpCenter";
+import ShippingInfo from "./pages/ShippingInfo";
+import Returns from "./pages/Returns";
+import TrackOrder from "./pages/TrackOrder";
+import FAQ from "./pages/FAQ";
+import AboutUs from "./pages/AboutUs";
+import Careers from "./pages/Careers";
+import Press from "./pages/Press";
+import Blog from "./pages/Blog";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +49,16 @@ const App = () => (
                 <Route path="/orders" element={<UserOrders />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/help" element={<HelpCenter />} />
+                <Route path="/shipping" element={<ShippingInfo />} />
+                <Route path="/returns" element={<Returns />} />
+                <Route path="/track-order" element={<TrackOrder />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/about" element={<AboutUs />} />
+                <Route path="/careers" element={<Careers />} />
+                <Route path="/press" element={<Press />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MobileBottomNav />

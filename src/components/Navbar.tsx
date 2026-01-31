@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, User, Zap, LogOut, Shield, Settings, Heart, Users, Package } from 'lucide-react';
+import { Search, ShoppingCart, User, LogOut, Shield, Settings, Heart, Users, Package, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -101,10 +101,34 @@ const Navbar = ({ onSearch }: NavbarProps) => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 shrink-0">
             <img src={branding.logoUrl} alt={branding.siteName} className="w-10 h-10 rounded-xl object-cover" />
-            <span className="font-display font-bold text-xl">Agnes Mobiles - B2B</span>
+            <span className="font-display font-bold text-xl hidden sm:inline">Agnes Mobiles - B2B</span>
           </Link>
+
+          {/* Shop - Desktop */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="hidden md:flex items-center gap-1 font-medium">
+                Shop
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem asChild>
+                <Link to="/">All Products</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/?category=Mobiles">Mobiles</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/?category=Headphones">Headphones</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/?category=TWS">TWS</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Search Bar - Desktop */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md mx-8">

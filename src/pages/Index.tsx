@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import FeaturedProductsCarousel from '@/components/FeaturedProductsCarousel';
 import ProductGrid from '@/components/ProductGrid';
 import Footer from '@/components/Footer';
 import { useCart } from '@/contexts/CartContext';
+import { useCategories } from '@/hooks/useProducts';
 
 const Index = () => {
   const [selectedCategories, setSelectedCategories] = useState<string | null>(null);
@@ -12,7 +13,18 @@ const Index = () => {
   const [isLoadingFromCheckout, setIsLoadingFromCheckout] = useState(false);
   const productSectionRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { loadCart } = useCart();
+  const { data: categories } = useCategories();
+
+  // Sync category filter from URL (?category=Mobiles etc.)
+  const categoryParam = searchParams.get('category');
+  useEffect(() => {
+    if (!categoryParam || !categories?.length) return;
+    const name = categoryParam.trim();
+    const match = categories.find((c) => c.name.toLowerCase() === name.toLowerCase());
+    if (match) setSelectedCategories(match.id);
+  }, [categoryParam, categories]);
 
   useEffect(() => {
     // Check if coming from checkout page
