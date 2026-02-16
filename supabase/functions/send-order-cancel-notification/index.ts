@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL')
+const ADMIN_EMAIL_2 = Deno.env.get('ADMIN_EMAIL_2') || ''
 
 serve(async (req) => {
   try {
@@ -68,7 +69,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: [ADMIN_EMAIL],
+        to: [ADMIN_EMAIL, ...ADMIN_EMAIL_2.split(',').filter(e => e.trim())],
         subject: `Order canceled: ${productLabel}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

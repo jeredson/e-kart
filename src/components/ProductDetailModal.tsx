@@ -295,10 +295,14 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
 
               <div className="mb-2">
-                {isVariantAvailable ? (
-                  <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
+                {user ? (
+                  isVariantAvailable ? (
+                    <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
+                  ) : (
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-destructive">Not Available</div>
+                  )
                 ) : (
-                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-destructive">Not Available</div>
+                  <span className="font-display font-bold text-lg sm:text-xl md:text-3xl text-muted-foreground">Sign in to view price</span>
                 )}
               </div>
 

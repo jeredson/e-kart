@@ -140,9 +140,15 @@ const FeaturedProductsCarousel = () => {
                           {/* Pricing */}
                           <div className="space-y-2 md:space-y-3">
                             <div className="flex items-center gap-3 md:gap-4 flex-wrap">
-                              <span className="text-2xl md:text-4xl lg:text-5xl font-bold text-blue-600">
-                                ₹{Number(product.price).toLocaleString('en-IN')}
-                              </span>
+                              {user ? (
+                                <span className="text-2xl md:text-4xl lg:text-5xl font-bold text-blue-600">
+                                  ₹{Number(product.price).toLocaleString('en-IN')}
+                                </span>
+                              ) : (
+                                <span className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-400">
+                                  Sign in to view price
+                                </span>
+                              )}
                             </div>
                           </div>
                           

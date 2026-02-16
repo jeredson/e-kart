@@ -103,3 +103,4 @@ SELECT
     END as status
 FROM pg_trigger 
 WHERE tgname = 'send_order_email_trigger';
+

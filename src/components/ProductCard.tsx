@@ -172,7 +172,11 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         {/* Price */}
         <div className="flex items-center justify-between pt-2">
           <div className="flex flex-col gap-1">
-            <span className="font-display font-bold text-xl">₹{Number(product.price).toLocaleString('en-IN')}</span>
+            {user ? (
+              <span className="font-display font-bold text-xl">₹{Number(product.price).toLocaleString('en-IN')}</span>
+            ) : (
+              <span className="font-display font-bold text-xl text-muted-foreground">Sign in to view price</span>
+            )}
             {!product.in_stock && (
               <span className="text-sm font-medium text-red-600">Out of Stock</span>
             )}

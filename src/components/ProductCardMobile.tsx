@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { DbProduct } from '@/hooks/useProducts';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProductCardMobileProps {
   product: DbProduct;
@@ -7,6 +8,7 @@ interface ProductCardMobileProps {
 }
 
 const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
+  const { user } = useAuth();
   return (
     <div
       className="group relative bg-card rounded-lg overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 cursor-pointer"
@@ -40,7 +42,11 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
 
         {/* Price */}
         <div className="flex flex-col">
-          <span className="font-bold text-base">₹{Number(product.price).toLocaleString('en-IN')}</span>
+          {user ? (
+            <span className="font-bold text-base">₹{Number(product.price).toLocaleString('en-IN')}</span>
+          ) : (
+            <span className="font-bold text-base text-muted-foreground">Sign in</span>
+          )}
           {!product.in_stock && (
             <span className="text-xs font-medium text-red-600">Out of Stock</span>
           )}
