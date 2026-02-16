@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL')
-const ADMIN_EMAIL_2 = Deno.env.get('ADMIN_EMAIL_2') || ''
+const ADDITIONAL_EMAILS = Deno.env.get('ADDITIONAL_EMAILS') || ''
 
 serve(async (req) => {
   try {
@@ -63,8 +63,11 @@ serve(async (req) => {
 
     // Build recipient list
     const recipients = [ADMIN_EMAIL];
-    if (ADMIN_EMAIL_2) {
-      recipients.push(ADMIN_EMAIL_2);
+    if (ADDITIONAL_EMAILS) {
+      ADDITIONAL_EMAILS.split(',').forEach(email => {
+        const trimmed = email.trim();
+        if (trimmed) recipients.push(trimmed);
+      });
     }
 
     const res = await fetch('https://api.resend.com/emails', {
