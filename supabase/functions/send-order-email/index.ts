@@ -31,6 +31,15 @@ serve(async (req) => {
       `
     })
     
+    // Build recipient list
+    const recipients = [ADMIN_EMAIL];
+    if (ADDITIONAL_EMAILS) {
+      ADDITIONAL_EMAILS.split(',').forEach(email => {
+        const trimmed = email.trim();
+        if (trimmed) recipients.push(trimmed);
+      });
+    }
+    
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -39,7 +48,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'Agnes Mobiles Order <onboarding@resend.dev>',
-        to: [ADMIN_EMAIL, ...ADDITIONAL_EMAILS.split(',').filter(e => e.trim())],
+        to: recipients,
         subject: `🛒 New Order - ${shop_name}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

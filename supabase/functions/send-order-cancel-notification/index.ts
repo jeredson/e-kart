@@ -61,6 +61,12 @@ serve(async (req) => {
     // Use same "from" as working buy email so Resend accepts it (e.g. onboarding@resend.dev)
     const fromEmail = Deno.env.get('FROM_EMAIL') || 'Agnes Mobiles Order <onboarding@resend.dev>'
 
+    // Build recipient list
+    const recipients = [ADMIN_EMAIL];
+    if (ADMIN_EMAIL_2) {
+      recipients.push(ADMIN_EMAIL_2);
+    }
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -69,7 +75,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: [ADMIN_EMAIL, ...ADMIN_EMAIL_2.split(',').filter(e => e.trim())],
+        to: recipients,
         subject: `Order canceled: ${productLabel}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
