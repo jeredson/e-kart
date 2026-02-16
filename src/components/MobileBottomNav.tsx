@@ -13,7 +13,7 @@ const MobileBottomNav = () => {
   const location = useLocation();
   const { totalItems } = useCart();
   const { favorites } = useFavorites();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const [hideNav, setHideNav] = useState(false);
@@ -43,7 +43,7 @@ const MobileBottomNav = () => {
     };
   }, []);
 
-  if (!user || !isVisible || hideNav) return null;
+  if (!user || !isVisible || hideNav || isAdmin) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>

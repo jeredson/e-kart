@@ -17,7 +17,7 @@ interface ProductCardProps {
 const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const { addToCart } = useCart();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [showSignInDialog, setShowSignInDialog] = useState(false);
 
   const getDiscountPercentage = () => {
@@ -125,14 +125,16 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
       )}
 
       {/* Favorite Button */}
-      <Button
-        size="icon"
-        variant="secondary"
-        className="absolute top-4 right-4 z-10 h-9 w-9 rounded-full shadow-md"
-        onClick={handleFavoriteClick}
-      >
-        <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
-      </Button>
+      {!isAdmin && (
+        <Button
+          size="icon"
+          variant="secondary"
+          className="absolute top-4 right-4 z-10 h-9 w-9 rounded-full shadow-md"
+          onClick={handleFavoriteClick}
+        >
+          <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+        </Button>
+      )}
 
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-secondary">
@@ -143,7 +145,7 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         />
         
         {/* Quick Add Button */}
-        {product.in_stock && (
+        {!isAdmin && product.in_stock && (
           <Button
             size="icon"
             className="hidden md:flex items-center justify-center absolute bottom-4 right-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-medium"
@@ -170,18 +172,16 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
         </div>
 
         {/* Price */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex flex-col gap-1">
-            {user ? (
+        {user && (
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col gap-1">
               <span className="font-display font-bold text-xl">₹{Number(product.price).toLocaleString('en-IN')}</span>
-            ) : (
-              <span className="font-display font-bold text-xl text-muted-foreground">Sign in to view price</span>
-            )}
-            {!product.in_stock && (
-              <span className="text-sm font-medium text-red-600">Out of Stock</span>
-            )}
+              {!product.in_stock && (
+                <span className="text-sm font-medium text-red-600">Out of Stock</span>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <SignInDialog open={showSignInDialog} onOpenChange={setShowSignInDialog} />

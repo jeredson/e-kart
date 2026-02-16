@@ -41,16 +41,14 @@ const ProductCardMobile = ({ product, onClick }: ProductCardMobileProps) => {
         </h3>
 
         {/* Price */}
-        <div className="flex flex-col">
-          {user ? (
+        {user && (
+          <div className="flex flex-col">
             <span className="font-bold text-base">₹{Number(product.price).toLocaleString('en-IN')}</span>
-          ) : (
-            <span className="font-bold text-base text-muted-foreground">Sign in</span>
-          )}
-          {!product.in_stock && (
-            <span className="text-xs font-medium text-red-600">Out of Stock</span>
-          )}
-        </div>
+            {!product.in_stock && (
+              <span className="text-xs font-medium text-red-600">Out of Stock</span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

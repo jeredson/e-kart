@@ -20,7 +20,7 @@ interface ProductDetailModalProps {
 const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProps) => {
   const { addToCart } = useCart();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [showSignInDialog, setShowSignInDialog] = useState(false);
@@ -257,14 +257,16 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 <Badge className="absolute top-3 left-3 z-10 text-xs">{product.badge}</Badge>
               )}
               {/* Favorite button - Desktop only */}
-              <Button
-                size="icon"
-                variant="secondary"
-                className="hidden md:flex absolute top-3 right-3 z-40 h-9 w-9 rounded-full shadow-md"
-                onClick={handleFavoriteClick}
-              >
-                <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
-              </Button>
+              {!isAdmin && (
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="hidden md:flex absolute top-3 right-3 z-40 h-9 w-9 rounded-full shadow-md"
+                  onClick={handleFavoriteClick}
+                >
+                  <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                </Button>
+              )}
               <img
                 src={selectedImage || product.image || '/placeholder.svg'}
                 alt={product.name}
@@ -282,29 +284,29 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               <h2 className="font-display font-bold text-base sm:text-lg md:text-2xl mb-1 md:mb-2 leading-tight flex items-center justify-between gap-2">
                 <span className="flex-1">{product.name}</span>
                 {/* Favorite button - Mobile only */}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="md:hidden h-8 w-8 flex-shrink-0"
-                  onClick={handleFavoriteClick}
-                >
-                  <Heart className={`w-5 h-5 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
-                </Button>
+                {!isAdmin && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="md:hidden h-8 w-8 flex-shrink-0"
+                    onClick={handleFavoriteClick}
+                  >
+                    <Heart className={`w-5 h-5 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                  </Button>
+                )}
               </h2>
 
 
 
-              <div className="mb-2">
-                {user ? (
-                  isVariantAvailable ? (
+              {user && (
+                <div className="mb-2">
+                  {isVariantAvailable ? (
                     <span className="font-display font-bold text-lg sm:text-xl md:text-3xl">₹{currentPrice.toLocaleString('en-IN')}</span>
                   ) : (
                     <div className="text-lg sm:text-xl md:text-2xl font-bold text-destructive">Not Available</div>
-                  )
-                ) : (
-                  <span className="font-display font-bold text-lg sm:text-xl md:text-3xl text-muted-foreground">Sign in to view price</span>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex items-center gap-2 mb-2">
                 {product.in_stock !== false && isVariantAvailable ? (
@@ -382,27 +384,29 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-9 sm:h-10"
-                  onClick={handleAddToCart}
-                  disabled={product.in_stock === false || !isVariantAvailable}
-                >
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Add to Cart
-                </Button>
-                <Button
-                  size="sm"
-                  className="h-9 sm:h-10"
-                  onClick={handleBuyNow}
-                  disabled={product.in_stock === false || !isVariantAvailable}
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Buy Now
-                </Button>
-              </div>
+              {!isAdmin && (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-9 sm:h-10"
+                    onClick={handleAddToCart}
+                    disabled={product.in_stock === false || !isVariantAvailable}
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Add to Cart
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-9 sm:h-10"
+                    onClick={handleBuyNow}
+                    disabled={product.in_stock === false || !isVariantAvailable}
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Buy Now
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

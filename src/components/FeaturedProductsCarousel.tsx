@@ -12,7 +12,7 @@ import SignInDialog from './SignInDialog';
 const FeaturedProductsCarousel = () => {
   const { data: featuredProducts, isLoading } = useFeaturedProducts();
   const { addToCart } = useCart();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [showSignInDialog, setShowSignInDialog] = useState(false);
@@ -138,37 +138,35 @@ const FeaturedProductsCarousel = () => {
                           )}
                           
                           {/* Pricing */}
-                          <div className="space-y-2 md:space-y-3">
-                            <div className="flex items-center gap-3 md:gap-4 flex-wrap">
-                              {user ? (
+                          {user && (
+                            <div className="space-y-2 md:space-y-3">
+                              <div className="flex items-center gap-3 md:gap-4 flex-wrap">
                                 <span className="text-2xl md:text-4xl lg:text-5xl font-bold text-blue-600">
                                   ₹{Number(product.price).toLocaleString('en-IN')}
                                 </span>
-                              ) : (
-                                <span className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-400">
-                                  Sign in to view price
-                                </span>
-                              )}
+                              </div>
                             </div>
-                          </div>
+                          )}
                           
                           {/* Action Buttons */}
-                          <div className="flex gap-3 md:gap-4 pt-2 md:pt-4">
-                            <Button 
-                              onClick={(e) => handleAddToCart(e, product)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 md:px-8 md:py-3 text-sm md:text-base font-semibold rounded-lg md:rounded-xl shadow-lg"
-                            >
-                              <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-                              Add to Cart
-                            </Button>
-                            <Button 
-                              variant="outline"
-                              onClick={() => setSelectedProduct(product)}
-                              className="border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-4 py-2 md:px-8 md:py-3 text-sm md:text-base font-semibold rounded-lg md:rounded-xl"
-                            >
-                              View
-                            </Button>
-                          </div>
+                          {!isAdmin && (
+                            <div className="flex gap-3 md:gap-4 pt-2 md:pt-4">
+                              <Button 
+                                onClick={(e) => handleAddToCart(e, product)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 md:px-8 md:py-3 text-sm md:text-base font-semibold rounded-lg md:rounded-xl shadow-lg"
+                              >
+                                <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                                Add to Cart
+                              </Button>
+                              <Button 
+                                variant="outline"
+                                onClick={() => setSelectedProduct(product)}
+                                className="border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-4 py-2 md:px-8 md:py-3 text-sm md:text-base font-semibold rounded-lg md:rounded-xl"
+                              >
+                                View
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                       

@@ -221,28 +221,32 @@ const Navbar = ({ onSearch }: NavbarProps) => {
             </Sheet>
 
             {/* Favorites */}
-            <FavoritesDrawer>
-              <Button variant="ghost" size="icon" className="relative hidden md:flex" data-favorites-trigger>
-                <Heart className="w-5 h-5" />
-                {favorites.length > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {favorites.length}
-                  </Badge>
-                )}
-              </Button>
-            </FavoritesDrawer>
+            {!isAdmin && (
+              <FavoritesDrawer>
+                <Button variant="ghost" size="icon" className="relative hidden md:flex" data-favorites-trigger>
+                  <Heart className="w-5 h-5" />
+                  {favorites.length > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                      {favorites.length}
+                    </Badge>
+                  )}
+                </Button>
+              </FavoritesDrawer>
+            )}
 
             {/* Cart */}
-            <CartDrawer>
-              <Button variant="ghost" size="icon" className="relative hidden md:flex" data-cart-trigger>
-                <ShoppingCart className="w-5 h-5" />
-                {totalItems > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {totalItems}
-                  </Badge>
-                )}
-              </Button>
-            </CartDrawer>
+            {!isAdmin && (
+              <CartDrawer>
+                <Button variant="ghost" size="icon" className="relative hidden md:flex" data-cart-trigger>
+                  <ShoppingCart className="w-5 h-5" />
+                  {totalItems > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                      {totalItems}
+                    </Badge>
+                  )}
+                </Button>
+              </CartDrawer>
+            )}
 
             {/* Admin Buttons */}
             {isAdmin && (
