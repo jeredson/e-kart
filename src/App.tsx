@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
 import AdminOrders from "./pages/AdminOrders";
+import AdminBrands from "./pages/AdminBrands";
 import UserOrders from "./pages/UserOrders";
 import Settings from "./pages/Settings";
 import Checkout from "./pages/Checkout";
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/admin/brands" element={<AdminBrands />} />
                 <Route path="/orders" element={<UserOrders />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/checkout" element={<Checkout />} />

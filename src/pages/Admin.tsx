@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProducts, useCategories, useCreateProduct, useUpdateProduct, useDeleteProduct, useCreateCategory, useDeleteCategory, useToggleFeatured, useUpdateCategoryOrder, useUpdateProductOrder, DbProduct } from '@/hooks/useProducts';
+import { useBrands } from '@/hooks/useBrands';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +12,8 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Zap, Plus, Pencil, Trash2, ArrowLeft, Loader2, Star, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Zap, Plus, Pencil, Trash2, ArrowLeft, Loader2, Star, GripVertical, ChevronUp, ChevronDown, Package, Tag, Users, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import SpecificationsInput from '@/components/SpecificationsInput';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -34,6 +36,7 @@ const Admin = () => {
   const navigate = useNavigate();
   const { data: products, isLoading: productsLoading } = useProducts();
   const { data: categories } = useCategories();
+  const { data: brands } = useBrands();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
@@ -289,7 +292,28 @@ const Admin = () => {
       </header>
 
       <main className="container mx-auto px-4 lg:px-8 py-8">
-        <div className="flex flex-wrap gap-4 mb-8">
+        <Tabs defaultValue="products" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="products" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Products
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="flex items-center gap-2">
+              <Tag className="w-4 h-4" />
+              Categories
+            </TabsTrigger>
+            <TabsTrigger value="brands" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Brands
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2" onClick={() => navigate('/admin/users')}>
+              <Users className="w-4 h-4" />
+              Users
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="products" className="mt-6">
+            <div className="flex flex-wrap gap-4 mb-8">
           <Dialog open={isProductDialogOpen} onOpenChange={(open) => {
             setIsProductDialogOpen(open);
             if (!open) resetForm();

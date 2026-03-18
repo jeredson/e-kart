@@ -14,9 +14,10 @@ interface ProductGridProps {
   selectedCategories: string | null;
   searchQuery: string;
   onCategoryChange: (category: string | null) => void;
+  selectedBrand?: string | null;
 }
 
-const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: ProductGridProps) => {
+const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange, selectedBrand }: ProductGridProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const { data: products, isLoading } = useProducts();
   const [selectedProduct, setSelectedProduct] = useState<DbProduct | null>(null);
@@ -47,6 +48,7 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
 
   const filteredProducts = products?.filter((product) => {
     const matchesCategory = selectedCategories === null || selectedCategories === product.category_id;
+    const matchesBrand = selectedBrand === null || selectedBrand === undefined || product.brand === selectedBrand;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
                           (product.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
@@ -147,7 +149,7 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange }: Prod
       return false;
     });
 
-    return matchesCategory && matchesSearch && matchesPrice && matchesBrand && matchesSpecs;
+    return matchesCategory && matchesBrand && matchesSearch && matchesPrice && matchesBrand && matchesSpecs;
   }) || [];
 
   // Pagination logic

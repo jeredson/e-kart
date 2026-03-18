@@ -69,14 +69,8 @@ const Auth = () => {
 
       setIsLoading(false);
 
-      // Check if any required field is missing
-      if (!profile || !profile.first_name || !profile.last_name || !profile.shop_name || !profile.shop_address) {
-        toast.success('Please complete your profile');
-        navigate('/settings');
-      } else {
-        toast.success('Welcome back!');
-        navigate('/');
-      }
+      toast.success('Welcome back!');
+      navigate('/');
     } else {
       setIsLoading(false);
     }
