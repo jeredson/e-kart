@@ -48,7 +48,7 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange, select
 
   const filteredProducts = products?.filter((product) => {
     const matchesCategory = selectedCategories === null || selectedCategories === product.category_id;
-    const matchesBrand = selectedBrand === null || selectedBrand === undefined || product.brand === selectedBrand;
+    const matchesSelectedBrand = selectedBrand === null || selectedBrand === undefined || product.brand === selectedBrand;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
                           (product.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
@@ -58,8 +58,8 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange, select
     const price = Number(product.price);
     const matchesPrice = price >= filters.priceRange[0] && price <= filters.priceRange[1];
 
-    // Brand filter
-    const matchesBrand = filters.brands.length === 0 || (product.brand && filters.brands.includes(product.brand));
+    // Brand filter from FilterPanel
+    const matchesFilterBrand = filters.brands.length === 0 || (product.brand && filters.brands.includes(product.brand));
 
     // Dynamic specification filters
     const specs = product.specifications as Record<string, any> | null;
@@ -149,7 +149,7 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange, select
       return false;
     });
 
-    return matchesCategory && matchesBrand && matchesSearch && matchesPrice && matchesSpecs;
+    return matchesCategory && matchesSelectedBrand && matchesSearch && matchesPrice && matchesFilterBrand && matchesSpecs;
   }) || [];
 
   // Pagination logic
