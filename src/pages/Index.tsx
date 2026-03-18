@@ -39,8 +39,8 @@ const Index = () => {
     productSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleBrandSelect = (brandId: string, brandName: string) => {
-    setSelectedBrand(brandId);
+  const handleBrandSelect = (brandName: string) => {
+    setSelectedBrand(brandName);
     scrollToProducts();
   };
 

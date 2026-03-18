@@ -4,16 +4,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 
 interface BrandGridProps {
-  onBrandSelect?: (brandId: string, brandName: string) => void;
+  onBrandSelect?: (brandName: string) => void;
 }
 
 const BrandGrid = ({ onBrandSelect }: BrandGridProps) => {
   const { data: brands, isLoading } = useBrands();
   const navigate = useNavigate();
 
-  const handleBrandClick = (brandId: string, brandName: string) => {
+  const handleBrandClick = (brandName: string) => {
     if (onBrandSelect) {
-      onBrandSelect(brandId, brandName);
+      onBrandSelect(brandName);
     } else {
       navigate(`/?brand=${encodeURIComponent(brandName)}`);
     }
@@ -62,7 +62,7 @@ const BrandGrid = ({ onBrandSelect }: BrandGridProps) => {
           <Card 
             key={brand.id} 
             className="aspect-square cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-            onClick={() => handleBrandClick(brand.id, brand.name)}
+            onClick={() => handleBrandClick(brand.name)}
           >
             <CardContent className="p-4 flex flex-col items-center justify-center h-full">
               <div className="w-16 h-16 mb-3 flex items-center justify-center">
