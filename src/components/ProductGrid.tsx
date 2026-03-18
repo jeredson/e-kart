@@ -23,7 +23,9 @@ const ProductGrid = ({ searchQuery, selectedBrand }: ProductGridProps) => {
   const PRODUCTS_PER_PAGE = isMobile ? 10 : 15; // Mobile: 2x5, Desktop: 3x5
 
   const filteredProducts = products?.filter((product) => {
-    const matchesSelectedBrand = selectedBrand === null || selectedBrand === undefined || product.brand === selectedBrand;
+    // Match by brand name (case-insensitive) instead of brand_id
+    const matchesSelectedBrand = selectedBrand === null || selectedBrand === undefined || 
+      product.brand?.toLowerCase() === selectedBrand.toLowerCase();
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
                           (product.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
@@ -64,7 +66,9 @@ const ProductGrid = ({ searchQuery, selectedBrand }: ProductGridProps) => {
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="font-display text-3xl font-bold">Our Products</h2>
+            <h2 className="font-display text-3xl font-bold">
+              {selectedBrand ? `${selectedBrand} Products` : 'Our Products'}
+            </h2>
             <p className="text-muted-foreground mt-1">
               {filteredProducts.length} products found
             </p>
