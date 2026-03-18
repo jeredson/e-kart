@@ -149,7 +149,7 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange, select
       return false;
     });
 
-    return matchesCategory && matchesBrand && matchesSearch && matchesPrice && matchesBrand && matchesSpecs;
+    return matchesCategory && matchesBrand && matchesSearch && matchesPrice && matchesSpecs;
   }) || [];
 
   // Pagination logic

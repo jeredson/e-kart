@@ -585,6 +585,27 @@ const Admin = () => {
             </CardContent>
           </Card>
         </div>
+          </TabsContent>
+
+          <TabsContent value="categories" className="mt-6">
+            <div className="text-center py-12">
+              <Tag className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">Categories Management</h3>
+              <p className="text-muted-foreground">Manage categories from the Products tab</p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="brands" className="mt-6">
+            <div className="text-center py-12">
+              <Star className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">Brands Management</h3>
+              <p className="text-muted-foreground mb-4">Manage your product brands</p>
+              <Button onClick={() => navigate('/admin/brands')}>
+                Go to Brand Management
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
