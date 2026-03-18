@@ -3,21 +3,16 @@ import { useProducts, DbProduct } from '@/hooks/useProducts';
 import ProductCard from './ProductCard';
 import ProductCardMobile from './ProductCardMobile';
 import ProductDetailModal from './ProductDetailModal';
-import CategoryFilter from './CategoryFilter';
-import FilterPanel, { FilterState } from './FilterPanel';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Loader2, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 interface ProductGridProps {
-  selectedCategories: string | null;
   searchQuery: string;
-  onCategoryChange: (category: string | null) => void;
   selectedBrand?: string | null;
 }
 
-const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange, selectedBrand }: ProductGridProps) => {
+const ProductGrid = ({ searchQuery, selectedBrand }: ProductGridProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const { data: products, isLoading } = useProducts();
   const [selectedProduct, setSelectedProduct] = useState<DbProduct | null>(null);
@@ -27,129 +22,14 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange, select
   
   const PRODUCTS_PER_PAGE = isMobile ? 10 : 15; // Mobile: 2x5, Desktop: 3x5
 
-  const maxPrice = Math.max(...(products?.map(p => Number(p.price)) || [100000]));
-  const [filters, setFilters] = useState<FilterState>({
-    priceRange: [0, maxPrice],
-    brands: [],
-    ramSizes: [],
-    storageSizes: [],
-  });
-
-  const resetFilters = () => {
-    const resetState: FilterState = {
-      priceRange: [0, maxPrice],
-      brands: [],
-      ramSizes: [],
-      storageSizes: [],
-    };
-    setFilters(resetState);
-    setCurrentPage(1);
-  };
-
   const filteredProducts = products?.filter((product) => {
-    const matchesCategory = selectedCategories === null || selectedCategories === product.category_id;
     const matchesSelectedBrand = selectedBrand === null || selectedBrand === undefined || product.brand === selectedBrand;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
                           (product.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
                           (product.model?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-    
-    // Price filter
-    const price = Number(product.price);
-    const matchesPrice = price >= filters.priceRange[0] && price <= filters.priceRange[1];
 
-    // Brand filter from FilterPanel
-    const matchesFilterBrand = filters.brands.length === 0 || (product.brand && filters.brands.includes(product.brand));
-
-    // Dynamic specification filters
-    const specs = product.specifications as Record<string, any> | null;
-    const matchesSpecs = Object.keys(filters).every(filterKey => {
-      // Skip non-specification filters
-      if (filterKey === 'priceRange' || filterKey === 'brands' || filterKey === 'ramSizes' || filterKey === 'storageSizes') return true;
-      
-      const filterValues = filters[filterKey] as string[];
-      // If no filter values selected for this spec, product passes
-      if (!filterValues || filterValues.length === 0) return true;
-      
-      // If product has no specs at all, it doesn't match
-      if (!specs) return false;
-      
-      let specValue = null;
-      
-      // Check _ordered array first
-      if (specs._ordered && Array.isArray(specs._ordered)) {
-        for (const item of specs._ordered) {
-          if (item && typeof item === 'object' && item.key && item.values) {
-            const itemKey = item.key;
-            const lowerItemKey = itemKey.toLowerCase();
-            
-            // For RAM filter
-            if (filterKey === 'RAM' && (lowerItemKey === 'ram' || lowerItemKey === 'memory')) {
-              specValue = item.values;
-              break;
-            }
-            // For Storage filter
-            else if (filterKey === 'Storage' && (lowerItemKey === 'storage' || lowerItemKey === 'rom')) {
-              specValue = item.values;
-              break;
-            }
-            // For other specs (case-insensitive match)
-            else if (itemKey === filterKey || lowerItemKey === filterKey.toLowerCase()) {
-              specValue = item.values;
-              break;
-            }
-          }
-        }
-      }
-      
-      // If not found in _ordered, check direct properties
-      if (!specValue) {
-        // For RAM filter, check RAM, ram, Memory
-        if (filterKey === 'RAM') {
-          specValue = specs['RAM'] || specs['ram'] || specs['Memory'] || specs['memory'];
-        }
-        // For Storage filter, check Storage, storage, ROM
-        else if (filterKey === 'Storage') {
-          specValue = specs['Storage'] || specs['storage'] || specs['ROM'] || specs['rom'];
-        }
-        // For other specs, exact match
-        else {
-          specValue = specs[filterKey];
-        }
-      }
-      
-      // If product doesn't have this spec key, it doesn't match this filter
-      if (specValue === null || specValue === undefined) return false;
-      
-      // Extract values from the spec and check if any match the filter
-      if (typeof specValue === 'string') {
-        return filterValues.includes(specValue.trim());
-      } else if (typeof specValue === 'number') {
-        return filterValues.includes(String(specValue));
-      } else if (Array.isArray(specValue)) {
-        const values = specValue.map((v: any) => {
-          if (v === null || v === undefined) return '';
-          if (typeof v === 'string') return v.trim();
-          if (typeof v === 'number') return String(v);
-          if (typeof v === 'object') {
-            if (v.value !== undefined) return String(v.value).trim();
-            if (v.label !== undefined) return String(v.label).trim();
-          }
-          return String(v).trim();
-        }).filter(v => v);
-        return values.some((v: string) => filterValues.includes(v));
-      } else if (typeof specValue === 'object' && !Array.isArray(specValue)) {
-        if (specValue.value !== undefined) {
-          return filterValues.includes(String(specValue.value).trim());
-        }
-        if (specValue.label !== undefined) {
-          return filterValues.includes(String(specValue.label).trim());
-        }
-      }
-      return false;
-    });
-
-    return matchesCategory && matchesSelectedBrand && matchesSearch && matchesPrice && matchesFilterBrand && matchesSpecs;
+    return matchesSelectedBrand && matchesSearch;
   }) || [];
 
   // Pagination logic
@@ -189,42 +69,11 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange, select
               {filteredProducts.length} products found
             </p>
           </div>
-          <div className="flex gap-2">
-            {/* Mobile Filter Button */}
-            {isMobile && (
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <SlidersHorizontal className="w-4 h-4 mr-2" />
-                    Filters
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-80 overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle>Filters</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4">
-                    <FilterPanel filters={filters} onFilterChange={setFilters} onReset={resetFilters} />
-                  </div>
-                </SheetContent>
-              </Sheet>
-            )}
-          </div>
         </div>
-        <CategoryFilter selected={selectedCategories} onSelect={onCategoryChange} />
       </div>
 
-      {/* Main Content */}
-      <div className="flex gap-6">
-        {/* Desktop Filters Sidebar */}
-        {!isMobile && (
-          <aside className="w-64 flex-shrink-0">
-            <FilterPanel filters={filters} onFilterChange={setFilters} onReset={resetFilters} />
-          </aside>
-        )}
-
-        {/* Products Grid */}
-        <div className="flex-1">
+      {/* Products Grid */}
+      <div className="flex-1">
           {paginatedProducts.length > 0 ? (
             <>
               <div className={isMobile 
@@ -290,12 +139,11 @@ const ProductGrid = ({ selectedCategories, searchQuery, onCategoryChange, select
               <p className="text-muted-foreground">
                 {products?.length === 0 
                   ? 'No products have been added yet. Check back soon!'
-                  : 'Try adjusting your search or filter criteria'
+                  : 'Try adjusting your search criteria'
                 }
               </p>
             </div>
           )}
-        </div>
       </div>
 
       {/* Product Detail Modal */}

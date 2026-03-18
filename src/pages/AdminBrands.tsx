@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBrands, useCreateBrand, useUpdateBrand, useDeleteBrand, useUpdateBrandOrder, DbBrand } from '@/hooks/useBrands';
+import { useProducts, DbProduct } from '@/hooks/useProducts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Pencil, Trash2, Loader2, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Plus, Pencil, Trash2, Loader2, GripVertical, ChevronUp, ChevronDown, Package, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ImageUpload';
 
@@ -17,6 +19,7 @@ const AdminBrands = () => {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { data: brands, isLoading: brandsLoading } = useBrands();
+  const { data: products } = useProducts();
   const createBrand = useCreateBrand();
   const updateBrand = useUpdateBrand();
   const deleteBrand = useDeleteBrand();
@@ -25,6 +28,8 @@ const AdminBrands = () => {
   const [isBrandDialogOpen, setIsBrandDialogOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<DbBrand | null>(null);
   const [draggedBrand, setDraggedBrand] = useState<string | null>(null);
+  const [selectedBrandForProducts, setSelectedBrandForProducts] = useState<DbBrand | null>(null);
+  const [isProductsDialogOpen, setIsProductsDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -127,6 +132,16 @@ const AdminBrands = () => {
     setDraggedBrand(null);
   };
 
+  const handleViewProducts = (brand: DbBrand) => {
+    setSelectedBrandForProducts(brand);
+    setIsProductsDialogOpen(true);
+  };
+
+  const getBrandProducts = (brandId: string) => {
+    if (!products) return [];
+    return products.filter(p => p.brand_id === brandId || p.brand?.toLowerCase() === brands?.find(b => b.id === brandId)?.name.toLowerCase());
+  };
+
   if (authLoading || brandsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -151,6 +166,13 @@ const AdminBrands = () => {
       </header>
 
       <main className="container mx-auto px-4 lg:px-8 py-8">
+        <Tabs defaultValue="brands" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="brands">Brands Management</TabsTrigger>
+            <TabsTrigger value="products">Products by Brand</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="brands">
         <div className="flex flex-wrap gap-4 mb-8">
           <Dialog open={isBrandDialogOpen} onOpenChange={(open) => {
             setIsBrandDialogOpen(open);
@@ -216,6 +238,7 @@ const AdminBrands = () => {
                     <TableHead className="w-12"></TableHead>
                     <TableHead>Logo</TableHead>
                     <TableHead>Name</TableHead>
+                    <TableHead>Products</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Order</TableHead>
                     <TableHead>Actions</TableHead>
@@ -250,6 +273,9 @@ const AdminBrands = () => {
                         )}
                       </TableCell>
                       <TableCell className="font-medium">{brand.name}</TableCell>
+                      <TableCell>
+                        <span className="text-sm font-medium">{getBrandProducts(brand.id).length}</span>
+                      </TableCell>
                       <TableCell className="max-w-xs truncate">{brand.description || '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
@@ -275,6 +301,9 @@ const AdminBrands = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleViewProducts(brand)} title="View Products">
+                            <Eye className="w-4 h-4" />
+                          </Button>
                           <Button variant="ghost" size="icon" onClick={() => openEditDialog(brand)}>
                             <Pencil className="w-4 h-4" />
                           </Button>
@@ -287,7 +316,7 @@ const AdminBrands = () => {
                   ))}
                   {(!brands || brands.length === 0) && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         No brands yet. Add your first brand!
                       </TableCell>
                     </TableRow>
@@ -297,6 +326,190 @@ const AdminBrands = () => {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="products">
+            <div className="grid gap-6">
+              {brands?.map((brand) => {
+                const brandProducts = getBrandProducts(brand.id);
+                return (
+                  <Card key={brand.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {brand.logo ? (
+                            <img src={brand.logo} alt={brand.name} className="w-10 h-10 object-contain rounded" />
+                          ) : (
+                            <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center">
+                              <span className="text-lg font-bold text-primary">{brand.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                          )}
+                          <div>
+                            <CardTitle>{brand.name}</CardTitle>
+                            <p className="text-sm text-muted-foreground">{brandProducts.length} products</p>
+                          </div>
+                        </div>
+                        <Button onClick={() => navigate('/admin')} variant="outline" size="sm">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Product
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {brandProducts.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Image</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Price</TableHead>
+                                <TableHead>Stock</TableHead>
+                                <TableHead>Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {brandProducts.map((product) => (
+                                <TableRow key={product.id}>
+                                  <TableCell>
+                                    <img
+                                      src={product.image || '/placeholder.svg'}
+                                      alt={product.name}
+                                      className="w-12 h-12 object-cover rounded"
+                                    />
+                                  </TableCell>
+                                  <TableCell className="font-medium">{product.name}</TableCell>
+                                  <TableCell>₹{Number(product.price).toFixed(2)}</TableCell>
+                                  <TableCell>
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                      product.in_stock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                      {product.in_stock ? 'In Stock' : 'Out of Stock'}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => navigate('/admin')}
+                                    >
+                                      <Pencil className="w-4 h-4 mr-1" />
+                                      Edit
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                          <p>No products in this brand yet.</p>
+                          <Button onClick={() => navigate('/admin')} variant="link" size="sm" className="mt-2">
+                            Add your first product
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* View Products Dialog */}
+        <Dialog open={isProductsDialogOpen} onOpenChange={setIsProductsDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedBrandForProducts && (
+                  <div className="flex items-center gap-3">
+                    {selectedBrandForProducts.logo ? (
+                      <img src={selectedBrandForProducts.logo} alt={selectedBrandForProducts.name} className="w-10 h-10 object-contain rounded" />
+                    ) : (
+                      <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center">
+                        <span className="text-lg font-bold text-primary">{selectedBrandForProducts.name.charAt(0).toUpperCase()}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span>{selectedBrandForProducts.name} Products</span>
+                      <p className="text-sm font-normal text-muted-foreground">
+                        {selectedBrandForProducts && getBrandProducts(selectedBrandForProducts.id).length} products
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedBrandForProducts && (
+              <div className="mt-4">
+                {getBrandProducts(selectedBrandForProducts.id).length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Image</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Stock</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getBrandProducts(selectedBrandForProducts.id).map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell>
+                            <img
+                              src={product.image || '/placeholder.svg'}
+                              alt={product.name}
+                              className="w-12 h-12 object-cover rounded"
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell>₹{Number(product.price).toFixed(2)}</TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              product.in_stock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {product.in_stock ? 'In Stock' : 'Out of Stock'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setIsProductsDialogOpen(false);
+                                navigate('/admin');
+                              }}
+                            >
+                              <Pencil className="w-4 h-4 mr-1" />
+                              Edit
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">No products in this brand yet</p>
+                    <p className="text-sm mb-4">Add products with brand name "{selectedBrandForProducts.name}" to see them here</p>
+                    <Button onClick={() => {
+                      setIsProductsDialogOpen(false);
+                      navigate('/admin');
+                    }}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Product
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

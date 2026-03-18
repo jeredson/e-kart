@@ -6,10 +6,8 @@ import ProductGrid from '@/components/ProductGrid';
 import BrandGrid from '@/components/BrandGrid';
 import Footer from '@/components/Footer';
 import { useCart } from '@/contexts/CartContext';
-import { useCategories } from '@/hooks/useProducts';
 
 const Index = () => {
-  const [selectedCategories, setSelectedCategories] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoadingFromCheckout, setIsLoadingFromCheckout] = useState(false);
@@ -17,19 +15,10 @@ const Index = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { loadCart } = useCart();
-  const { data: categories } = useCategories();
 
-  // Sync category filter from URL (?category=Mobiles etc.)
-  const categoryParam = searchParams.get('category');
+  // Sync brand filter from URL
   const brandParam = searchParams.get('brand');
   
-  useEffect(() => {
-    if (!categoryParam || !categories?.length) return;
-    const name = categoryParam.trim();
-    const match = categories.find((c) => c.name.toLowerCase() === name.toLowerCase());
-    if (match) setSelectedCategories(match.id);
-  }, [categoryParam, categories]);
-
   useEffect(() => {
     if (brandParam) {
       setSelectedBrand(brandParam);
@@ -74,9 +63,7 @@ const Index = () => {
         <div ref={productSectionRef}>
           {(selectedBrand || searchQuery) && (
             <ProductGrid
-              selectedCategories={selectedCategories}
               searchQuery={searchQuery}
-              onCategoryChange={setSelectedCategories}
               selectedBrand={selectedBrand}
             />
           )}
