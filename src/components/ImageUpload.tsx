@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,18 @@ export const ImageUpload = ({ value, onChange, label = 'Product Image' }: ImageU
   const { uploadImage, isUploading, uploadProgress } = useCloudinaryUpload();
   const [preview, setPreview] = useState<string | undefined>(value);
   const [imageUrl, setImageUrl] = useState<string>(value || '');
+
+  // Sync preview and imageUrl when value prop changes
+  useEffect(() => {
+    setPreview(value);
+    setImageUrl(value || '');
+  }, [value]);
+
+  // Sync preview and imageUrl when value prop changes
+  useEffect(() => {
+    setPreview(value);
+    setImageUrl(value || '');
+  }, [value]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
