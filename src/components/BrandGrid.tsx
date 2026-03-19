@@ -65,7 +65,7 @@ const BrandGrid = ({ onBrandSelect }: BrandGridProps) => {
             onClick={() => handleBrandClick(brand.name)}
           >
             <CardContent className="p-4 flex flex-col items-center justify-center h-full">
-              <div className="w-16 h-16 mb-3 flex items-center justify-center">
+              <div className="w-20 h-20 md:w-24 md:h-24 lg:w-16 lg:h-16 mb-3 flex items-center justify-center">
                 {brand.logo ? (
                   <img 
                     src={brand.logo} 
@@ -74,13 +74,13 @@ const BrandGrid = ({ onBrandSelect }: BrandGridProps) => {
                   />
                 ) : (
                   <div className="w-full h-full bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-2xl font-bold text-primary">
+                    <span className="text-3xl md:text-4xl lg:text-2xl font-bold text-primary">
                       {brand.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
               </div>
-              <h3 className="font-semibold text-center text-sm">{brand.name}</h3>
+              <h3 className="font-semibold text-center text-sm md:text-base">{brand.name}</h3>
             </CardContent>
           </Card>
         ))}

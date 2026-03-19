@@ -130,30 +130,6 @@ const Navbar = ({ onSearch }: NavbarProps) => {
             </Link>
           </div>
 
-          {/* Shop - Desktop */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="hidden md:flex items-center gap-1 font-medium">
-                Shop
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem asChild>
-                <Link to="/">All Products</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/?category=Mobiles">Mobiles</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/?category=Headphones">Headphones</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/?category=TWS">TWS</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {/* Search Bar - Desktop */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md mx-8">
             <div className="relative w-full" ref={searchRef}>

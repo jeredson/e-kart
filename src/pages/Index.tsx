@@ -36,12 +36,20 @@ const Index = () => {
   }, [location]);
 
   const scrollToProducts = () => {
-    productSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only scroll on desktop, not on mobile
+    if (window.innerWidth >= 768) {
+      productSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleBrandSelect = (brandName: string) => {
     setSelectedBrand(brandName);
-    scrollToProducts();
+    // Scroll to top on mobile instead of to products section
+    if (window.innerWidth < 768) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      scrollToProducts();
+    }
   };
 
   return (
