@@ -124,7 +124,7 @@ const Navbar = ({ onSearch }: NavbarProps) => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}>
-              <img src={branding.logoUrl} alt={branding.siteName} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+              <img src={branding.logoUrl} alt={branding.siteName} className="w-12 h-12 md:w-14 md:h-14 lg:w-10 lg:h-10 rounded-xl object-cover flex-shrink-0" />
               <span className="font-display font-bold text-xl hidden lg:inline">Agnes Mobiles - B2B</span>
               <span className="font-display font-bold text-sm md:text-base md:hidden truncate">Agnes Mobiles - B2B</span>
             </Link>
