@@ -102,25 +102,33 @@ const Navbar = ({ onSearch }: NavbarProps) => {
   return (
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Back Button - Mobile Only */}
-          {showBackButton && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          )}
+        <div className="flex items-center justify-between h-16 lg:h-20 gap-2">
+          {/* Left Section - Back Button + Logo */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {/* Back Button - Mobile Only */}
+            {showBackButton && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden flex-shrink-0"
+                onClick={() => navigate(-1)}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            )}
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src={branding.logoUrl} alt={branding.siteName} className="w-10 h-10 rounded-xl object-cover" />
-            <span className="font-display font-bold text-xl hidden lg:inline">Agnes Mobiles - B2B</span>
-            <span className="font-display font-bold text-base md:hidden">Agnes Mobiles - B2B</span>
-          </Link>
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 min-w-0" onClick={(e) => {
+              if (location.pathname === '/') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}>
+              <img src={branding.logoUrl} alt={branding.siteName} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+              <span className="font-display font-bold text-xl hidden lg:inline">Agnes Mobiles - B2B</span>
+              <span className="font-display font-bold text-sm md:text-base md:hidden truncate">Agnes Mobiles - B2B</span>
+            </Link>
+          </div>
 
           {/* Shop - Desktop */}
           <DropdownMenu>
