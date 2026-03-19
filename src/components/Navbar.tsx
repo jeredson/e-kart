@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, User, LogOut, Shield, Settings, Heart, Users, Package, ChevronDown } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Search, ShoppingCart, User, LogOut, Shield, Settings, Heart, Users, Package, ChevronDown, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,6 +31,9 @@ const Navbar = ({ onSearch }: NavbarProps) => {
   const { totalItems } = useCart();
   const { favorites } = useFavorites();
   const { user, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const showBackButton = location.pathname !== '/';
 
   useEffect(() => {
     if (user) {
@@ -100,10 +103,23 @@ const Navbar = ({ onSearch }: NavbarProps) => {
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
+          {/* Back Button - Mobile Only */}
+          {showBackButton && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          )}
+
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img src={branding.logoUrl} alt={branding.siteName} className="w-10 h-10 rounded-xl object-cover" />
-            <span className="font-display font-bold text-xl hidden sm:inline">Agnes Mobiles - B2B</span>
+            <span className="font-display font-bold text-xl hidden lg:inline">Agnes Mobiles - B2B</span>
+            <span className="font-display font-bold text-base md:hidden">Agnes Mobiles - B2B</span>
           </Link>
 
           {/* Shop - Desktop */}
