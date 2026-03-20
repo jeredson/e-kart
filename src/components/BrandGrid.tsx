@@ -15,7 +15,7 @@ const BrandGrid = ({ onBrandSelect }: BrandGridProps) => {
     if (onBrandSelect) {
       onBrandSelect(brandName);
     } else {
-      navigate(`/?brand=${encodeURIComponent(brandName)}`);
+      navigate(`/brands/${encodeURIComponent(brandName)}`);
     }
   };
 

@@ -14,6 +14,7 @@ import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
 import AdminOrders from "./pages/AdminOrders";
 import AdminBrands from "./pages/AdminBrands";
+import BrandProducts from "./pages/BrandProducts";
 import UserOrders from "./pages/UserOrders";
 import Settings from "./pages/Settings";
 import Checkout from "./pages/Checkout";
@@ -43,6 +44,7 @@ const App = () => (
               <BackNavigationHandler />
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/brands/:brandName" element={<BrandProducts />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
