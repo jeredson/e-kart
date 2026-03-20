@@ -4,8 +4,9 @@ import ProductCard from './ProductCard';
 import ProductCardMobile from './ProductCardMobile';
 import ProductDetailModal from './ProductDetailModal';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface ProductGridProps {
   searchQuery: string;
@@ -19,6 +20,7 @@ const ProductGrid = ({ searchQuery, selectedBrand }: ProductGridProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
   const PRODUCTS_PER_PAGE = isMobile ? 10 : 15; // Mobile: 2x5, Desktop: 3x5
 
@@ -62,6 +64,21 @@ const ProductGrid = ({ searchQuery, selectedBrand }: ProductGridProps) => {
 
   return (
     <section ref={gridRef} className="container mx-auto px-4 lg:px-8 py-12 lg:py-20">
+      {/* Back Button - Shows when viewing brand products */}
+      {selectedBrand && (
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => navigate('/')}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Brands
+          </Button>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
