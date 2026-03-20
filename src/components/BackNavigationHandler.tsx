@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 /**
- * Ensures the device back button (e.g. in Median webview) navigates in-app
- * to the previous page or home instead of closing the application.
+ * Ensures the device back button (e.g. in Median webview or mobile browsers)
+ * navigates in-app to the previous page or home instead of closing the application.
  *
- * - On non-home pages with no in-app history: injects "/" so back goes home.
- * - On home: keeps a guard state so back from home doesn't exit the app.
+ * - On non-home pages with no in-app history: goes to home.
+ * - On home: prevents app from closing by maintaining history.
  */
 export function BackNavigationHandler() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const pathname = location.pathname;
@@ -35,18 +36,29 @@ export function BackNavigationHandler() {
     }
   }, [location.pathname]);
 
-  // When we're on home and one more back would exit the app, push a guard so
-  // back stays in-app (re-push only when history.length === 1).
+  // Handle popstate to prevent app from closing
   useEffect(() => {
-    const handlePopState = () => {
-      if (window.location.pathname === '/' && window.history.length === 1) {
+    const handlePopState = (e: PopStateEvent) => {
+      const currentPath = window.location.pathname;
+      
+      // If we're on home and about to exit, prevent it
+      if (currentPath === '/' && window.history.length === 1) {
+        e.preventDefault();
         window.history.pushState({ medianBackGuard: true }, '', '/');
+        return;
+      }
+      
+      // If we're on a subpage with no history, go to home
+      if (currentPath !== '/' && window.history.length <= 1) {
+        e.preventDefault();
+        navigate('/', { replace: true });
+        return;
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [navigate]);
 
   return null;
 }
